@@ -1,0 +1,22 @@
+{
+  "name": "knowbase",
+  "version": "0.1.0",
+  "description": "Portable, embeddable, AI-friendly JSONL knowledge base tooling.",
+  "type": "module",
+  "bin": {
+    "knowbase": "./src/cli.ts",
+    "kb": "./src/cli.ts"
+  },
+  "scripts": {
+    "kb": "bun run src/cli.ts",
+    "validate": "bun run scripts/kb/validate.ts",
+    "render": "bun run scripts/kb/render.ts",
+    "append": "bun run scripts/kb/append.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "latest"
+  }
+}
