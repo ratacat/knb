@@ -3,5 +3,5 @@ dist/
 .DS_Store
 *.log
 coverage/
-kb/views/*.tmp
-kb/indexes/*.tmp
+knb/views/*.tmp
+knb/indexes/*.tmp

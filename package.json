@@ -1,17 +1,18 @@
 {
-  "name": "knowbase",
+  "name": "knb",
   "version": "0.1.0",
   "description": "Portable, embeddable, AI-friendly JSONL knowledge base tooling.",
+  "homepage": "https://github.com/ratacat/knb#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/ratacat/knb.git"
+  },
   "type": "module",
   "bin": {
-    "knowbase": "./src/cli.ts",
-    "kb": "./src/cli.ts"
+    "knb": "./src/cli.ts"
   },
   "scripts": {
-    "kb": "bun run src/cli.ts",
-    "validate": "bun run scripts/kb/validate.ts",
-    "render": "bun run scripts/kb/render.ts",
-    "append": "bun run scripts/kb/append.ts",
+    "knb": "bun run src/cli.ts",
     "typecheck": "tsc --noEmit",
     "test": "bun test"
   },

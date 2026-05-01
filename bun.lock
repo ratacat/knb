@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "knowbase",
+      "name": "knb",
       "devDependencies": {
         "@types/bun": "latest",
         "typescript": "latest",

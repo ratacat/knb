@@ -1,13 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "kb.v1",
+  "$id": "knb.v1",
   "title": "General Knowledge Base JSONL Row",
   "type": "object",
   "required": ["schema_version", "id", "kind", "created_at", "created_by", "scope"],
   "properties": {
-    "schema_version": { "const": "kb.v1" },
+    "schema_version": { "const": "knb.v1" },
     "id": { "type": "string", "minLength": 1 },
-    "kind": { "enum": ["source", "claim", "question", "synthesis"] },
+    "kind": { "enum": ["source", "claim", "question", "synthesis", "change"] },
     "created_at": { "type": "string" },
     "created_by": { "type": "string" },
     "scope": { "$ref": "#/$defs/scope" },
@@ -20,6 +20,7 @@
     "claim": { "$ref": "#/$defs/claim" },
     "question": { "$ref": "#/$defs/question" },
     "synthesis": { "$ref": "#/$defs/synthesis" },
+    "change": { "$ref": "#/$defs/change" },
     "time": { "$ref": "#/$defs/time" },
     "provenance": { "$ref": "#/$defs/provenance" },
     "assessment": { "$ref": "#/$defs/assessment" },
@@ -28,6 +29,41 @@
       "items": { "$ref": "#/$defs/relation" }
     }
   },
+  "allOf": [
+    {
+      "if": { "properties": { "kind": { "const": "source" } } },
+      "then": { "required": ["source", "provenance"] }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "claim" } } },
+      "then": {
+        "required": ["identity", "claim", "time", "provenance", "assessment"],
+        "properties": {
+          "provenance": {
+            "required": ["evidence"],
+            "properties": {
+              "evidence": { "minItems": 1 }
+            }
+          },
+          "assessment": {
+            "required": ["confidence"]
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "question" } } },
+      "then": { "required": ["question"] }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "synthesis" } } },
+      "then": { "required": ["synthesis"] }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "change" } } },
+      "then": { "required": ["change"] }
+    }
+  ],
   "$defs": {
     "scope": {
       "type": "object",
@@ -37,7 +73,12 @@
         "tags": { "type": "array", "items": { "type": "string" } },
         "language": { "type": ["string", "null"] },
         "geo": { "type": "array", "items": { "type": "string" } }
-      }
+      },
+      "anyOf": [
+        { "required": ["collections"] },
+        { "required": ["subjects"] },
+        { "required": ["tags"] }
+      ]
     },
     "external_ref": {
       "type": "object",
@@ -64,6 +105,11 @@
     "source": {
       "type": "object",
       "required": ["type", "title"],
+      "anyOf": [
+        { "required": ["uri"] },
+        { "required": ["raw_path"] },
+        { "required": ["content_hash"] }
+      ],
       "properties": {
         "type": {
           "enum": [
@@ -130,7 +176,32 @@
           }
         },
         "limitations": { "type": "string" },
-        "status": { "enum": ["active", "superseded", "archived"] }
+        "status": { "enum": ["active", "archived"] }
+      }
+    },
+    "change": {
+      "type": "object",
+      "required": ["action"],
+      "properties": {
+        "action": { "enum": ["retract", "supersede", "merge", "relate", "patch"] },
+        "target_ids": { "type": "array", "items": { "type": "string" } },
+        "target_id": { "type": "string" },
+        "replacement_id": { "type": "string" },
+        "canonical_id": { "type": "string" },
+        "reason": { "type": "string" },
+        "relation": {
+          "type": "object",
+          "required": ["from_id", "to_id", "rel"],
+          "properties": {
+            "from_id": { "type": "string" },
+            "to_id": { "type": "string" },
+            "target_id": { "type": "string" },
+            "rel": { "enum": ["supports", "contradicts", "depends_on", "context_for"] },
+            "strength": { "enum": ["low", "medium", "high"] },
+            "rationale": { "type": "string" }
+          }
+        },
+        "patch": { "type": "array", "items": { "type": "object" } }
       }
     },
     "time": {
@@ -173,10 +244,16 @@
       "type": "object",
       "properties": {
         "confidence": { "enum": ["unknown", "low", "medium", "high"] },
-        "confidence_score": { "type": "number" },
-        "source_reliability": { "type": "number" },
-        "information_depth": { "type": "object" },
-        "importance": { "type": "number" },
+        "source_reliability": { "enum": ["unknown", "low", "medium", "high"] },
+        "information_depth": {
+          "type": "object",
+          "required": ["level", "rationale"],
+          "properties": {
+            "level": { "enum": ["unknown", "thin", "partial", "strong", "complete"] },
+            "rationale": { "type": "string" }
+          }
+        },
+        "importance": { "enum": ["unknown", "low", "medium", "high"] },
         "contested": { "type": "boolean" },
         "uncertainty": { "type": "string" }
       }
@@ -187,7 +264,7 @@
       "properties": {
         "target_id": { "type": "string" },
         "rel": {
-          "enum": ["supports", "contradicts", "updates", "supersedes", "retracts", "duplicates", "depends_on", "context_for"]
+          "enum": ["supports", "contradicts", "depends_on", "context_for"]
         },
         "strength": { "enum": ["low", "medium", "high"] },
         "rationale": { "type": "string" }

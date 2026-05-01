@@ -1,10 +1,12 @@
-export const KB_SCHEMA_VERSION = "kb.v1" as const;
+export const KNB_SCHEMA_VERSION = "knb.v1" as const;
 
-export const ROW_KINDS = ["source", "claim", "question", "synthesis"] as const;
+export const ROW_KINDS = ["source", "claim", "question", "synthesis", "change"] as const;
 export const QUESTION_STATUSES = ["open", "resolved", "archived"] as const;
 export const QUESTION_PRIORITIES = ["low", "medium", "high"] as const;
-export const SYNTHESIS_STATUSES = ["active", "superseded", "archived"] as const;
+export const SYNTHESIS_STATUSES = ["active", "archived"] as const;
 export const CONFIDENCE_VALUES = ["unknown", "low", "medium", "high"] as const;
+export const ASSESSMENT_LEVELS = ["unknown", "low", "medium", "high"] as const;
+export const INFORMATION_DEPTH_VALUES = ["unknown", "thin", "partial", "strong", "complete"] as const;
 export const TIME_PRECISIONS = ["instant", "hour", "day", "month", "year", "range", "unknown"] as const;
 export const SOURCE_TYPES = [
   "article",
@@ -22,16 +24,15 @@ export const SOURCE_TYPES = [
 export const RELATION_TYPES = [
   "supports",
   "contradicts",
-  "updates",
-  "supersedes",
-  "retracts",
-  "duplicates",
   "depends_on",
   "context_for",
 ] as const;
+export const CHANGE_ACTIONS = ["retract", "supersede", "merge", "relate", "patch"] as const;
 
-export type KBRowKind = (typeof ROW_KINDS)[number];
+export type KnbRowKind = (typeof ROW_KINDS)[number];
 export type RelationType = (typeof RELATION_TYPES)[number];
+export type ChangeAction = (typeof CHANGE_ACTIONS)[number];
+export type AssessmentLevel = (typeof ASSESSMENT_LEVELS)[number];
 
 export type Scope = {
   collections?: string[];
@@ -112,14 +113,12 @@ export type Provenance = {
 
 export type Assessment = {
   confidence?: "unknown" | "low" | "medium" | "high";
-  confidence_score?: number;
-  source_reliability?: number;
+  source_reliability?: AssessmentLevel;
   information_depth?: {
-    score: number;
-    label?: string;
+    level: (typeof INFORMATION_DEPTH_VALUES)[number];
     rationale: string;
   };
-  importance?: number;
+  importance?: AssessmentLevel;
   contested?: boolean;
   uncertainty?: string;
 };
@@ -131,17 +130,25 @@ export type Relation = {
   rationale?: string;
 };
 
-export type KBRowCommon = {
-  schema_version: typeof KB_SCHEMA_VERSION;
+export type ChangeRelation = {
+  from_id: string;
+  to_id: string;
+  rel: RelationType;
+  strength?: "low" | "medium" | "high";
+  rationale?: string;
+};
+
+export type KnbRowCommon = {
+  schema_version: typeof KNB_SCHEMA_VERSION;
   id: string;
-  kind: KBRowKind;
+  kind: KnbRowKind;
   created_at: string;
   created_by: string;
   scope: Scope;
   external_refs?: ExternalRef[];
 };
 
-export type SourceRow = KBRowCommon & {
+export type SourceRow = KnbRowCommon & {
   kind: "source";
   source: {
     type: (typeof SOURCE_TYPES)[number];
@@ -158,7 +165,7 @@ export type SourceRow = KBRowCommon & {
   assessment?: Assessment;
 };
 
-export type ClaimRow = KBRowCommon & {
+export type ClaimRow = KnbRowCommon & {
   kind: "claim";
   identity: Identity;
   claim: {
@@ -176,7 +183,7 @@ export type ClaimRow = KBRowCommon & {
   relations?: Relation[];
 };
 
-export type QuestionRow = KBRowCommon & {
+export type QuestionRow = KnbRowCommon & {
   kind: "question";
   question: {
     text: string;
@@ -192,7 +199,7 @@ export type QuestionRow = KBRowCommon & {
   relations?: Relation[];
 };
 
-export type SynthesisRow = KBRowCommon & {
+export type SynthesisRow = KnbRowCommon & {
   kind: "synthesis";
   synthesis: {
     title: string;
@@ -203,10 +210,24 @@ export type SynthesisRow = KBRowCommon & {
       source_ids?: string[];
     };
     limitations?: string;
-    status: "active" | "superseded" | "archived";
+    status: "active" | "archived";
   };
   assessment?: Assessment;
   relations?: Relation[];
 };
 
-export type KBRow = SourceRow | ClaimRow | QuestionRow | SynthesisRow;
+export type ChangeRow = KnbRowCommon & {
+  kind: "change";
+  change: {
+    action: ChangeAction;
+    target_ids?: string[];
+    target_id?: string;
+    replacement_id?: string;
+    canonical_id?: string;
+    reason?: string;
+    relation?: ChangeRelation;
+    patch?: Array<Record<string, unknown>>;
+  };
+};
+
+export type KnbRow = SourceRow | ClaimRow | QuestionRow | SynthesisRow | ChangeRow;

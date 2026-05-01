@@ -1,8 +1,11 @@
 import { appendFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import {
+  ASSESSMENT_LEVELS,
+  CHANGE_ACTIONS,
   CONFIDENCE_VALUES,
-  KB_SCHEMA_VERSION,
+  INFORMATION_DEPTH_VALUES,
+  KNB_SCHEMA_VERSION,
   QUESTION_PRIORITIES,
   QUESTION_STATUSES,
   RELATION_TYPES,
@@ -10,19 +13,20 @@ import {
   SOURCE_TYPES,
   SYNTHESIS_STATUSES,
   TIME_PRECISIONS,
+  type Assessment,
+  type ChangeRow,
   type ClaimRow,
-  type KBRow,
+  type KnbRow,
   type QuestionRow,
-  type Relation,
   type Scope,
   type SourceRow,
   type SynthesisRow,
 } from "./types";
 
-export const DEFAULT_LEDGER_PATH = "kb/ledger.jsonl";
+export const DEFAULT_LEDGER_PATH = "knb/ledger.jsonl";
 
 export type LoadedRow = {
-  row: KBRow;
+  row: KnbRow;
   line: number;
 };
 
@@ -52,7 +56,7 @@ export type QueryOptions = {
   includeHistory?: boolean | undefined;
 };
 
-type RowMap = Map<string, KBRow>;
+type RowMap = Map<string, KnbRow>;
 
 export async function loadLedger(path = DEFAULT_LEDGER_PATH): Promise<Ledger> {
   let content = "";
@@ -74,7 +78,7 @@ export async function loadLedger(path = DEFAULT_LEDGER_PATH): Promise<Ledger> {
     if (!line) continue;
     const lineNumber = index + 1;
     try {
-      rows.push({ row: JSON.parse(line) as KBRow, line: lineNumber });
+      rows.push({ row: JSON.parse(line) as KnbRow, line: lineNumber });
     } catch (error) {
       const detail = error instanceof Error ? error.message : String(error);
       parseIssues.push({ level: "error", line: lineNumber, message: `Invalid JSON: ${detail}` });
@@ -104,7 +108,7 @@ export async function readJsonInput(options: { file?: string | undefined; json?:
 
 export async function appendRow(path: string, row: unknown): Promise<ValidationResult> {
   const ledger = await loadLedger(path);
-  const candidate = { row: row as KBRow, line: ledger.rows.length + 1 };
+  const candidate = { row: row as KnbRow, line: ledger.rows.length + 1 };
   const result = validateLedger([...ledger.rows, candidate], ledger.parseIssues);
   if (!result.ok) return result;
 
@@ -140,6 +144,7 @@ export function validateLedger(rows: LoadedRow[], parseIssues: ValidationIssue[]
     if (kind === "claim") validateClaim(loaded as LoadedRow & { row: ClaimRow }, issues);
     if (kind === "question") validateQuestion(loaded, issues);
     if (kind === "synthesis") validateSynthesis(loaded as LoadedRow & { row: SynthesisRow }, issues);
+    if (kind === "change") validateChange(loaded as LoadedRow & { row: ChangeRow }, byId, issues);
 
     validateSourceRefs(loaded, sourceIds, issues);
     validateRelations(loaded, byId, issues);
@@ -151,26 +156,26 @@ export function validateLedger(rows: LoadedRow[], parseIssues: ValidationIssue[]
   return { ok: !issues.some((issue) => issue.level === "error"), issues };
 }
 
-export function effectiveRows(rows: LoadedRow[]): KBRow[] {
+export function effectiveRows(rows: LoadedRow[]): KnbRow[] {
   const inactive = new Set<string>();
 
   for (const loaded of rows) {
-    const relations = relationArray((loaded.row as { relations?: unknown }).relations);
-    for (const relation of relations) {
-      if (["supersedes", "retracts", "duplicates"].includes(relation.rel)) {
-        inactive.add(relation.target_id);
-      }
-    }
+    if ((loaded.row as { kind?: unknown }).kind !== "change") continue;
+    const change = (loaded.row as ChangeRow).change;
+    if (!isRecord(change)) continue;
+    if (!["retract", "supersede", "merge"].includes(String(change.action))) continue;
+    for (const targetId of stringArray(change.target_ids)) inactive.add(targetId);
   }
 
   return rows.map((loaded) => loaded.row).filter((row) => !inactive.has(row.id));
 }
 
-export function queryRows(rows: LoadedRow[], options: QueryOptions): KBRow[] {
+export function queryRows(rows: LoadedRow[], options: QueryOptions): KnbRow[] {
   const haystack = options.includeHistory ? rows.map((loaded) => loaded.row) : effectiveRows(rows);
   const text = options.text?.toLowerCase();
 
   return haystack.filter((row) => {
+    if (options.kind !== "change" && row.kind === "change") return false;
     if (options.kind && row.kind !== options.kind) return false;
     if (options.collection && !row.scope.collections?.includes(options.collection)) return false;
     if (options.subject && !row.scope.subjects?.includes(options.subject)) return false;
@@ -227,8 +232,8 @@ export function renderCollection(rows: LoadedRow[], collection: string): string 
       if (claim.assessment.confidence) lines.push(`  - Confidence: ${claim.assessment.confidence}`);
       const observed = claim.time.valid_at ?? claim.time.occurred_at ?? claim.time.first_observed_at;
       if (observed) lines.push(`  - Time: ${observed}`);
-      const depth = claim.assessment.information_depth?.score;
-      if (depth !== undefined) lines.push(`  - Depth: ${depth}/10`);
+      const depth = claim.assessment.information_depth?.level;
+      if (depth) lines.push(`  - Depth: ${depth}`);
     }
     lines.push("");
   }
@@ -265,8 +270,8 @@ export async function writeRenderedCollection(path: string, rows: LoadedRow[], c
 function validateCommon(loaded: LoadedRow, issues: ValidationIssue[]): void {
   const row = loaded.row as Record<string, unknown>;
   requireString(row.schema_version, "schema_version", loaded, issues);
-  if (row.schema_version !== KB_SCHEMA_VERSION) {
-    issues.push({ level: "error", line: loaded.line, id: stringValue(row.id), message: "schema_version must be kb.v1" });
+  if (row.schema_version !== KNB_SCHEMA_VERSION) {
+    issues.push({ level: "error", line: loaded.line, id: stringValue(row.id), message: "schema_version must be knb.v1" });
   }
   requireString(row.id, "id", loaded, issues);
   requireEnum(row.kind, ROW_KINDS, "kind", loaded, issues);
@@ -306,6 +311,7 @@ function validateSource(loaded: LoadedRow & { row: SourceRow }, issues: Validati
   if (!isRecord((loaded.row as { provenance?: unknown }).provenance)) {
     issues.push({ level: "error", line: loaded.line, id: loaded.row.id, message: "source row must include provenance object" });
   }
+  validateAssessment((loaded.row as { assessment?: unknown }).assessment, loaded, issues, { requireConfidence: false });
 }
 
 function validateClaim(loaded: LoadedRow & { row: ClaimRow }, issues: ValidationIssue[]): void {
@@ -334,7 +340,7 @@ function validateClaim(loaded: LoadedRow & { row: ClaimRow }, issues: Validation
   if (!isRecord(row.assessment)) {
     issues.push({ level: "error", line: loaded.line, id: loaded.row.id, message: "claim row must include assessment object" });
   } else {
-    requireEnum(row.assessment.confidence, CONFIDENCE_VALUES, "assessment.confidence", loaded, issues);
+    validateAssessment(row.assessment, loaded, issues, { requireConfidence: true });
   }
 }
 
@@ -349,6 +355,7 @@ function validateQuestion(loaded: LoadedRow, issues: ValidationIssue[]): void {
   if (row.question.priority !== undefined) {
     requireEnum(row.question.priority, QUESTION_PRIORITIES, "question.priority", loaded, issues);
   }
+  validateAssessment(row.assessment, loaded, issues, { requireConfidence: false });
 }
 
 function validateSynthesis(loaded: LoadedRow & { row: SynthesisRow }, issues: ValidationIssue[]): void {
@@ -374,6 +381,89 @@ function validateSynthesis(loaded: LoadedRow & { row: SynthesisRow }, issues: Va
       id: loaded.row.id,
       message: "synthesis must include a basis id or explicit limitations note",
     });
+  }
+  validateAssessment(row.assessment, loaded, issues, { requireConfidence: false });
+}
+
+function validateChange(loaded: LoadedRow & { row: ChangeRow }, byId: RowMap, issues: ValidationIssue[]): void {
+  const change = (loaded.row as { change?: unknown }).change;
+  if (!isRecord(change)) {
+    issues.push({ level: "error", line: loaded.line, id: loaded.row.id, message: "change row must include change object" });
+    return;
+  }
+
+  requireEnum(change.action, CHANGE_ACTIONS, "change.action", loaded, issues);
+
+  if (change.action === "retract") {
+    requireTargetIds(change.target_ids, loaded, byId, issues, "change.target_ids");
+    requireString(change.reason, "change.reason", loaded, issues);
+    return;
+  }
+
+  if (change.action === "supersede") {
+    requireTargetIds(change.target_ids, loaded, byId, issues, "change.target_ids");
+    requireExistingId(change.replacement_id, loaded, byId, issues, "change.replacement_id");
+    requireString(change.reason, "change.reason", loaded, issues);
+    return;
+  }
+
+  if (change.action === "merge") {
+    requireExistingId(change.canonical_id, loaded, byId, issues, "change.canonical_id");
+    requireTargetIds(change.target_ids, loaded, byId, issues, "change.target_ids");
+    requireString(change.reason, "change.reason", loaded, issues);
+    return;
+  }
+
+  if (change.action === "relate") {
+    const relation = change.relation;
+    if (!isRecord(relation)) {
+      issues.push({ level: "error", line: loaded.line, id: loaded.row.id, message: "change.relation must be an object" });
+      return;
+    }
+    requireExistingId(relation.from_id, loaded, byId, issues, "change.relation.from_id");
+    requireExistingId(relation.to_id, loaded, byId, issues, "change.relation.to_id");
+    requireEnum(relation.rel, RELATION_TYPES, "change.relation.rel", loaded, issues);
+    return;
+  }
+
+  if (change.action === "patch") {
+    requireExistingId(change.target_id, loaded, byId, issues, "change.target_id");
+    if (!Array.isArray(change.patch) || change.patch.length === 0) {
+      issues.push({ level: "error", line: loaded.line, id: loaded.row.id, message: "change.patch must have at least one item" });
+    }
+    requireString(change.reason, "change.reason", loaded, issues);
+  }
+}
+
+function validateAssessment(
+  value: unknown,
+  loaded: LoadedRow,
+  issues: ValidationIssue[],
+  options: { requireConfidence: boolean },
+): void {
+  if (value === undefined) return;
+  if (!isRecord(value)) {
+    issues.push({ level: "error", line: loaded.line, id: loaded.row.id, message: "assessment must be an object" });
+    return;
+  }
+
+  const assessment = value as Assessment;
+  if (options.requireConfidence || assessment.confidence !== undefined) {
+    requireEnum(assessment.confidence, CONFIDENCE_VALUES, "assessment.confidence", loaded, issues);
+  }
+  if (assessment.source_reliability !== undefined) {
+    requireEnum(assessment.source_reliability, ASSESSMENT_LEVELS, "assessment.source_reliability", loaded, issues);
+  }
+  if (assessment.importance !== undefined) {
+    requireEnum(assessment.importance, ASSESSMENT_LEVELS, "assessment.importance", loaded, issues);
+  }
+  if (assessment.information_depth !== undefined) {
+    if (!isRecord(assessment.information_depth)) {
+      issues.push({ level: "error", line: loaded.line, id: loaded.row.id, message: "assessment.information_depth must be an object" });
+      return;
+    }
+    requireEnum(assessment.information_depth.level, INFORMATION_DEPTH_VALUES, "assessment.information_depth.level", loaded, issues);
+    requireString(assessment.information_depth.rationale, "assessment.information_depth.rationale", loaded, issues);
   }
 }
 
@@ -425,6 +515,28 @@ function validateRelations(loaded: LoadedRow, byId: RowMap, issues: ValidationIs
       issues.push({ level: "error", line: loaded.line, id: loaded.row.id, message: `Unresolved relation target_id: ${targetId}` });
     }
     requireEnum(relation.rel, RELATION_TYPES, "relation.rel", loaded, issues);
+  }
+}
+
+function requireTargetIds(value: unknown, loaded: LoadedRow, byId: RowMap, issues: ValidationIssue[], field: string): void {
+  const targetIds = stringArray(value);
+  if (targetIds.length === 0) {
+    issues.push({ level: "error", line: loaded.line, id: loaded.row.id, message: `${field} must have at least one id` });
+    return;
+  }
+  for (const targetId of targetIds) {
+    requireExistingId(targetId, loaded, byId, issues, field);
+  }
+}
+
+function requireExistingId(value: unknown, loaded: LoadedRow, byId: RowMap, issues: ValidationIssue[], field: string): void {
+  const id = stringValue(value);
+  if (!id) {
+    issues.push({ level: "error", line: loaded.line, id: loaded.row.id, message: `${field} is required` });
+    return;
+  }
+  if (!byId.has(id)) {
+    issues.push({ level: "error", line: loaded.line, id: loaded.row.id, message: `Unresolved ${field}: ${id}` });
   }
 }
 
@@ -490,10 +602,6 @@ function requireEnum<T extends readonly string[]>(
   }
 }
 
-function relationArray(value: unknown): Relation[] {
-  return Array.isArray(value) ? (value.filter(isRecord) as Relation[]) : [];
-}
-
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -514,14 +622,21 @@ function scopeHasAnchor(scope: Scope): boolean {
   return Boolean(scope.collections?.length || scope.subjects?.length || scope.tags?.length);
 }
 
-function byCreated(a: KBRow, b: KBRow): number {
+function byCreated(a: KnbRow, b: KnbRow): number {
   return a.created_at.localeCompare(b.created_at);
 }
 
 function byImportanceThenCreated(a: SynthesisRow, b: SynthesisRow): number {
-  const importanceA = a.assessment?.importance ?? 0;
-  const importanceB = b.assessment?.importance ?? 0;
+  const importanceA = assessmentLevelWeight(a.assessment?.importance);
+  const importanceB = assessmentLevelWeight(b.assessment?.importance);
   return importanceB - importanceA || b.created_at.localeCompare(a.created_at);
+}
+
+function assessmentLevelWeight(level: Assessment["importance"]): number {
+  if (level === "high") return 3;
+  if (level === "medium") return 2;
+  if (level === "low") return 1;
+  return 0;
 }
 
 function titleize(value: string): string {

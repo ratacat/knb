@@ -7,7 +7,7 @@ import {
   validateLedger,
   writeRenderedCollection,
   type ValidationResult,
-} from "./kb";
+} from "./knb";
 
 type FlagMap = Map<string, string | boolean>;
 
@@ -76,7 +76,7 @@ export async function runCli(args: string[]): Promise<number> {
         console.error("Missing required flag: --collection");
         return 1;
       }
-      const out = stringFlag(flags, "out") ?? `kb/views/${collection}.md`;
+      const out = stringFlag(flags, "out") ?? `knb/views/${collection}.md`;
       const ledger = await loadLedger(ledgerPath);
       const result = validateLedger(ledger.rows, ledger.parseIssues);
       if (!result.ok) {
@@ -156,18 +156,18 @@ function displayText(row: { kind: string; source?: { title?: string }; claim?: {
 }
 
 function printHelp(): void {
-  console.log(`knowbase
+  console.log(`knb
 
 Usage:
-  bun run kb -- validate [--ledger kb/ledger.jsonl]
-  bun run kb -- append (--file row.json | --json '{"schema_version":"kb.v1",...}') [--ledger kb/ledger.jsonl]
-  bun run kb -- query [--kind claim] [--collection topic] [--subject name] [--tag tag] [--text text] [--json] [--history]
-  bun run kb -- render --collection topic [--out kb/views/topic.md] [--ledger kb/ledger.jsonl]
+  bun run knb -- validate [--ledger knb/ledger.jsonl]
+  bun run knb -- append (--file row.json | --json '{"schema_version":"knb.v1",...}') [--ledger knb/ledger.jsonl]
+  bun run knb -- query [--kind claim] [--collection topic] [--subject name] [--tag tag] [--text text] [--json] [--history]
+  bun run knb -- render --collection topic [--out knb/views/topic.md] [--ledger knb/ledger.jsonl]
 
 Commands:
   validate  Check JSONL syntax, row shapes, duplicate IDs, source refs, relation targets, and synthesis basis refs.
   append    Validate the existing ledger plus one candidate row, then append the row.
-  query     Return active rows matching filters. Use --history to include superseded, retracted, and duplicate rows.
+  query     Return active knowledge rows matching filters. Use --history to include rows made inactive by change rows.
   render    Generate a Markdown view for one collection.
 `);
 }

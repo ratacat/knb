@@ -1,9 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import { queryRows, validateLedger, type LoadedRow } from "../src/kb";
-import type { ClaimRow, SourceRow, SynthesisRow } from "../src/types";
+import { queryRows, validateLedger, type LoadedRow } from "../src/knb";
+import type { ChangeRow, ClaimRow, KnbRow, SourceRow, SynthesisRow } from "../src/types";
 
 const source: SourceRow = {
-  schema_version: "kb.v1",
+  schema_version: "knb.v1",
   id: "src:test:20260501:aaaa1111",
   kind: "source",
   created_at: "2026-05-01T12:00:00Z",
@@ -23,7 +23,7 @@ const source: SourceRow = {
 };
 
 const claim: ClaimRow = {
-  schema_version: "kb.v1",
+  schema_version: "knb.v1",
   id: "claim:test:20260501:bbbb2222",
   kind: "claim",
   created_at: "2026-05-01T12:01:00Z",
@@ -60,7 +60,7 @@ const claim: ClaimRow = {
 };
 
 const synthesis: SynthesisRow = {
-  schema_version: "kb.v1",
+  schema_version: "knb.v1",
   id: "synth:test:20260501:cccc3333",
   kind: "synthesis",
   created_at: "2026-05-01T12:02:00Z",
@@ -68,7 +68,7 @@ const synthesis: SynthesisRow = {
   scope: { collections: ["test"], subjects: ["Example"] },
   synthesis: {
     title: "Example has sourced knowledge",
-    summary: "The KB can preserve a sourced claim and render it later.",
+    summary: "knb can preserve a sourced claim and render it later.",
     basis: {
       claim_ids: [claim.id],
       source_ids: [source.id],
@@ -94,12 +94,25 @@ describe("validateLedger", () => {
     expect(result.issues.some((issue) => issue.message.includes("Unresolved evidence source_id"))).toBe(true);
   });
 
-  test("query hides rows targeted by supersedes unless history is requested", () => {
+  test("query hides rows targeted by change supersede unless history is requested", () => {
     const replacement = structuredClone(claim);
     replacement.id = "claim:test:20260501:eeee5555";
     replacement.created_at = "2026-05-01T12:03:00Z";
-    replacement.relations = [{ target_id: claim.id, rel: "supersedes" }];
-    const rows = load([source, claim, replacement]);
+    const change: ChangeRow = {
+      schema_version: "knb.v1",
+      id: "chg:test:20260501:ffff6666",
+      kind: "change",
+      created_at: "2026-05-01T12:04:00Z",
+      created_by: "agent:test",
+      scope: { collections: ["test"], subjects: ["Example"] },
+      change: {
+        action: "supersede",
+        target_ids: [claim.id],
+        replacement_id: replacement.id,
+        reason: "The replacement states the claim more precisely.",
+      },
+    };
+    const rows = load([source, claim, replacement, change]);
 
     const active = queryRows(rows, { kind: "claim", collection: "test" });
     const history = queryRows(rows, { kind: "claim", collection: "test", includeHistory: true });
@@ -107,8 +120,19 @@ describe("validateLedger", () => {
     expect(active.map((row) => row.id)).toEqual([replacement.id]);
     expect(history.map((row) => row.id)).toEqual([claim.id, replacement.id]);
   });
+
+  test("rejects lifecycle terms in semantic relations", () => {
+    const badClaim = structuredClone(claim);
+    badClaim.id = "claim:test:20260501:gggg7777";
+    badClaim.relations = [{ target_id: claim.id, rel: "supersedes" as never }];
+
+    const result = validateLedger(load([source, claim, badClaim]));
+
+    expect(result.ok).toBe(false);
+    expect(result.issues.some((issue) => issue.message.includes("relation.rel must be one of"))).toBe(true);
+  });
 });
 
-function load(rows: Array<SourceRow | ClaimRow | SynthesisRow>): LoadedRow[] {
+function load(rows: KnbRow[]): LoadedRow[] {
   return rows.map((row, index) => ({ row, line: index + 1 }));
 }

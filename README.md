@@ -1,8 +1,10 @@
-# Knowbase
+# knb
 
-Knowbase is a portable, embeddable JSONL knowledge base for AI-assisted research.
+`knb` is a portable, embeddable JSONL knowledge base for AI-assisted research.
 
-It stores one canonical append-only ledger with four row kinds: `source`, `claim`, `question`, and `synthesis`. The CLI validates rows, appends them safely, queries the ledger, and renders disposable Markdown views.
+Repository: https://github.com/ratacat/knb
+
+It stores one canonical append-only ledger with four knowledge row kinds: `source`, `claim`, `question`, and `synthesis`. Operational lifecycle events use `change` rows. The CLI validates rows, appends them safely, queries the ledger, and renders disposable Markdown views.
 
 ## Requirements
 
@@ -12,31 +14,31 @@ It stores one canonical append-only ledger with four row kinds: `source`, `claim
 
 ```bash
 bun install
-bun run kb -- validate
+bun run knb -- validate
 ```
 
 Append a row:
 
 ```bash
-bun run kb -- append --file row.json
+bun run knb -- append --file row.json
 ```
 
 Query rows:
 
 ```bash
-bun run kb -- query --kind claim --collection my-topic
+bun run knb -- query --kind claim --collection my-topic
 ```
 
 Render a collection view:
 
 ```bash
-bun run kb -- render --collection my-topic --out kb/views/my-topic.md
+bun run knb -- render --collection my-topic --out knb/views/my-topic.md
 ```
 
 ## Storage
 
 ```text
-kb/
+knb/
   ledger.jsonl
   schema.json
   README.md
@@ -44,15 +46,17 @@ kb/
   indexes/
 ```
 
-Only `kb/ledger.jsonl` is canonical. Generated views and indexes can be deleted and rebuilt.
+Only `knb/ledger.jsonl` is canonical. Generated views and indexes can be deleted and rebuilt.
 
 ## CLI
 
 ```bash
-bun run kb -- validate [--ledger kb/ledger.jsonl]
-bun run kb -- append --file row.json [--ledger kb/ledger.jsonl]
-bun run kb -- query [--kind claim] [--collection topic] [--subject name] [--tag tag] [--text text] [--json]
-bun run kb -- render --collection topic [--out kb/views/topic.md]
+bun run knb -- validate [--ledger knb/ledger.jsonl]
+bun run knb -- append --file row.json [--ledger knb/ledger.jsonl]
+bun run knb -- query [--kind claim] [--collection topic] [--subject name] [--tag tag] [--text text] [--json]
+bun run knb -- render --collection topic [--out knb/views/topic.md]
 ```
 
 The append command validates the entire ledger plus the candidate row before writing. It rejects duplicate IDs, unresolved source references, unresolved relation targets, and kind-specific shape errors.
+
+See [Agent-First CLI Design](docs/design/agent-first-cli.md) for the target CLI and lifecycle model.
