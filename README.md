@@ -1,60 +1,38 @@
 # knb
 
-`knb` is a portable, embeddable JSONL knowledge base for AI-assisted research.
+`knb` is a small JSONL knowledge base for AI-assisted research. It keeps sourced claims, open questions, and synthesis in one append-only ledger that agents can audit and rebuild from scratch.
+
+The CLI is designed for agents, not for hand-operated note taking. It favors explicit commands, JSON envelopes, stable exit codes, and append-only writes over a cozy human interface.
 
 Repository: https://github.com/ratacat/knb
 
-It stores one canonical append-only ledger with four knowledge row kinds: `source`, `claim`, `question`, and `synthesis`. Operational lifecycle events use `change` rows. The CLI is a thin adapter over the `Knb` library facade: it parses arguments, opens a workspace, calls one library method, and renders a structured envelope. Writes go through `apply` and `add` with locked, atomic, fully validated batches; reads go through validated snapshots that respect lifecycle state and projection freshness.
+## How agents use it
 
-## Requirements
+`knb` is for research state that needs to survive across agent turns. A good row is small, sourced, and easy to invalidate later. Agents should not paste a whole dossier into one blob if they can store the source, split the claims, leave open questions, and write a short synthesis.
 
-- Bun
+The loop is usually:
 
-## Quick Start
+1. Read orientation with `status` and `context`.
+2. Check whether candidate claims are new with `novelty`.
+3. Write one atomic batch with `apply`.
+4. Run `check`.
+5. Render views or rebuild indexes when another agent or human needs the projected output.
 
-```bash
-bun install
-bun run knb -- init --json
-bun run knb -- status --json
-```
+The ledger is append-only on purpose. If a claim is wrong, an agent writes a `change` row that retracts or supersedes it. That gives later agents the full trail instead of a silently edited note.
 
-Apply an atomic batch of operations from stdin:
+Reads come from the effective state, not raw file scans. That means queries, context packets, renders, and collection summaries all respect retractions, supersession, merges, and historical `--as-of` cutoffs.
 
-```bash
-bun run knb -- apply --stdin --json < ops.json
-```
+## What it stores
 
-Add a single row:
+The canonical model is `knb.v1`.
 
-```bash
-bun run knb -- add --file row.json --json
-```
+- `source`: where knowledge came from
+- `claim`: the smallest useful proposition
+- `question`: unresolved uncertainty
+- `synthesis`: readable interpretation
+- `change`: lifecycle events such as retractions, supersession, merges, relation changes, and repairs
 
-Query rows:
-
-```bash
-bun run knb -- query --kind claim --collection my-topic --json
-```
-
-Build a token-budgeted context packet:
-
-```bash
-bun run knb -- context --collection my-topic --json
-```
-
-Verify ledger health and projection freshness:
-
-```bash
-bun run knb -- check --json
-```
-
-Render a collection view:
-
-```bash
-bun run knb -- render --collection my-topic --json
-```
-
-## Storage
+Only `knb/ledger.jsonl` is canonical. `knb/views/` and `knb/indexes/` are generated projections. Delete and rebuild them whenever they get stale.
 
 ```text
 knb/
@@ -65,43 +43,99 @@ knb/
   indexes/
 ```
 
-Only `knb/ledger.jsonl` is canonical. Generated views and indexes can be deleted and rebuilt.
-
-## CLI
+## Install
 
 ```bash
-bun run knb -- init    [--root <dir>] [--force] [--json]
-bun run knb -- status  [--root <dir>] [--json]
-bun run knb -- schema  [--json]
-bun run knb -- apply   (--file ops.json | --json '{...}' | --stdin) [--atomic] [--dedupe]
-bun run knb -- add     (--file row.json | --json '{...}' | --stdin)
-bun run knb -- get     <id> [<id>...] [--include-history] [--explain]
-bun run knb -- query   [--kind claim] [--collection topic] [--subject name] [--tag tag] [--text text] [--limit N] [--history] [--json]
-bun run knb -- context [--collection topic] [--max-tokens 3000] [--json]
-bun run knb -- novelty (--file candidates.json | --json '{...}' | --stdin)
-bun run knb -- render  --collection topic [--out knb/views/topic.md]
-bun run knb -- check   [--json]
-bun run knb -- index   [--rebuild]
+curl -fsSL https://raw.githubusercontent.com/ratacat/knb/main/scripts/install.sh | bash
 ```
 
-`apply` and `add` both go through the same locked, validated, atomic write pipeline. They reject duplicate IDs, unresolved source references, unresolved relation targets, and kind-specific shape errors before the ledger is touched.
+The installer keeps a checkout in `~/.knb/knb-cli` and writes a `knb` launcher into a directory on your `PATH`. It installs Bun if Bun is missing. Rerun the same command to update.
 
-## Agent Loop
+## Agent examples
 
-A typical agent research turn:
+Before writing, ask for the current shape of the workspace:
 
 ```bash
 knb status --json
-knb context --collection example --max-tokens 3000 --json
-knb novelty --stdin --json < candidate-claims.json
-knb apply --stdin --atomic --dedupe --json < ops.json
-knb check --json
-knb render --collection example --format md --out knb/views/example.md --json
+knb context --collection my-topic --max-tokens 3000 --json
 ```
 
-`status` orients (cheap), `context` builds a token-budgeted packet, `novelty` classifies candidate claims (no writes), `apply` writes one atomic batch with optional dedupe, `check` reports parse/validation/freshness issues, and `render` regenerates the collection view.
+Preview candidate claims without writing:
 
-## Library Usage
+```bash
+knb novelty --stdin --json < candidate-claims.json
+```
+
+Commit a batch only after the candidate rows are ready:
+
+```bash
+knb apply --stdin --atomic --dedupe --json < ops.json
+```
+
+Check the workspace after writes:
+
+```bash
+knb check --json
+```
+
+Generate disposable outputs for handoff or inspection:
+
+```bash
+knb render --collection my-topic --format md --out knb/views/my-topic.md --json
+knb index --rebuild
+```
+
+For one-off row insertion, `add` wraps the same write path as `apply`:
+
+```bash
+knb add --file row.json --json
+```
+
+For targeted reads, query the effective state:
+
+```bash
+knb query --kind claim --collection my-topic --json
+knb collections --json
+```
+
+## CLI reference
+
+```bash
+knb init    [--root <dir>] [--config <path>] [--ledger <path>] [--actor <name>] [--force] [--json]
+knb status  [--root <dir>] [--collection <c>] [--max-questions N] [--detailed] [--json]
+knb collections [--root <dir>] [--json]
+knb schema  [--json]
+knb log     [--actor <a>] [--since <date>] [--until <date>] [--limit N] [--json]
+knb apply   (--file ops.json | --json '{...}' | --stdin) [--atomic] [--dedupe] [--dry-run]
+knb add     (--file row.json | --json '{...}' | --stdin)
+knb get     <id> [<id>...] [--as-of <iso>] [--include-history] [--explain]
+knb query   [--as-of <iso>] [--kind claim] [--collection topic] [--subject name] [--tag tag] [--text text] [--claim-key key] [--claim-type type] [--predicate value] [--qualifier key=value] [--external-ref system:id] [--citing uri] [--limit N] [--history] [--full] [--json]
+knb context [--as-of <iso>] [--collection topic] [--subject name] [--tag tag] [--claim-type type] [--predicate value] [--qualifier key=value] [--external-ref system:id] [--max-tokens 3000] [--recency-window-days N] [--no-warnings] [--json]
+knb novelty (--file candidates.json | --json '{...}' | --stdin)
+knb render  (--collection topic [--out knb/views/topic.md] | --all) [--as-of <iso>] [--format md] [--json]
+knb check   [--json]
+knb index   [--rebuild]
+```
+
+`apply` and `add` use the same locked write path. They validate the full batch before touching the ledger, so duplicate IDs, unresolved source references, unresolved relation targets, and kind-specific shape errors fail cleanly.
+
+`collections` reads from the validated effective-state snapshot, not from generated indexes. `log` reads apply run manifests from `.knb/runs/`.
+
+`get`, `query`, `context`, and `render` accept `--as-of <iso>` for historical reads. `query` and `context` also accept generic structured-claim filters such as `--claim-type`, `--predicate`, `--qualifier key=value`, and `--external-ref system:id`.
+
+Optional profile files in `knb/profiles/*.json` can validate project-specific claim vocabularies without changing the row model. Run `knb schema --json` to inspect the row schema, RowSelector contract, profile-file contract, and examples.
+
+## Local development
+
+For local development in this repository:
+
+```bash
+bun install
+bun run knb -- init --json
+bun run knb -- status --json
+```
+
+## Library usage
 
 Host applications import the same facade the CLI uses:
 
@@ -125,6 +159,6 @@ const result = await knb.apply({
 });
 ```
 
-See [docs/library-usage.md](docs/library-usage.md) for the full facade and per-method examples.
+See [docs/library-usage.md](docs/library-usage.md) for the facade methods and examples.
 
-See [Agent-First CLI Design](docs/design/agent-first-cli.md) for the full CLI surface, output envelopes, and lifecycle model.
+See [docs/design/agent-first-cli.md](docs/design/agent-first-cli.md) for the full command surface, output envelopes, and lifecycle model.
