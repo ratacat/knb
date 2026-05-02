@@ -1,0 +1,30 @@
+{
+  "atomic": true,
+  "dedupe": true,
+  "operations": [
+    {
+      "op": "merge",
+      "target_ids": ["src:iran-regime-cracks:20260502:ad7f8c6f"],
+      "canonical_id": "src:iran-cracks:20260501:f776b129",
+      "reason": "Duplicate source URI from earlier iran-regime-cracks capture; keep the earlier iran-cracks Iran Focus row canonical."
+    },
+    {
+      "op": "merge",
+      "target_ids": ["src:iran-regime-cracks:20260502:43537ef1"],
+      "canonical_id": "src:iran-cracks:20260501:71b3cc12",
+      "reason": "Duplicate source URI from earlier iran-regime-cracks capture; keep the earlier iran-cracks Radio Farda row canonical."
+    },
+    {
+      "op": "merge",
+      "target_ids": ["src:iran-regime-cracks:20260502:663a0195"],
+      "canonical_id": "src:iran-cracks:20260501:d95f2d6f",
+      "reason": "Duplicate source URI from earlier iran-regime-cracks capture; keep the earlier iran-cracks Melliun/HRANA row canonical."
+    },
+    {
+      "op": "merge",
+      "target_ids": ["src:iran-regime-cracks:20260502:f3ecda32"],
+      "canonical_id": "src:iran-cracks:20260501:94e71fd2",
+      "reason": "Duplicate source URI from earlier iran-regime-cracks capture; keep the earlier iran-cracks Roozno/Vista row canonical."
+    }
+  ]
+}

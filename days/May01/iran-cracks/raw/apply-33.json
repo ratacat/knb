@@ -1,0 +1,574 @@
+{
+  "atomic": true,
+  "dedupe": true,
+  "operations": [
+    {
+      "op": "add",
+      "as": "src_source_notes_v28",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "labor", "unemployment", "war damage"],
+          "tags": ["research-notes", "labor", "unemployment", "war-damage", "v28"]
+        },
+        "source": {
+          "type": "raw_note",
+          "title": "v28 source notes - war-damaged production and unemployment containment",
+          "raw_path": "raw/apply-33-source-notes.md",
+          "language": "en"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "agent synthesis of exa-cli and xPool results",
+            "observed_at": "2026-05-02T02:50:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_xpool_labor_unemployment_v28",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "labor", "unemployment", "X"],
+          "tags": ["xpool", "social", "labor", "unemployment", "layoffs", "persian", "v28"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "dataset",
+          "title": "xPool Persian latest query for war-related unemployment and layoffs",
+          "raw_path": "raw/xpool-labor-unemployment-v28.json",
+          "publisher": "xPool / X SearchTimeline",
+          "language": "fa",
+          "published_at": "2026-05-02T02:43:57Z"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "xpool query",
+            "observed_at": "2026-05-02T02:43:57Z",
+            "job_id": "016426be-39ed-4b46-a6e8-a7b9e7760128",
+            "query": "(\"بیمه بیکاری\" OR بیکار OR تعدیل OR اخراج) (جنگ OR \"واحدهای آسیب‌دیده\" OR کارگران OR کارخانه OR پتروشیمی OR فولاد) since:2026-04-28 lang:fa",
+            "target_items": 120,
+            "max_pages": 8,
+            "items_emitted": 120
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_fararu_150k_unemployment_insurance",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Labor Ministry", "unemployment insurance"],
+          "tags": ["labor", "unemployment", "insurance", "war-damage", "persian", "v28"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "درخواست 150 هزار نفر برای بیمه بیکاری",
+          "uri": "https://fararu.com/fa/news/966710/%D8%AF%D8%B1%D8%AE%D9%88%D8%A7%D8%B3%D8%AA-150-%D9%87%D8%B2%D8%A7%D8%B1-%D9%86%D9%81%D8%B1-%D8%A8%D8%B1%D8%A7%DB%8C-%D8%A8%DB%8C%D9%85%D9%87-%D8%A8%DB%8C%DA%A9%D8%A7%D8%B1%DB%8C",
+          "publisher": "Fararu / ISNA",
+          "language": "fa",
+          "published_at": "2026-04-28T10:20:48Z"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search",
+            "observed_at": "2026-05-02T02:43:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_sinapress_unemployment_estimates",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Labor Ministry", "unemployment"],
+          "tags": ["labor", "unemployment", "estimates", "war-damage", "persian", "v28"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "وزیر کار: ۱۵۰ هزار نفر برای بیمه بیکاری ثبت‌نام کرده‌اند",
+          "uri": "https://sinapress.ir/news/601741/%d9%88%d8%b2%db%8c%d8%b1-%da%a9%d8%a7%d8%b1-%db%b1%db%b5%db%b0-%d9%87%d8%b2%d8%a7%d8%b1-%d9%86%d9%81%d8%b1-%d8%a8%d8%b1%d8%a7%db%8c-%d8%a8%db%8c%d9%85%d9%87-%d8%a8%db%8c%da%a9%d8%a7%d8%b1%db%8c/",
+          "publisher": "Sinapress",
+          "language": "fa"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search",
+            "observed_at": "2026-05-02T02:43:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_ilna_no_worker_fired_war_damaged_units",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Parliament Social Commission", "workers"],
+          "tags": ["labor", "unemployment", "insurance", "war-damage", "parliament", "persian", "v28"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "هیچ کارگری نباید در این شرایط سخت اقتصادی بیکار شود/ کارگران واحدهای آسیب‌دیده در جنگ نگران بیمه بیکاری نباشند",
+          "uri": "https://www.ilna.ir/%D8%A8%D8%AE%D8%B4-%D8%B3%DB%8C%D8%A7%D8%B3%DB%8C-3/1780520-%D9%87%DB%8C%DA%86-%DA%A9%D8%A7%D8%B1%DA%AF%D8%B1%DB%8C-%D9%86%D8%A8%D8%A7%DB%8C%D8%AF-%D8%AF%D8%B1-%D8%A7%DB%8C%D9%86-%D8%B4%D8%B1%D8%A7%DB%8C%D8%B7-%D8%B3%D8%AE%D8%AA-%D8%A7%D9%82%D8%AA%D8%B5%D8%A7%D8%AF%DB%8C-%D8%A8%DB%8C%DA%A9%D8%A7%D8%B1-%D8%B4%D9%88%D8%AF-%DA%A9%D8%A7%D8%B1%DA%AF%D8%B1%D8%A7%D9%86-%D9%88%D8%A7%D8%AD%D8%AF%D9%87%D8%A7%DB%8C-%D8%A2%D8%B3%DB%8C%D8%A8-%D8%AF%DB%8C%D8%AF%D9%87-%D8%AF%D8%B1-%D8%AC%D9%86%DA%AF-%D9%86%DA%AF%D8%B1%D8%A7%D9%86-%D8%A8%DB%8C%D9%85%D9%87-%D8%A8%DB%8C%DA%A9%D8%A7%D8%B1%DB%8C-%D9%86%D8%A8%D8%A7%D8%B4%D9%86%D8%AF",
+          "publisher": "ILNA / Khaneh Mellat",
+          "language": "fa",
+          "published_at": "2026-05-01T15:12:02Z"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search",
+            "observed_at": "2026-05-02T02:42:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_yjc_damaged_businesses_43k",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "damaged businesses", "emergency support"],
+          "tags": ["business", "war-damage", "support", "employment", "persian", "v28"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "آغاز ثبت‌نام بیش از ۴۳ هزار کسب و کار آسیب‌دیده",
+          "uri": "https://vista.ir/n/yjc/5g4u1",
+          "publisher": "YJC via Vista",
+          "language": "fa",
+          "published_at": "2026-04-28T10:23:48Z"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search",
+            "observed_at": "2026-05-02T02:43:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_yjc_three_thousand_industrial_units",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "industrial units", "war damage"],
+          "tags": ["industry", "war-damage", "support", "reconstruction", "persian", "v28"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "آسیب‌دیدگی سه هزار واحد صنعتی در جنگ سوم/ بسته‌های حمایتی در راه است",
+          "uri": "https://vista.ir/n/yjc/76q8d",
+          "publisher": "YJC via Vista",
+          "language": "fa",
+          "published_at": "2026-04-29T09:08:29Z"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search",
+            "observed_at": "2026-05-02T02:43:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_labor_unemployment_insurance_150k_hidden_large_units",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "workers", "unemployment insurance"],
+          "tags": ["labor", "unemployment", "insurance", "war-damage", "v28"]
+        },
+        "identity": {
+          "claim_key": "iran|labor|150k_unemployment_insurance_after_war_hidden_large_units|2026-04-28",
+          "novelty": "new"
+        },
+        "claim": {
+          "statement": "By 28 April 2026, Labor Minister Ahmad Meydari said about 150,000 people had registered for unemployment insurance after the 40-day war, while also saying some large damaged industrial units such as steel and petrochemical sites were still paying wages and had not sent workers to Labor offices, meaning the formal insurance queue does not capture the whole employment shock.",
+          "atomic": true,
+          "type": "official_measurement",
+          "subject": "war-related unemployment insurance registrations",
+          "predicate": "reached",
+          "object": "about 150,000 while large damaged units kept some workers on payroll"
+        },
+        "time": {
+          "occurred_at": "2026-04-28",
+          "precision": "day",
+          "timezone": "Asia/Tehran"
+        },
+        "provenance": {
+          "evidence": [
+            {
+              "source_id": "$src_fararu_150k_unemployment_insurance",
+              "role": "supports",
+              "summary": "Fararu/ISNA reported Meydari's 150,000 unemployment-insurance registration figure and his statement that damaged large units were still paying workers."
+            },
+            {
+              "source_id": "$src_sinapress_unemployment_estimates",
+              "role": "context",
+              "summary": "Sinapress repeated the official 150,000 figure and contrasted it with broader preliminary job-loss estimates and large-unit payroll continuation."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "strong",
+            "rationale": "Named ministerial statement with a concrete administrative count, while explicitly noting the count's blind spot."
+          },
+          "importance": "high"
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_damaged_businesses_support_pipeline",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "damaged businesses", "industrial units"],
+          "tags": ["business", "industry", "war-damage", "support", "employment", "v28"]
+        },
+        "identity": {
+          "claim_key": "iran|war_damage|43k_damaged_businesses_3k_industrial_units_support_pipeline|2026-04-28_2026-05-01",
+          "novelty": "new"
+        },
+        "claim": {
+          "statement": "Between 28 April and 1 May 2026, official/support reporting described a widening business-support pipeline: registration began for more than 43,000 damaged businesses with phase-one coverage expected at about 20 percent of the target group, more than 3,000 industrial units were described as war-damaged with support packages by damage level, and SME working-capital loans were repeatedly framed as employment-preservation support.",
+          "atomic": true,
+          "type": "policy_response",
+          "subject": "Iranian state support for damaged businesses",
+          "predicate": "targeted",
+          "object": "damaged businesses, industrial units, and SME employment preservation"
+        },
+        "time": {
+          "valid_from": "2026-04-28",
+          "valid_until": "2026-05-01",
+          "precision": "range",
+          "timezone": "Asia/Tehran"
+        },
+        "provenance": {
+          "evidence": [
+            {
+              "source_id": "$src_yjc_damaged_businesses_43k",
+              "role": "supports",
+              "summary": "YJC/Vista reported registration of more than 43,000 damaged businesses and expected 20 percent phase-one coverage."
+            },
+            {
+              "source_id": "$src_yjc_three_thousand_industrial_units",
+              "role": "supports",
+              "summary": "YJC/Vista reported more than 3,000 industrial units damaged in the recent war and support packages being designed by damage level."
+            },
+            {
+              "source_id": "$src_source_notes_v28",
+              "role": "context",
+              "summary": "The notes preserve multiple May 1 Vista/Moniban/Tasnim references to 44-million-toman per-worker working-capital support for damaged SMEs."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "partial",
+            "rationale": "The administrative targets are concrete, but actual disbursement, approval rates, and business survival outcomes remain unverified."
+          },
+          "importance": "high"
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_no_layoff_instruction_and_insurance_reassurance",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "workers", "Parliament Social Commission"],
+          "tags": ["labor", "unemployment", "job-security", "parliament", "war-damage", "v28"]
+        },
+        "identity": {
+          "claim_key": "iran|labor|anti_layoff_and_unemployment_insurance_reassurance|2026-05-01",
+          "novelty": "new"
+        },
+        "claim": {
+          "statement": "On 1 May 2026, a Parliament Social Commission spokesman publicly said no worker should be fired in the current economic conditions, asked provincial labor offices to prevent layoffs, and reassured workers in war-damaged units that unemployment-insurance funding was being pursued with Social Security and the Labor Ministry.",
+          "atomic": true,
+          "type": "official_statement",
+          "subject": "Parliament Social Commission spokesman",
+          "predicate": "called_for",
+          "object": "anti-layoff enforcement and unemployment-insurance reassurance for damaged units"
+        },
+        "time": {
+          "occurred_at": "2026-05-01",
+          "precision": "day",
+          "timezone": "Asia/Tehran"
+        },
+        "provenance": {
+          "evidence": [
+            {
+              "source_id": "$src_ilna_no_worker_fired_war_damaged_units",
+              "role": "supports",
+              "summary": "ILNA/Khaneh Mellat carried the spokesman's anti-layoff statement, references to damaged steel/petrochemical units, and unemployment-insurance reassurance."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "partial",
+            "rationale": "The statement is source-near and explicit, but enforcement capacity and compliance by employers remain unknown."
+          },
+          "importance": "high"
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_industrial_power_continuity_employment_risk",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "industry", "electricity", "employment"],
+          "tags": ["industry", "electricity", "production", "employment", "war-damage", "v28"]
+        },
+        "identity": {
+          "claim_key": "iran|industry|power_continuity_promised_until_ord20_employment_risk|2026-04-29",
+          "novelty": "new"
+        },
+        "claim": {
+          "statement": "On 29 April 2026, electricity officials promised full industrial power until 20 Ordibehesht and later/lower summer restrictions than last year, while saying weekly decisions would depend on temperature, demand, and generation and that industries with damaged captive plants should repair them quickly; the frame links energy continuity to keeping production and employment stable.",
+          "atomic": true,
+          "type": "official_statement",
+          "subject": "industrial electricity supply",
+          "predicate": "was_framed_as",
+          "object": "temporary production-continuity support before summer restrictions"
+        },
+        "time": {
+          "occurred_at": "2026-04-29",
+          "precision": "day",
+          "timezone": "Asia/Tehran"
+        },
+        "provenance": {
+          "evidence": [
+            {
+              "source_id": "src:iran-cracks:20260502:ff629e35",
+              "role": "supports",
+              "summary": "Iran Newspaper/Seda va Sima reported full industrial power until 20 Ordibehesht, later restrictions, weekly decisions, and support for damaged captive power."
+            },
+            {
+              "source_id": "$src_source_notes_v28",
+              "role": "context",
+              "summary": "The notes preserve parallel Mehr/EghtesadOnline/Information search results framing industrial power cuts as employment and production risks."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "partial",
+            "rationale": "The official promise is clear, but actual May 10-20 supply conditions and factory-level outages remain open."
+          },
+          "importance": "medium"
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_xpool_labor_unemployment_discourse_v28",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "labor", "X"],
+          "tags": ["xpool", "social", "labor", "unemployment", "layoffs", "internet", "v28"]
+        },
+        "identity": {
+          "claim_key": "iran|xpool|labor_unemployment_layoff_discourse|2026-05-02",
+          "novelty": "new"
+        },
+        "claim": {
+          "statement": "The v28 xPool labor/unemployment sample after 28 April emitted 120 Persian items and was dominated by layoffs and worker language rather than formal unemployment-insurance administration: 76 texts contained layoff/firing terms, 56 unemployment terms, 88 worker terms, 48 war terms, 32 internet terms, 16 steel terms, and 7 petrochemical terms; high-engagement posts split between official denial of Steel Mobarakeh layoffs and worker/opposition anger about war, blackout, and business-collapse layoffs.",
+          "atomic": true,
+          "type": "observation",
+          "subject": "v28 xPool labor/unemployment sample",
+          "predicate": "was_dominated_by",
+          "object": "layoff and worker discourse rather than formal insurance details"
+        },
+        "time": {
+          "first_observed_at": "2026-05-02T02:43:57Z",
+          "precision": "instant",
+          "timezone": "UTC"
+        },
+        "provenance": {
+          "evidence": [
+            {
+              "source_id": "$src_xpool_labor_unemployment_v28",
+              "role": "supports",
+              "summary": "The saved dataset contains 120 emitted items from the focused Persian latest query."
+            },
+            {
+              "source_id": "$src_source_notes_v28",
+              "role": "supports",
+              "summary": "The notes record jq keyword counts and manual inspection of high-engagement official denial, anti-layoff, and worker-anger posts."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "partial",
+            "rationale": "The sample supports discourse topology, not verified layoff totals or representativeness."
+          },
+          "importance": "medium"
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "synth_v28_labor_unemployment_containment",
+      "row": {
+        "kind": "synthesis",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran"],
+          "tags": ["overview", "synthesis", "v28", "labor", "unemployment", "war-damage"]
+        },
+        "synthesis": {
+          "title": "Cracks in the Islamic Republic, v28 - unemployment becomes an administrative containment problem",
+          "summary": "The twenty-eighth pass turns the labor layer from May Day grievance into a concrete post-war employment-containment file. The strongest official number is no longer vague: Labor Minister Ahmad Meydari says about 150,000 people have registered for unemployment insurance after the 40-day war. But the number is also incomplete by design, because damaged large units such as steel and petrochemical sites may still be paying wages and not sending workers to Labor offices. State support architecture is expanding around that risk: more than 43,000 damaged businesses entering support registration, more than 3,000 damaged industrial units with packages by damage level, 44-million-toman per-worker SME loans in the search record, and a May 1 parliamentary line that no worker should be fired in these conditions. Electricity policy is now part of the same containment logic: full industrial power is promised until 20 Ordibehesht and later restrictions are advertised as support for production continuity, but weekly decisions and damaged captive-power plants keep the summer risk live. xPool shows the social layer is harsher than the administrative layer: discourse is dominated by layoff, firing, worker, war, blackout, steel, and petrochemical language, with official denial of Steel Mobarakeh layoffs competing against worker-side anger about internet and war-driven business collapse. Net: the regime has not lost the labor file, but it is trying to prevent a production shock from becoming a worker street shock through payroll continuation, insurance queues, loans, anti-layoff messaging, patriotic consumption appeals, and industrial-power promises.",
+          "basis": {
+            "claim_ids": [
+              "$claim_labor_unemployment_insurance_150k_hidden_large_units",
+              "$claim_damaged_businesses_support_pipeline",
+              "$claim_no_layoff_instruction_and_insurance_reassurance",
+              "$claim_industrial_power_continuity_employment_risk",
+              "$claim_xpool_labor_unemployment_discourse_v28",
+              "claim:iran-cracks:20260502:0cdcca6a",
+              "claim:iran-cracks:20260502:b89cc510",
+              "claim:iran-cracks:20260502:d2b8abe9",
+              "claim:iran-cracks:20260501:ecc4b1a8",
+              "claim:iran-cracks:20260502:42258638"
+            ],
+            "question_ids": [
+              "q:iran-cracks:20260502:516a1945",
+              "q:iran-cracks:20260502:68c94293",
+              "q:iran-cracks:20260502:af797f00"
+            ],
+            "source_ids": [
+              "$src_source_notes_v28",
+              "$src_xpool_labor_unemployment_v28",
+              "$src_fararu_150k_unemployment_insurance",
+              "$src_sinapress_unemployment_estimates",
+              "$src_ilna_no_worker_fired_war_damaged_units",
+              "$src_yjc_damaged_businesses_43k",
+              "$src_yjc_three_thousand_industrial_units",
+              "src:iran-cracks:20260502:ff629e35"
+            ]
+          },
+          "limitations": "The official numbers are administrative and may undercount informal, contract, platform, and internet-dependent workers. The larger 1-2 million job-loss estimate needs direct corroboration before being treated as more than a reported estimate. xPool is discourse evidence only. The decisive follow-up is payment reality: who actually receives wages, unemployment insurance, loans, and electricity continuity between 10 and 20 Ordibehesht.",
+          "status": "active"
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "strong",
+            "rationale": "The pass combines ministerial numbers, domestic Persian labor/parliamentary reporting, business-support reporting, electricity-continuity reporting, prior KNB labor rows, and a bounded current xPool sample."
+          },
+          "importance": "high"
+        }
+      }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_labor_unemployment_insurance_150k_hidden_large_units",
+      "to_id": "q:iran-cracks:20260502:516a1945",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "The 150,000 insurance queue and large-unit payroll blind spot directly test whether post-war unemployment becomes a delayed labor wave.",
+      "scope": {
+        "collections": ["iran-cracks"]
+      }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_damaged_businesses_support_pipeline",
+      "to_id": "claim:iran-cracks:20260501:ecc4b1a8",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "The support pipeline is the state response to the earlier factory-damage and layoff-pressure pattern.",
+      "scope": {
+        "collections": ["iran-cracks"]
+      }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_no_layoff_instruction_and_insurance_reassurance",
+      "to_id": "q:iran-cracks:20260502:68c94293",
+      "rel": "context_for",
+      "strength": "medium",
+      "rationale": "Anti-layoff messaging after May Day shows managed labor channels carrying survival pressure rather than independent coordination so far.",
+      "scope": {
+        "collections": ["iran-cracks"]
+      }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_industrial_power_continuity_employment_risk",
+      "to_id": "q:iran-cracks:20260502:af797f00",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "Full industrial power until 20 Ordibehesht directly updates the open question about the May 10 industrial-power cliff.",
+      "scope": {
+        "collections": ["iran-cracks"]
+      }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_xpool_labor_unemployment_discourse_v28",
+      "to_id": "q:iran-cracks:20260502:516a1945",
+      "rel": "context_for",
+      "strength": "medium",
+      "rationale": "The sample shows the worker-side discourse is already framed around layoffs, firings, blackout, steel, and petrochemical pressure.",
+      "scope": {
+        "collections": ["iran-cracks"]
+      }
+    },
+    {
+      "op": "supersede",
+      "target_ids": ["synth:iran-cracks:20260502:ae77c11a"],
+      "replacement_id": "$synth_v28_labor_unemployment_containment",
+      "reason": "v28 moves from Internet Pro control to the connected post-war labor-stability file: unemployment-insurance queues, damaged-business support, anti-layoff messaging, industrial-power continuity, and worker-side layoff discourse."
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+[2m2026-05-02T04:04:54.658Z[0m [32mINFO [0m [xpool-cli] [cli.command.started] CLI command started [2m{"commandId":"query","commandPath":"query"}[0m
+[2m2026-05-02T04:04:54.741Z[0m [32mINFO [0m [xpool-cli] [cli.command.completed] CLI command completed [2m{"commandId":"query","commandPath":"query","duration_ms":84}[0m
+created: true
+idempotency:
+  key: iran-labor-teacher-v37
+  replayed: false
+job:
+  cancelRequestedAt: -
+  completedAt: -
+  id: 928bc14e-0808-4ba8-a91a-6a8da514ee2e
+  idempotencyKey: iran-labor-teacher-v37
+  resultState: none
+  startedAt: -
+  state: queued
+  stopReason: -
+  submittedAt: 1777694694667
+links:
+  cancelPath: /query-jobs/928bc14e-0808-4ba8-a91a-6a8da514ee2e/cancel
+  eventsPath: /query-jobs/928bc14e-0808-4ba8-a91a-6a8da514ee2e/events
+  resultPath: /query-jobs/928bc14e-0808-4ba8-a91a-6a8da514ee2e/result
+  statusPath: /query-jobs/928bc14e-0808-4ba8-a91a-6a8da514ee2e
+ok: true
+query:
+  budget: [3 fields]
+  endpoint: SearchTimeline
+  params: [2 fields]

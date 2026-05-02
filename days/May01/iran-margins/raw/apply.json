@@ -1,0 +1,476 @@
+{
+  "atomic": true,
+  "dedupe": true,
+  "operations": [
+    {"op":"add","as":"src_un_afghan_q1","row":{
+      "kind":"source",
+      "scope":{"collections":["iran-margins"],"subjects":["Iran","Afghan migrants"],"tags":["migration","scapegoating"],"language":"en"},
+      "source":{"type":"article","title":"Over 120,000 Afghans deported from Iran in three months: UN","uri":"https://thefrontierpost.com/over-120000-afghans-deported-from-iran-in-three-months-un/","publisher":"The Frontier Post","language":"en","published_at":"2026-04-03T20:14:42Z"},
+      "provenance":{"acquisition":{"method":"exa-search","observed_at":"2026-05-01T23:35:00Z"}}
+    }},
+    {"op":"add","as":"src_jomhor_afghan_apr18","row":{
+      "kind":"source",
+      "scope":{"collections":["iran-margins"],"subjects":["Iran","Afghan migrants"],"tags":["migration","persian"],"language":"fa"},
+      "source":{"type":"article","title":"حدود ۶۰۰۰ مهاجر افغان از ایران و پاکستان اخراج شدند (Around 6,000 Afghan migrants deported from Iran and Pakistan)","uri":"https://www.jomhornews.com/fa/news/191944/","publisher":"Jomhor News","language":"fa","published_at":"2026-04-18T11:40:00Z"},
+      "provenance":{"acquisition":{"method":"exa-search","observed_at":"2026-05-01T23:35:00Z"}}
+    }},
+    {"op":"add","as":"src_swn_afghan_apr19","row":{
+      "kind":"source",
+      "scope":{"collections":["iran-margins"],"subjects":["Iran","Afghan migrants"],"tags":["migration","persian"],"language":"fa"},
+      "source":{"type":"article","title":"اخراج بیش از ۷۰۰۰ شهروند افغانستان از ایران و پاکستان (Over 7,000 Afghan citizens expelled from Iran and Pakistan)","uri":"https://swn.af/more-than-7000-afghan-citizens-expelled-from-iran-and-pakistan-2/","publisher":"Salam Watandar","language":"fa","published_at":"2026-04-19T05:40:49Z"},
+      "provenance":{"acquisition":{"method":"exa-search","observed_at":"2026-05-01T23:35:00Z"}}
+    }},
+    {"op":"add","as":"src_jss_bazaar_apr29","row":{
+      "kind":"source",
+      "scope":{"collections":["iran-margins"],"subjects":["Tehran","Tehran Bazaar"],"tags":["bazaar","economy","persian"],"language":"fa"},
+      "source":{"type":"article","title":"تعطیلی سراسری بازار تهران؛ اعتراض به نرخ ارز بالا گرفت (Nationwide closure of Tehran Bazaar; protest over exchange rate intensifies)","uri":"https://vista.ir/n/jahansanatnews/kpbqy","publisher":"Jahan-Sanat News (via Vista)","language":"fa","published_at":"2026-04-29T15:02:41Z"},
+      "provenance":{"acquisition":{"method":"exa-search","observed_at":"2026-05-01T23:35:00Z"}}
+    }},
+    {"op":"add","as":"src_ensaf_bazaar_apr27","row":{
+      "kind":"source",
+      "scope":{"collections":["iran-margins"],"subjects":["Tehran","Tehran Bazaar"],"tags":["bazaar","protests","persian"],"language":"fa"},
+      "source":{"type":"article","title":"گزارش‌های ایسنا، فارس و ایرنا از تجمعات اعتراضی امروز بازار تهران (ISNA, Fars and IRNA reports on today's protest gatherings at Tehran Bazaar)","uri":"https://vista.ir/n/ensafnews/yh9h3","publisher":"Ensaf News (via Vista)","language":"fa","published_at":"2026-04-27T07:22:53Z"},
+      "provenance":{"acquisition":{"method":"exa-search","observed_at":"2026-05-01T23:35:00Z"}}
+    }},
+    {"op":"add","as":"src_iranintl_naimi","row":{
+      "kind":"source",
+      "scope":{"collections":["iran-margins"],"subjects":["Iran","Bahá'í"],"tags":["minorities","executions","persian"],"language":"fa"},
+      "source":{"type":"social_post","title":"Iran International — Universal House of Justice: Naimi cousins (Peyvand & Borna) at risk of execution","uri":"https://x.com/IranIntl/status/2049881934742835254","publisher":"Iran International (Persian)","language":"fa","published_at":"2026-04-30T16:01:52Z"},
+      "provenance":{"acquisition":{"method":"xpool-SearchTimeline","observed_at":"2026-05-01T23:35:00Z"}}
+    }},
+    {"op":"add","as":"src_hengaw_kerman_bahai","row":{
+      "kind":"source",
+      "scope":{"collections":["iran-margins"],"subjects":["Kerman","Bahá'í"],"tags":["minorities","prisoners"],"language":"en"},
+      "source":{"type":"article","title":"Three Baha'i women jailed in Kerman to serve prison sentences","uri":"https://hengaw.net/en/news/2026/04/article-75","publisher":"Hengaw","language":"en","published_at":"2026-04-01T00:00:00Z"},
+      "provenance":{"acquisition":{"method":"exa-search","observed_at":"2026-05-01T23:35:00Z"}}
+    }},
+    {"op":"add","as":"src_moniban_conscription","row":{
+      "kind":"source",
+      "scope":{"collections":["iran-margins"],"subjects":["Iran"],"tags":["conscription","military","persian"],"language":"fa"},
+      "source":{"type":"article","title":"جریمه جدید برای سربازان فراری و غائب اعلام شد (New fines for runaway and absent conscripts announced)","uri":"https://vista.ir/n/moniban/nk86o","publisher":"Moniban (via Vista)","language":"fa","published_at":"2026-04-28T23:51:30Z"},
+      "provenance":{"acquisition":{"method":"exa-search","observed_at":"2026-05-01T23:35:00Z"}}
+    }},
+    {"op":"add","as":"src_sharq_irgc_hijab","row":{
+      "kind":"source",
+      "scope":{"collections":["iran-margins"],"subjects":["IRGC","Iran"],"tags":["hijab","women","official","persian"],"language":"fa"},
+      "source":{"type":"article","title":"هشدار جانشین فرمانده سپاه به زنان: حجاب دستور خود خداست (IRGC deputy commander warns women: hijab is God's own command)","uri":"https://vista.ir/n/sharghdaily/zivco","publisher":"Sharq Daily (via Vista)","language":"fa","published_at":"2026-04-22T15:43:17Z"},
+      "provenance":{"acquisition":{"method":"exa-search","observed_at":"2026-05-01T23:35:00Z"}}
+    }},
+    {"op":"add","as":"src_iranintl_war_on_women","row":{
+      "kind":"source",
+      "scope":{"collections":["iran-margins"],"subjects":["Iran"],"tags":["hijab","women","persian"],"language":"fa"},
+      "source":{"type":"article","title":"اشغال فضاهای شهری؛ بازگشت به دهه ۶۰ زیر سایه پروپاگاندای جنگ (Occupation of urban spaces: a return to the 60s under shadow of war propaganda)","uri":"https://www.iranintl.com/202604214416","publisher":"Iran International","language":"fa","published_at":"2026-04-21T10:59:09Z"},
+      "provenance":{"acquisition":{"method":"exa-search","observed_at":"2026-05-01T23:35:00Z"}}
+    }},
+    {"op":"add","as":"src_jamejam_irib_3rd","row":{
+      "kind":"source",
+      "scope":{"collections":["iran-margins"],"subjects":["IRIB","Iran"],"tags":["cyber","official","persian"],"language":"fa"},
+      "source":{"type":"article","title":"سومین حمله دشمن آمریکایی-صهیونی به سازمان صداوسیما (Third American-Zionist enemy attack on IRIB)","uri":"https://vista.ir/n/jamejamonline/ge2xo","publisher":"Jam-e Jam Online (IRIB-affiliated)","language":"fa","published_at":"2026-04-27T16:11:10Z"},
+      "provenance":{"acquisition":{"method":"exa-search","observed_at":"2026-05-01T23:35:00Z"}}
+    }},
+    {"op":"add","as":"src_jt_irregulars_irib_hijack","row":{
+      "kind":"source",
+      "scope":{"collections":["iran-margins"],"subjects":["IRIB","Iran","Reza Pahlavi"],"tags":["cyber","predatory-sparrow","propaganda"],"language":"en"},
+      "source":{"type":"article","title":"Hackers disrupt Iran state TV to broadcast exiled crown prince (FRANCE 24 mirror)","uri":"https://www.jtirregulars.com/2026/01/hackers-disrupt-iran-state-tv-to.html","publisher":"JT Irregulars (mirroring France 24 English)","language":"en","published_at":"2026-04-29T04:39:00Z"},
+      "provenance":{"acquisition":{"method":"exa-search","observed_at":"2026-05-01T23:35:00Z"}}
+    }},
+    {"op":"add","as":"src_iranintl_treasury_apr24","row":{
+      "kind":"source",
+      "scope":{"collections":["iran-margins"],"subjects":["Iran","United States","oil"],"tags":["sanctions","oil","shadow-fleet","persian"],"language":"fa"},
+      "source":{"type":"social_post","title":"Iran International — US Treasury sanctions ~20 companies & 19 ships of Iran's 'shadow fleet'","uri":"https://x.com/IranIntl/status/2047750467548021153","publisher":"Iran International (Persian)","language":"fa","published_at":"2026-04-24T18:52:11Z"},
+      "provenance":{"acquisition":{"method":"xpool-SearchTimeline","observed_at":"2026-05-01T23:35:00Z"}}
+    }},
+    {"op":"add","as":"src_centcom_sevan","row":{
+      "kind":"source",
+      "scope":{"collections":["iran-margins"],"subjects":["Iran","CENTCOM","oil"],"tags":["sanctions","blockade","oil","persian"],"language":"fa"},
+      "source":{"type":"social_post","title":"@nictv24 — CENTCOM intercepted MV Sevan; ship forced to return","uri":"https://x.com/nictv24/status/2048406989940641956","publisher":"@nictv24","language":"fa","published_at":"2026-04-26T14:20:58Z"},
+      "provenance":{"acquisition":{"method":"xpool-SearchTimeline","observed_at":"2026-05-01T23:35:00Z"}}
+    }},
+    {"op":"add","as":"src_bloomberg_dark_tankers","row":{
+      "kind":"source",
+      "scope":{"collections":["iran-margins"],"subjects":["Iran","oil"],"tags":["sanctions","oil","blockade"],"language":"en"},
+      "source":{"type":"article","title":"Iran Tankers Go Dark to Sail Past US Blockade Laden With Oil","uri":"https://www.bloomberg.com/news/articles/2026-04-22/iran-tankers-go-dark-to-sail-past-us-blockade-laden-with-crude","publisher":"Bloomberg","language":"en","published_at":"2026-04-22T00:00:00Z"},
+      "provenance":{"acquisition":{"method":"exa-search","observed_at":"2026-05-01T23:35:00Z"}}
+    }},
+    {"op":"add","as":"src_bloomberg_chabahar","row":{
+      "kind":"source",
+      "scope":{"collections":["iran-margins"],"subjects":["Iran","Chabahar","oil"],"tags":["sanctions","oil","blockade"],"language":"en"},
+      "source":{"type":"article","title":"Iran Oil Tankers Cluster Near US Blockade Line Off Chabahar Port","uri":"https://www.bloomberg.com/news/articles/2026-04-28/iranian-oil-tankers-are-clustering-just-shy-of-us-blockade-line","publisher":"Bloomberg","language":"en","published_at":"2026-04-28T00:00:00Z"},
+      "provenance":{"acquisition":{"method":"exa-search","observed_at":"2026-05-01T23:35:00Z"}}
+    }},
+    {"op":"add","as":"src_saednews_courage_flex","row":{
+      "kind":"source",
+      "scope":{"collections":["iran-margins"],"subjects":["Iran","reformists"],"tags":["elite-defection","reformists","negotiations"],"language":"en"},
+      "source":{"type":"article","title":"Iran Needs 'Courage in Flexibility,' Not Endless Confrontation, Says Reformist Leader","uri":"https://en.saednews.com/cn/18/10053","publisher":"SaedNews","language":"en","published_at":"2026-04-21T23:50:50Z"},
+      "provenance":{"acquisition":{"method":"exa-search","observed_at":"2026-05-01T23:35:00Z"}}
+    }},
+    {"op":"add","as":"src_snn_friday_attendance","row":{
+      "kind":"source",
+      "scope":{"collections":["iran-margins"],"subjects":["Tehran","Iran"],"tags":["friday-prayer","propaganda","persian"],"language":"fa"},
+      "source":{"type":"article","title":"حضور مستمر مردم در میدان نماز شهر ری؛ خامنه‌ای تا هر وقت بخواهند ما در میدان هستیم (Continuous presence of people at Shahr-e Rey prayer square: Khamenei whenever you wish, we are in the field)","uri":"https://vista.ir/n/snn/sermr","publisher":"SNN (via Vista)","language":"fa","published_at":"2026-05-01T14:37:34Z"},
+      "provenance":{"acquisition":{"method":"exa-search","observed_at":"2026-05-01T23:35:00Z"}}
+    }},
+
+    {"op":"add","as":"claim_afghans_120k_q1","row":{
+      "kind":"claim",
+      "scope":{"collections":["iran-margins"],"subjects":["Iran","Afghan migrants"],"tags":["migration","scapegoating"]},
+      "identity":{"claim_key":"iran|afghans|>120k_deported_q1_2026"},
+      "claim":{
+        "statement":"Per the United Nations as of early April 2026, more than 120,000 Afghan migrants had been deported from Iran in the first three months of 2026 — a pace of roughly 1,300 deportations per day.",
+        "atomic":true,
+        "type":"measurement",
+        "subject":"Iran-deported Afghan migrants Q1 2026",
+        "predicate":"exceeded",
+        "object":">=120,000"
+      },
+      "time":{"valid_at":"2026-04-03","precision":"day"},
+      "provenance":{"evidence":[{"source_id":"$src_un_afghan_q1","role":"supports","summary":"Frontier Post citing UN figure for first three months of 2026."}]},
+      "assessment":{"confidence":"high","source_reliability":"high","importance":"high"}
+    }},
+    {"op":"add","as":"claim_afghans_6k_apr18","row":{
+      "kind":"claim",
+      "scope":{"collections":["iran-margins"],"subjects":["Iran","Afghan migrants"],"tags":["migration","scapegoating","persian"]},
+      "identity":{"claim_key":"iran|afghans|6k-7k_deported_in_one_day|2026-04-18"},
+      "claim":{
+        "statement":"Persian-language outlets reported on 18-19 April 2026 that approximately 6,000–7,000 Afghan migrants were deported from Iran (and Pakistan) in a single day, indicating sustained mass-expulsion tempo throughout the post-ceasefire window.",
+        "atomic":true,
+        "type":"measurement",
+        "subject":"Afghan migrants deported in one day",
+        "predicate":"reached",
+        "object":"~6,000-7,000",
+        "qualifiers":{"date":"2026-04-18","sources":"Jomhor News, Salam Watandar"}
+      },
+      "time":{"occurred_at":"2026-04-18","precision":"day","timezone":"Asia/Tehran"},
+      "provenance":{"evidence":[
+        {"source_id":"$src_jomhor_afghan_apr18","role":"supports","summary":"Jomhor: ~6,000 in one day."},
+        {"source_id":"$src_swn_afghan_apr19","role":"supports","summary":"Salam Watandar: >7,000 reported the next day."}
+      ]},
+      "assessment":{"confidence":"medium","source_reliability":"medium"}
+    }},
+    {"op":"add","as":"claim_bazaar_closure_apr29","row":{
+      "kind":"claim",
+      "scope":{"collections":["iran-margins"],"subjects":["Tehran","Tehran Bazaar"],"tags":["bazaar","economy","protests","persian"]},
+      "identity":{"claim_key":"iran|tehran_bazaar|nationwide_closure_protest|2026-04-29"},
+      "claim":{
+        "statement":"On 29 April 2026, Persian financial outlet Jahan-Sanat reported a nationwide shutdown across Tehran Bazaar protesting the rial collapse — a historically loaded signal, given that bazaar shutdowns famously preceded the 1979 revolution.",
+        "atomic":true,
+        "type":"event",
+        "subject":"Tehran Bazaar merchants",
+        "predicate":"shut down",
+        "object":"in protest of FX collapse"
+      },
+      "time":{"occurred_at":"2026-04-29","precision":"day","timezone":"Asia/Tehran"},
+      "provenance":{"evidence":[
+        {"source_id":"$src_jss_bazaar_apr29","role":"supports","summary":"Jahan-Sanat: nationwide closure of Tehran Bazaar; FX-rate protest intensifies."},
+        {"source_id":"$src_ensaf_bazaar_apr27","role":"context","summary":"Two days earlier (Apr 27): ISNA, Fars, IRNA all reported merchant gatherings in Tehran Bazaar."}
+      ]},
+      "assessment":{"confidence":"high","source_reliability":"medium","importance":"high"}
+    }},
+    {"op":"add","as":"claim_bahais_naimi_execution_risk","row":{
+      "kind":"claim",
+      "scope":{"collections":["iran-margins"],"subjects":["Iran","Bahá'í","Peyvand Naimi","Borna Naimi"],"tags":["minorities","executions","repression"]},
+      "identity":{"claim_key":"iran|bahais|naimi_cousins_execution_risk|2026-04-30"},
+      "claim":{
+        "statement":"On 30 April 2026 the Universal House of Justice publicly stated that two young Bahá'í cousins held in Iran — Peyvand Naimi (a swimmer, arrested 18 Dey 1404 and transferred to IRGC intelligence detention) and Borna Naimi (a karate champion, arrested 10 Esfand 1404 at his workplace) — face execution.",
+        "atomic":true,
+        "type":"event",
+        "subject":"Peyvand and Borna Naimi",
+        "predicate":"face",
+        "object":"risk of execution"
+      },
+      "time":{"valid_at":"2026-04-30","precision":"day"},
+      "provenance":{"evidence":[{"source_id":"$src_iranintl_naimi","role":"supports","summary":"Iran International (Persian) carries the Universal House of Justice statement in full."}]},
+      "assessment":{"confidence":"medium","source_reliability":"high","importance":"high","contested":false,"uncertainty":"Bahá'í governing-body statement; sentencing details and current trial-stage may shift."}
+    }},
+    {"op":"add","as":"claim_bahais_kerman_3women","row":{
+      "kind":"claim",
+      "scope":{"collections":["iran-margins"],"subjects":["Kerman","Bahá'í"],"tags":["minorities","prisoners","women"]},
+      "identity":{"claim_key":"iran|bahais|3_kerman_women_jailed|2026-04"},
+      "claim":{
+        "statement":"In April 2026, three Bahá'í women in Kerman entered prison to serve sentences, part of a sustained pattern of Bahá'í-targeted detentions across multiple Iranian provinces (Kerman, Mashhad, Shiraz, Isfahan).",
+        "atomic":true,
+        "type":"event",
+        "subject":"3 Bahá'í women in Kerman",
+        "predicate":"jailed",
+        "object":"to serve sentences"
+      },
+      "time":{"valid_at":"2026-04-01","precision":"month"},
+      "provenance":{"evidence":[{"source_id":"$src_hengaw_kerman_bahai","role":"supports","summary":"Hengaw human-rights tracking."}]},
+      "assessment":{"confidence":"medium","source_reliability":"medium"}
+    }},
+    {"op":"add","as":"claim_conscription_new_fines","row":{
+      "kind":"claim",
+      "scope":{"collections":["iran-margins"],"subjects":["Iran"],"tags":["conscription","military","official","persian"]},
+      "identity":{"claim_key":"iran|conscription|new_fines_runaway_absent|2026-04-28"},
+      "claim":{
+        "statement":"On 28 April 2026 the Iranian government announced new fines for soldiers absent or runaway from mandatory service (sarbazi), suggesting that desertion or absenteeism has reached a level requiring fresh enforcement levers in the post-war atmosphere.",
+        "atomic":true,
+        "type":"policy",
+        "subject":"Government of Iran",
+        "predicate":"announced",
+        "object":"new fines for absent/runaway conscripts"
+      },
+      "time":{"occurred_at":"2026-04-28","precision":"day"},
+      "provenance":{"evidence":[{"source_id":"$src_moniban_conscription","role":"supports","summary":"Moniban (via Vista) reports the new fine schedule."}]},
+      "assessment":{"confidence":"high","source_reliability":"medium","importance":"medium","uncertainty":"Direction of change (raised vs. created) unclear from headline alone; the policy itself is the diagnostic."}
+    }},
+    {"op":"add","as":"claim_irgc_deputy_hijab_warning","row":{
+      "kind":"claim",
+      "scope":{"collections":["iran-margins"],"subjects":["IRGC","Iran"],"tags":["hijab","women","official","persian"]},
+      "identity":{"claim_key":"iran|irgc|deputy_warns_hijab_god_command|2026-04-22"},
+      "claim":{
+        "statement":"On 22 April 2026 the deputy commander of the IRGC publicly warned women that hijab is 'God's own command', signalling that the post-war regime intends to re-tighten compulsory veiling rather than relax it under economic pressure.",
+        "atomic":true,
+        "type":"official_statement",
+        "subject":"IRGC deputy commander",
+        "predicate":"warned",
+        "object":"women — hijab is God's own command"
+      },
+      "time":{"occurred_at":"2026-04-22","precision":"day"},
+      "provenance":{"evidence":[{"source_id":"$src_sharq_irgc_hijab","role":"supports","summary":"Sharq Daily summary of the IRGC deputy commander's remarks."}]},
+      "assessment":{"confidence":"high","source_reliability":"high","importance":"high"}
+    }},
+    {"op":"add","as":"claim_urban_space_60s_propaganda","row":{
+      "kind":"claim",
+      "scope":{"collections":["iran-margins"],"subjects":["Iran"],"tags":["hijab","women","propaganda","persian"]},
+      "identity":{"claim_key":"iran|hijab|urban_space_propaganda_return_to_60s|2026-04-21"},
+      "claim":{
+        "statement":"Iran International described the post-war regime's gender-policy posture as a deliberate 'occupation of urban spaces' and 'return to the 60s under the shadow of war propaganda' — a framing that pairs the IRGC hijab warning with documented street-level enforcement in Tehran.",
+        "atomic":true,
+        "type":"analysis",
+        "subject":"Iranian regime gender posture",
+        "predicate":"reverted_to",
+        "object":"1980s-style enforcement"
+      },
+      "time":{"valid_at":"2026-04-21","precision":"day"},
+      "provenance":{"evidence":[{"source_id":"$src_iranintl_war_on_women","role":"supports","summary":"Iran International analytical piece."}]},
+      "assessment":{"confidence":"medium","source_reliability":"medium","contested":false,"uncertainty":"Diaspora-outlet framing; pair with on-the-ground reports of fines/vehicle impoundment for a stronger triangulation."}
+    }},
+    {"op":"add","as":"claim_irib_3rd_attack_acknowledged","row":{
+      "kind":"claim",
+      "scope":{"collections":["iran-margins"],"subjects":["IRIB","Iran"],"tags":["cyber","official","persian"]},
+      "identity":{"claim_key":"iran|irib|3rd_us_zionist_cyberattack_acknowledged|2026-04-27"},
+      "claim":{
+        "statement":"On 27 April 2026, IRIB-affiliated outlet Jam-e Jam published that there had been a 'third American-Zionist enemy attack' against IRIB — a regime-side acknowledgment that state broadcasting has been hit at least three times during the war and post-ceasefire period.",
+        "atomic":true,
+        "type":"official_statement",
+        "subject":"IRIB",
+        "predicate":"acknowledged",
+        "object":">=3 cyberattacks"
+      },
+      "time":{"occurred_at":"2026-04-27","precision":"day"},
+      "provenance":{"evidence":[{"source_id":"$src_jamejam_irib_3rd","role":"supports","summary":"Jam-e Jam Online (IRIB-affiliated) headline."}]},
+      "assessment":{"confidence":"high","source_reliability":"medium","importance":"medium","uncertainty":"Regime-side count; technical detail of 'attack' unspecified."}
+    }},
+    {"op":"add","as":"claim_irib_pahlavi_hijack","row":{
+      "kind":"claim",
+      "scope":{"collections":["iran-margins"],"subjects":["IRIB","Reza Pahlavi","Iran"],"tags":["cyber","predatory-sparrow","propaganda"]},
+      "identity":{"claim_key":"iran|irib|hijacked_to_broadcast_reza_pahlavi|2026-04-29"},
+      "claim":{
+        "statement":"On or shortly before 29 April 2026, hackers — widely attributed to the Israel-aligned Predatory Sparrow ('گنجشک درنده') group — disrupted Iran state TV (IRIB) to broadcast a speech by exiled crown prince Reza Pahlavi, an unprecedented penetration of regime broadcasting in the post-ceasefire phase.",
+        "atomic":true,
+        "type":"event",
+        "subject":"Hackers (likely Predatory Sparrow)",
+        "predicate":"hijacked",
+        "object":"IRIB broadcast to air Reza Pahlavi speech"
+      },
+      "time":{"valid_at":"2026-04-29","precision":"day"},
+      "provenance":{"evidence":[
+        {"source_id":"$src_jt_irregulars_irib_hijack","role":"supports","summary":"FRANCE 24 mirror: 'Hackers disrupt Iran state TV to broadcast exiled crown prince'."},
+        {"source_id":"$src_jamejam_irib_3rd","role":"context","summary":"IRIB-side acknowledgment of repeated attacks corroborates that disruptions occurred."}
+      ]},
+      "assessment":{"confidence":"medium","source_reliability":"medium","importance":"high","contested":false,"uncertainty":"Attribution to Predatory Sparrow not confirmed in source; broadcast-content authenticity reported but unverified."}
+    }},
+    {"op":"add","as":"claim_treasury_shadow_fleet_apr24","row":{
+      "kind":"claim",
+      "scope":{"collections":["iran-margins"],"subjects":["Iran","United States","oil"],"tags":["sanctions","oil","shadow-fleet"]},
+      "identity":{"claim_key":"iran|us_treasury|sanctions_~20_companies_19_ships|2026-04-24"},
+      "claim":{
+        "statement":"On 24 April 2026 the U.S. Treasury added approximately 20 companies and 19 ships of Iran's so-called 'shadow fleet' to its sanctions list, including the independent Chinese refinery Hengli Petrochemical (Dalian) for sustained large-scale Iranian-oil purchases.",
+        "atomic":true,
+        "type":"policy",
+        "subject":"U.S. Treasury",
+        "predicate":"sanctioned",
+        "object":"~20 companies + 19 shadow-fleet ships"
+      },
+      "time":{"occurred_at":"2026-04-24","precision":"day"},
+      "provenance":{"evidence":[{"source_id":"$src_iranintl_treasury_apr24","role":"supports","summary":"Iran International Persian summary."}]},
+      "assessment":{"confidence":"high","source_reliability":"high","importance":"high"}
+    }},
+    {"op":"add","as":"claim_centcom_intercepted_sevan","row":{
+      "kind":"claim",
+      "scope":{"collections":["iran-margins"],"subjects":["Iran","CENTCOM"],"tags":["sanctions","blockade","oil"]},
+      "identity":{"claim_key":"iran|centcom|intercepted_mv_sevan_arabian_sea|2026-04-25"},
+      "claim":{
+        "statement":"On 25 April 2026, U.S. Central Command publicly stated that the M/V Sevan — one of the 19 shadow-fleet vessels sanctioned the previous day — had been intercepted by a U.S. Navy helicopter from the guided-missile destroyer Pinckney in the Arabian Sea and forced to turn back.",
+        "atomic":true,
+        "type":"event",
+        "subject":"U.S. CENTCOM",
+        "predicate":"intercepted",
+        "object":"M/V Sevan"
+      },
+      "time":{"occurred_at":"2026-04-25","precision":"day"},
+      "provenance":{"evidence":[{"source_id":"$src_centcom_sevan","role":"supports","summary":"Persian-language X reposting of CENTCOM statement."}]},
+      "assessment":{"confidence":"high","source_reliability":"medium"}
+    }},
+    {"op":"add","as":"claim_tankers_dark_blockade","row":{
+      "kind":"claim",
+      "scope":{"collections":["iran-margins"],"subjects":["Iran","oil"],"tags":["sanctions","oil","blockade"]},
+      "identity":{"claim_key":"iran|oil|tankers_dark_to_evade_blockade|2026-04-22"},
+      "claim":{
+        "statement":"By 22 April 2026, Bloomberg reported that Iranian oil tankers had begun systematically going dark (turning off AIS transponders) to slip past the US blockade laden with crude — and by 28 April, Bloomberg observed tankers clustering just shy of the blockade line off Chabahar port awaiting an opportunity to break through.",
+        "atomic":true,
+        "type":"trend",
+        "subject":"Iranian shadow-fleet tankers",
+        "predicate":"evaded",
+        "object":"US blockade by going dark"
+      },
+      "time":{"valid_from":"2026-04-22","valid_until":"2026-04-28","precision":"range"},
+      "provenance":{"evidence":[
+        {"source_id":"$src_bloomberg_dark_tankers","role":"supports","summary":"Bloomberg Apr 22: tankers go dark."},
+        {"source_id":"$src_bloomberg_chabahar","role":"supports","summary":"Bloomberg Apr 28: cluster off Chabahar."}
+      ]},
+      "assessment":{"confidence":"high","source_reliability":"high","importance":"high"}
+    }},
+    {"op":"add","as":"claim_reformist_courage_flexibility","row":{
+      "kind":"claim",
+      "scope":{"collections":["iran-margins"],"subjects":["Iran","reformists"],"tags":["elite-defection","reformists","negotiations"]},
+      "identity":{"claim_key":"iran|reformist|called_for_courage_in_flexibility|2026-04-21"},
+      "claim":{
+        "statement":"On 21 April 2026 a senior Iranian reformist leader publicly called for 'courage in flexibility' rather than 'endless confrontation' — language explicitly framing negotiated retreat as a national-survival imperative, and adding to the Rouhani 'great change' line as a second establishment-pragmatist break with the IRGC posture.",
+        "atomic":true,
+        "type":"official_statement",
+        "subject":"Iranian reformist leader",
+        "predicate":"called_for",
+        "object":"courage in flexibility"
+      },
+      "time":{"occurred_at":"2026-04-21","precision":"day"},
+      "provenance":{"evidence":[{"source_id":"$src_saednews_courage_flex","role":"supports","summary":"SaedNews coverage."}]},
+      "assessment":{"confidence":"medium","source_reliability":"medium","importance":"high","uncertainty":"Specific named leader not identified in headline; verify with subsequent Persian-language coverage."}
+    }},
+    {"op":"add","as":"claim_friday_prayer_propaganda","row":{
+      "kind":"claim",
+      "scope":{"collections":["iran-margins"],"subjects":["Iran","Tehran"],"tags":["friday-prayer","propaganda","official","persian"]},
+      "identity":{"claim_key":"iran|friday_prayer|regime_loud_attendance_messaging|2026-05-01"},
+      "claim":{
+        "statement":"Regime-affiliated outlet SNN published an unusually emphatic 1 May 2026 message from the Shahr-e Rey prayer field telling 'Imam Khamenei: whenever you wish, we are in the field and will not empty the streets' — conspicuous over-emphasis on attendance suggests Friday-prayer attendance has actually been thinning.",
+        "atomic":true,
+        "type":"signal",
+        "subject":"Regime mouthpiece (SNN)",
+        "predicate":"emphasised",
+        "object":"Friday-prayer attendance"
+      },
+      "time":{"occurred_at":"2026-05-01","precision":"day","timezone":"Asia/Tehran"},
+      "provenance":{"evidence":[{"source_id":"$src_snn_friday_attendance","role":"supports","summary":"SNN headline emphasising 'we will not empty the streets' — diagnostic of strain."}]},
+      "assessment":{"confidence":"low","source_reliability":"low","importance":"medium","contested":true,"uncertainty":"Inference from regime over-emphasis; needs corroborating attendance counts or photos."}
+    }},
+
+    {"op":"relate",
+     "from_id":"$claim_bazaar_closure_apr29",
+     "to_id":"$claim_tankers_dark_blockade",
+     "rel":"depends_on",
+     "strength":"high",
+     "rationale":"Tehran Bazaar shutdown is downstream of currency collapse, which is downstream of oil-export squeeze (tankers going dark to evade blockade caps revenue).",
+     "scope":{"collections":["iran-margins"]}
+    },
+    {"op":"relate",
+     "from_id":"$claim_irgc_deputy_hijab_warning",
+     "to_id":"$claim_urban_space_60s_propaganda",
+     "rel":"supports",
+     "strength":"high",
+     "rationale":"IRGC deputy's official threat instantiates the analytical claim that the regime is reverting to 1980s-style enforcement.",
+     "scope":{"collections":["iran-margins"]}
+    },
+    {"op":"relate",
+     "from_id":"$claim_irib_pahlavi_hijack",
+     "to_id":"$claim_irib_3rd_attack_acknowledged",
+     "rel":"context_for",
+     "strength":"high",
+     "rationale":"Predatory-Sparrow IRIB hijack is one of the attacks the regime acknowledged on 27 April.",
+     "scope":{"collections":["iran-margins"]}
+    },
+    {"op":"relate",
+     "from_id":"$claim_centcom_intercepted_sevan",
+     "to_id":"$claim_treasury_shadow_fleet_apr24",
+     "rel":"depends_on",
+     "strength":"high",
+     "rationale":"Sevan interception followed directly from prior-day Treasury sanctions designating that vessel.",
+     "scope":{"collections":["iran-margins"]}
+    },
+
+    {"op":"add","row":{
+      "kind":"question",
+      "scope":{"collections":["iran-margins"],"subjects":["Iran","Tehran Bazaar"],"tags":["bazaar","economy","open"]},
+      "question":{
+        "text":"Does the 29 Apr Tehran Bazaar shutdown spread (Tabriz, Mashhad, Isfahan bazaars) and persist for >5 days, the way 1978 bazaar strikes did?",
+        "status":"open","priority":"high",
+        "resolution_criteria":"Daily open/closed reports from major provincial bazaars; ISNA/Fars/IRNA wires; merchant-association statements.",
+        "why_it_matters":"Persisting, multi-city bazaar strike was the proximate detonator of the 1979 revolution; it is the single highest-signal commercial-class indicator."
+      }
+    }},
+    {"op":"add","row":{
+      "kind":"question",
+      "scope":{"collections":["iran-margins"],"subjects":["Iran","Bahá'í"],"tags":["minorities","executions","open"]},
+      "question":{
+        "text":"Will the Naimi cousins be executed, sentenced to long imprisonment, or released as part of post-war optics?",
+        "status":"open","priority":"high",
+        "resolution_criteria":"Court sentencing announcement; Bahá'í International Community press releases; IRGC intelligence release/transfer reports."
+      }
+    }},
+    {"op":"add","row":{
+      "kind":"question",
+      "scope":{"collections":["iran-margins"],"subjects":["Iran"],"tags":["conscription","military","open"]},
+      "question":{
+        "text":"Is the new conscript-fine policy a response to mass desertion, or a routine fee adjustment? What is the actual desertion rate post-war?",
+        "status":"open","priority":"medium",
+        "resolution_criteria":"Persian-language military forums; sarbazi exemption volume; defence-ministry spokesperson statements; family-network Telegram channels."
+      }
+    }},
+    {"op":"add","row":{
+      "kind":"question",
+      "scope":{"collections":["iran-margins"],"subjects":["Iran"],"tags":["oil","blockade","open"]},
+      "question":{
+        "text":"Can the shadow fleet sustain Iran's ~$30B/year oil-export volume against a hardening US blockade + Treasury sanctions, or does export volume collapse below the regime's fiscal break-even?",
+        "status":"open","priority":"high",
+        "resolution_criteria":"Lloyd's List shadow-fleet AIS data; Bloomberg / Al Jazeera tracker investigations; Treasury OFAC weekly designations."
+      }
+    }},
+    {"op":"add","row":{
+      "kind":"question",
+      "scope":{"collections":["iran-margins"],"subjects":["Iran"],"tags":["women","hijab","open"]},
+      "question":{
+        "text":"Will the IRGC's 'God's command' hijab line trigger a fresh phase of Zhina-style street defiance, or is post-war fatigue / bandwidth elsewhere keeping women's resistance latent?",
+        "status":"open","priority":"medium",
+        "resolution_criteria":"Hijab-defiance video volume on diaspora channels; gasht-ershad fine totals; named-arrest trickle from women's-movement Telegram networks."
+      }
+    }},
+
+    {"op":"add","as":"synth_margins","row":{
+      "kind":"synthesis",
+      "scope":{"collections":["iran-margins"],"subjects":["Iran"],"tags":["synthesis","margins","overview"]},
+      "synthesis":{
+        "title":"Cracks at the margins, 17 Apr – 1 May 2026 — bazaar, Bahá'ís, conscripts, oil, IRIB, Afghans",
+        "summary":"Pulling on the under-covered seams: (a) Tehran Bazaar — historically the single most loaded commercial-class signal in Iranian regime collapse — shut down nationwide on 29 Apr in protest of the rial collapse, after merchant gatherings on 20 and 27 Apr (ISNA/Fars/IRNA on the regime side, Jahan-Sanat on the dissent side). (b) Bahá'í minority pressure intensified: the Universal House of Justice publicly named two Bahá'í cousins, Peyvand and Borna Naimi, as facing execution; three Bahá'í women jailed in Kerman; sustained detentions in Mashhad, Shiraz, Isfahan. (c) Conscription strain visible in policy: on 28 Apr the regime announced fresh fines for absent or runaway conscripts — a tightening rarely reached for unless desertion is real. (d) Oil dark-fleet under sustained pressure: 24 Apr Treasury sanctions on ~20 companies and 19 ships including Hengli (Dalian); 25 Apr CENTCOM interception of M/V Sevan; tankers systematically going dark per Bloomberg, clustering shy of the blockade line off Chabahar. (e) IRIB compromise public: an IRIB-affiliated outlet acknowledged a 'third American-Zionist attack' on state TV on 27 Apr; France 24 (mirrored) reports state TV was hijacked to broadcast a Reza Pahlavi speech ~29 Apr — likely Predatory Sparrow. (f) Afghan migrants as the regime's pressure-release valve: per the UN, >120,000 deported in Q1 2026, with single-day expulsions of 6,000–7,000 reported on 18-19 Apr — classic crisis scapegoating. (g) Hijab posture re-tightened: IRGC deputy commander warned women on 22 Apr that hijab is 'God's own command'; Iran International framed the post-war regime as 'returning to the 60s' on gender. (h) A second elite-defection signal: a senior reformist publicly called for 'courage in flexibility, not endless confrontation' on 21 Apr — paralleling Rouhani's 'great change'. (i) Friday-prayer optics: regime mouthpiece SNN aired an unusually loud 1 May line about 'not emptying the streets' — its emphasis itself diagnostic. Together these sit underneath the headline cracks (command vacuum, currency collapse, labour, infrastructure, clergy defection, students, prisons, pharma, cyber, Kurdistan) — i.e., the regime's external valves (oil, refugees, broadcasting) and its internal coercion levers (Bahá'í minority, hijab, conscripts) are simultaneously stressed, while the bazaar is starting to blink red.",
+        "basis":{"claim_ids":[
+          "$claim_bazaar_closure_apr29",
+          "$claim_bahais_naimi_execution_risk",
+          "$claim_bahais_kerman_3women",
+          "$claim_conscription_new_fines",
+          "$claim_treasury_shadow_fleet_apr24",
+          "$claim_centcom_intercepted_sevan",
+          "$claim_tankers_dark_blockade",
+          "$claim_irib_3rd_attack_acknowledged",
+          "$claim_irib_pahlavi_hijack",
+          "$claim_afghans_120k_q1",
+          "$claim_afghans_6k_apr18",
+          "$claim_irgc_deputy_hijab_warning",
+          "$claim_urban_space_60s_propaganda",
+          "$claim_reformist_courage_flexibility",
+          "$claim_friday_prayer_propaganda"
+        ]},
+        "limitations":"Two-week window. Persian on-the-ground signal is dampened by the national internet blackout; reliance on diaspora outlets (Iran International, Hengaw, Kayhan London) and regime-side counter-mouthpieces (Jam-e Jam, SNN, Sharq Daily) is mitigated by recording each side's framing alongside the other. Bazaar closure scope (Tehran-only vs. multi-city) and IRIB-hijack provenance (Predatory Sparrow attribution) carry the largest residual uncertainty.",
+        "status":"active"
+      }
+    }}
+  ]
+}

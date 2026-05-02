@@ -1,107 +1,344 @@
+import { readFile as fsReadFile } from "node:fs/promises";
+
+import type { ApplyRequest, DraftRow, KnbRowKind } from "./core/contract";
+import { fromUnknown, knbError } from "./core/errors";
+import { openKnb, type Knb, type OpenKnbOptions } from "./core/knb";
 import {
-  DEFAULT_LEDGER_PATH,
-  appendRow,
-  loadLedger,
-  queryRows,
-  readJsonInput,
-  validateLedger,
-  writeRenderedCollection,
-  type ValidationResult,
-} from "./knb";
+  failure,
+  render,
+  success,
+  type CommandResult,
+  type OutputFormat,
+  type OutputOptions,
+} from "./core/output";
+import type { CandidateClaim } from "./core/novelty";
+import type { ContextRequest } from "./core/context";
+import type { GetRequest, QueryRequest } from "./core/query";
+import type { RenderRequest } from "./core/projections";
 
 type FlagMap = Map<string, string | boolean>;
 
-export async function runCli(args: string[]): Promise<number> {
+const COMMANDS = new Set([
+  "init",
+  "status",
+  "schema",
+  "apply",
+  "add",
+  "get",
+  "query",
+  "context",
+  "novelty",
+  "render",
+  "check",
+  "index",
+]);
+
+export async function runCli(args: string[], options: OutputOptions = {}): Promise<number> {
   const [command, ...rest] = args;
-  const flags = parseFlags(rest);
-  const ledgerPath = stringFlag(flags, "ledger") ?? DEFAULT_LEDGER_PATH;
+  const positionals: string[] = [];
+  const flags = parseFlags(rest, positionals);
+  const outputOptions: OutputOptions = { ...options };
+  const formatFromCli = formatFromFlags(flags);
+  if (formatFromCli && options.format === undefined) outputOptions.format = formatFromCli;
+
+  if (!command || command === "help" || command === "--help" || command === "-h") {
+    printHelp();
+    return 0;
+  }
+
+  if (!COMMANDS.has(command)) {
+    return renderResult(
+      failure(command, knbError("invalid_arguments", `Unknown command: ${command}`), {
+        exit_code: 2,
+      }),
+      outputOptions,
+    );
+  }
+
+  return runFacadeCommand(command, flags, positionals, outputOptions);
+}
+
+async function runFacadeCommand(
+  command: string,
+  flags: FlagMap,
+  positionals: string[],
+  outputOptions: OutputOptions,
+): Promise<number> {
+  const start = Date.now();
+
+  let knb: Knb;
+  try {
+    const openOptions: OpenKnbOptions = {};
+    const rootFlag = stringFlag(flags, "root");
+    const configFlag = stringFlag(flags, "config");
+    const ledgerFlag = stringFlag(flags, "ledger");
+    const actorFlag = stringFlag(flags, "actor");
+    if (rootFlag) openOptions.root = rootFlag;
+    if (configFlag) openOptions.configPath = configFlag;
+    if (ledgerFlag) openOptions.ledgerPath = ledgerFlag;
+    if (actorFlag) openOptions.actor = actorFlag;
+    knb = await openKnb(openOptions);
+  } catch (error) {
+    return renderResult(
+      failure(command, fromUnknown(error), { elapsed_ms: Date.now() - start }),
+      outputOptions,
+    );
+  }
+
+  const baseMeta = (): Record<string, unknown> => ({
+    workspace_root: knb.workspace.root,
+    ledger: knb.workspace.paths.ledger,
+    elapsed_ms: Date.now() - start,
+  });
 
   try {
-    if (!command || command === "help" || command === "--help" || command === "-h") {
-      printHelp();
-      return 0;
+    if (command === "init") {
+      const force = booleanFlag(flags, "force");
+      const initActor = stringFlag(flags, "actor");
+      const result = await knb.init(initActor ? { force, actor: initActor } : { force });
+      return renderResult(
+        success("init", result, {
+          workspace_root: knb.workspace.root,
+          ledger: result.ledger_path,
+          elapsed_ms: Date.now() - start,
+        }),
+        outputOptions,
+      );
     }
 
-    if (command === "validate") {
-      const ledger = await loadLedger(ledgerPath);
-      const result = validateLedger(ledger.rows, ledger.parseIssues);
-      printValidation(result);
-      return result.ok ? 0 : 1;
-    }
-
-    if (command === "append") {
-      const row = await readJsonInput({
-        file: stringFlag(flags, "file"),
-        json: stringFlag(flags, "json"),
-      });
-      const id = typeof row === "object" && row !== null && "id" in row ? String((row as { id: unknown }).id) : "(unknown)";
-      const result = await appendRow(ledgerPath, row);
-      if (!result.ok) {
-        printValidation(result);
-        return 1;
+    if (command === "status") {
+      const collection = stringFlag(flags, "collection");
+      if (collection) {
+        const maxQuestions = numberFlag(flags, "max-questions");
+        const request = maxQuestions === undefined
+          ? { collection }
+          : { collection, max_questions: maxQuestions };
+        const result = await knb.collectionStatus(request);
+        return renderResult(
+          success("status", result, {
+            ...baseMeta(),
+            collection: result.collection,
+            open_question_count: result.open_question_count,
+          }),
+          outputOptions,
+        );
       }
-      console.log(`Appended ${id} to ${ledgerPath}`);
-      return 0;
+      const result = await knb.status();
+      return renderResult(success("status", result, baseMeta()), outputOptions);
+    }
+
+    if (command === "schema") {
+      const result = await knb.schema();
+      return renderResult(
+        success("schema", result, {
+          workspace_root: knb.workspace.root,
+          elapsed_ms: Date.now() - start,
+        }),
+        outputOptions,
+      );
+    }
+
+    if (command === "apply") {
+      const request = await readApplyRequest(flags);
+      if (booleanFlag(flags, "dedupe")) request.dedupe = true;
+      if (booleanFlag(flags, "atomic")) request.atomic = true;
+      const dryRun = booleanFlag(flags, "dry-run");
+      const result = dryRun ? await knb.previewApply(request) : await knb.apply(request);
+      return renderResult(
+        success("apply", result, {
+          ...baseMeta(),
+          rows_appended: result.meta.rows_appended,
+          ...(dryRun ? { dry_run: true, planned_rows: result.meta.planned_rows ?? 0 } : {}),
+        }),
+        outputOptions,
+      );
+    }
+
+    if (command === "add") {
+      const row = (await readJsonPayload(flags)) as DraftRow;
+      const result = await knb.add(row);
+      return renderResult(
+        success("add", result, { ...baseMeta(), rows_appended: result.meta.rows_appended }),
+        outputOptions,
+      );
+    }
+
+    if (command === "get") {
+      if (positionals.length === 0) {
+        return renderResult(
+          failure(
+            "get",
+            knbError("invalid_arguments", "knb get requires at least one id"),
+            baseMeta(),
+          ),
+          outputOptions,
+        );
+      }
+      const getRequest: Omit<GetRequest, "ids"> = {};
+      if (booleanFlag(flags, "include-history") || booleanFlag(flags, "history")) {
+        getRequest.includeHistory = true;
+      }
+      if (booleanFlag(flags, "explain")) getRequest.explain = true;
+      const result = await knb.get(positionals, getRequest);
+      return renderResult(success("get", result, baseMeta()), outputOptions);
     }
 
     if (command === "query") {
-      const ledger = await loadLedger(ledgerPath);
-      const result = validateLedger(ledger.rows, ledger.parseIssues);
-      if (!result.ok) {
-        printValidation(result);
-        return 1;
+      const request: QueryRequest = {};
+      const kindFlag = stringFlag(flags, "kind");
+      if (kindFlag) request.kinds = [kindFlag as KnbRowKind];
+      const collection = stringFlag(flags, "collection");
+      if (collection) request.collection = collection;
+      const subject = stringFlag(flags, "subject");
+      if (subject) request.subject = subject;
+      const tag = stringFlag(flags, "tag");
+      if (tag) request.tag = tag;
+      const text = stringFlag(flags, "text");
+      if (text) request.text = text;
+      const claimKey = stringFlag(flags, "claim-key");
+      if (claimKey) request.claim_key = claimKey;
+      const citing = stringFlag(flags, "citing");
+      if (citing) request.citing = citing;
+      const limit = numberFlag(flags, "limit");
+      if (limit !== undefined) request.limit = limit;
+      if (booleanFlag(flags, "history") || booleanFlag(flags, "include-history")) {
+        request.includeHistory = true;
       }
-      const rows = queryRows(ledger.rows, {
-        kind: stringFlag(flags, "kind"),
-        collection: stringFlag(flags, "collection"),
-        subject: stringFlag(flags, "subject"),
-        tag: stringFlag(flags, "tag"),
-        text: stringFlag(flags, "text"),
-        includeHistory: booleanFlag(flags, "history"),
-      });
+      if (booleanFlag(flags, "full")) request.full = true;
+      const result = await knb.query(request);
+      return renderResult(
+        success("query", result, { ...baseMeta(), rows_returned: result.total_returned }),
+        outputOptions,
+      );
+    }
 
-      if (booleanFlag(flags, "json")) {
-        console.log(JSON.stringify(rows, null, 2));
-      } else {
-        for (const row of rows) {
-          console.log(`${row.id}\t${row.kind}\t${displayText(row)}`);
-        }
-      }
-      return 0;
+    if (command === "context") {
+      const request: ContextRequest = {};
+      const collection = stringFlag(flags, "collection");
+      if (collection) request.collection = collection;
+      const subject = stringFlag(flags, "subject");
+      if (subject) request.subject = subject;
+      const tag = stringFlag(flags, "tag");
+      if (tag) request.tag = tag;
+      const maxTokens = numberFlag(flags, "max-tokens");
+      if (maxTokens !== undefined) request.max_tokens = maxTokens;
+      if (booleanFlag(flags, "no-warnings")) request.include_warnings = false;
+      const result = await knb.context(request);
+      return renderResult(success("context", result, baseMeta()), outputOptions);
+    }
+
+    if (command === "novelty") {
+      const payload = await readJsonPayload(flags);
+      const candidates = extractCandidates(payload);
+      const result = await knb.novelty({ candidates });
+      return renderResult(success("novelty", result, baseMeta()), outputOptions);
     }
 
     if (command === "render") {
+      const renderAll = booleanFlag(flags, "all");
       const collection = stringFlag(flags, "collection");
+      if (renderAll && collection) {
+        return renderResult(
+          failure(
+            "render",
+            knbError("invalid_arguments", "Use either --collection <c> or --all, not both"),
+            baseMeta(),
+          ),
+          outputOptions,
+        );
+      }
+      if (renderAll && stringFlag(flags, "out")) {
+        return renderResult(
+          failure(
+            "render",
+            knbError("invalid_arguments", "--out can only be used with --collection"),
+            baseMeta(),
+          ),
+          outputOptions,
+        );
+      }
+      const format = stringFlag(flags, "format") as RenderRequest["format"] | undefined;
+      if (renderAll) {
+        const request = format ? { format } : {};
+        const result = await knb.renderAll(request);
+        return renderResult(
+          success("render", result, {
+            ...baseMeta(),
+            collections_rendered: result.collections.length,
+            bytes_written: result.total_bytes_written,
+          }),
+          outputOptions,
+        );
+      }
       if (!collection) {
-        console.error("Missing required flag: --collection");
-        return 1;
+        return renderResult(
+          failure(
+            "render",
+            knbError("invalid_arguments", "Missing required flag: --collection or --all"),
+            baseMeta(),
+          ),
+          outputOptions,
+        );
       }
-      const out = stringFlag(flags, "out") ?? `knb/views/${collection}.md`;
-      const ledger = await loadLedger(ledgerPath);
-      const result = validateLedger(ledger.rows, ledger.parseIssues);
-      if (!result.ok) {
-        printValidation(result);
-        return 1;
-      }
-      await writeRenderedCollection(out, ledger.rows, collection);
-      console.log(`Rendered ${collection} to ${out}`);
-      return 0;
+      const request: RenderRequest = { collection };
+      const out = stringFlag(flags, "out");
+      if (out) request.out = out;
+      if (format) request.format = format;
+      const result = await knb.render(request);
+      return renderResult(
+        success("render", result, { ...baseMeta(), bytes_written: result.bytes_written }),
+        outputOptions,
+      );
     }
 
-    console.error(`Unknown command: ${command}`);
-    printHelp();
-    return 1;
+    if (command === "check") {
+      const result = await knb.check();
+      return renderResult(success("check", result, baseMeta()), outputOptions);
+    }
+
+    if (command === "index") {
+      if (booleanFlag(flags, "rebuild")) {
+        const result = await knb.rebuildIndex();
+        return renderResult(success("index", result, baseMeta()), outputOptions);
+      }
+      const result = await knb.check();
+      return renderResult(
+        success("index", { projection_freshness: result.projection_freshness }, baseMeta()),
+        outputOptions,
+      );
+    }
+
+    return renderResult(
+      failure(command, knbError("invalid_arguments", `Unknown command: ${command}`), baseMeta()),
+      outputOptions,
+    );
   } catch (error) {
-    console.error(error instanceof Error ? error.message : String(error));
-    return 1;
+    return renderResult(failure(command, fromUnknown(error), baseMeta()), outputOptions);
   }
 }
 
-function parseFlags(args: string[]): FlagMap {
+function renderResult(result: CommandResult, options: OutputOptions): number {
+  return render(result, options).exitCode;
+}
+
+function formatFromFlags(flags: FlagMap): OutputFormat | undefined {
+  if (booleanFlag(flags, "quiet")) return "quiet";
+  if (booleanFlag(flags, "ndjson")) return "ndjson";
+  if (booleanFlag(flags, "pretty")) return "pretty";
+  if (booleanFlag(flags, "json")) return "json";
+  if (booleanFlag(flags, "text")) return "text";
+  return undefined;
+}
+
+function parseFlags(args: string[], positionals: string[]): FlagMap {
   const flags: FlagMap = new Map();
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
-    if (!arg?.startsWith("--")) continue;
+    if (arg === undefined) continue;
+    if (!arg.startsWith("--")) {
+      positionals.push(arg);
+      continue;
+    }
 
     const equalsIndex = arg.indexOf("=");
     if (equalsIndex > -1) {
@@ -130,45 +367,148 @@ function booleanFlag(flags: FlagMap, key: string): boolean {
   return flags.get(key) === true;
 }
 
-function printValidation(result: ValidationResult): void {
-  if (result.issues.length === 0) {
-    console.log("OK");
-    return;
-  }
-
-  for (const issue of result.issues) {
-    const where = [issue.line ? `line ${issue.line}` : undefined, issue.id].filter(Boolean).join(" ");
-    const prefix = where ? `${issue.level.toUpperCase()} ${where}:` : `${issue.level.toUpperCase()}:`;
-    const output = `${prefix} ${issue.message}`;
-    if (issue.level === "error") console.error(output);
-    else console.warn(output);
-  }
-
-  if (result.ok) console.log("OK");
+function numberFlag(flags: FlagMap, key: string): number | undefined {
+  const value = flags.get(key);
+  if (typeof value !== "string") return undefined;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
 }
 
-function displayText(row: { kind: string; source?: { title?: string }; claim?: { statement?: string }; question?: { text?: string }; synthesis?: { title?: string } }): string {
-  if (row.kind === "source") return row.source?.title ?? "";
-  if (row.kind === "claim") return row.claim?.statement ?? "";
-  if (row.kind === "question") return row.question?.text ?? "";
-  if (row.kind === "synthesis") return row.synthesis?.title ?? "";
-  return "";
+async function readJsonPayload(flags: FlagMap): Promise<unknown> {
+  const file = stringFlag(flags, "file");
+  if (file) {
+    let raw: string;
+    try {
+      raw = await fsReadFile(file, "utf8");
+    } catch (error) {
+      throw knbError("io_failed", `Failed to read JSON file: ${file}`, { path: file }, error);
+    }
+    return parseJsonOrThrow(raw, `--file ${file}`);
+  }
+  const json = stringFlag(flags, "json");
+  if (json) return parseJsonOrThrow(json, "--json");
+  if (booleanFlag(flags, "stdin")) return readStdinJson();
+  throw knbError("invalid_arguments", "Provide --file <path>, --json <text>, or --stdin");
+}
+
+function parseJsonOrThrow(raw: string, source: string): unknown {
+  try {
+    return JSON.parse(raw);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw knbError(
+      "invalid_arguments",
+      `Failed to parse JSON from ${source}: ${message}`,
+      { source },
+      error,
+    );
+  }
+}
+
+async function readApplyRequest(flags: FlagMap): Promise<ApplyRequest> {
+  const payload = await readJsonPayload(flags);
+  return payload as ApplyRequest;
+}
+
+function extractCandidates(payload: unknown): CandidateClaim[] {
+  if (Array.isArray(payload)) return payload as CandidateClaim[];
+  if (payload && typeof payload === "object") {
+    const candidates = (payload as { candidates?: unknown }).candidates;
+    if (Array.isArray(candidates)) return candidates as CandidateClaim[];
+  }
+  throw knbError(
+    "invalid_arguments",
+    "novelty payload must be an array of candidates or { candidates: [...] }",
+  );
+}
+
+async function readStdinJson(): Promise<unknown> {
+  const chunks: Buffer[] = [];
+  for await (const chunk of process.stdin) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  }
+  const input = Buffer.concat(chunks).toString("utf8").trim();
+  if (input.length === 0) {
+    throw knbError("invalid_arguments", "stdin closed with no JSON input");
+  }
+  return parseJsonOrThrow(input, "--stdin");
 }
 
 function printHelp(): void {
   console.log(`knb
 
+What this is:
+  KNB is an append-only knowledge ledger for agent research. Store sourced facts as
+  source/claim/question/synthesis/change rows, then read them through the same facade
+  that the CLI uses. The ledger is canonical; views and indexes are disposable outputs.
+
+Typical workflows:
+  Research pass:
+    1. Check orientation: knb status --collection <c> and knb context --collection <c>.
+    2. Preview a batch: knb apply --dry-run --stdin --json.
+    3. Apply the batch, then refresh outputs: knb render --all; knb index --rebuild; knb check --json.
+    4. Keep one current synthesis per thread by superseding older synthesis rows.
+
+  Handoff:
+    Use knb status --collection <c> --max-questions N for latest synthesis and open questions.
+    Use knb context --collection <c> --max-tokens N for a compact packet for the next agent.
+
+  Host application:
+    Use openKnb(...).apply/add/query/context/render/check/rebuildIndex so app code and CLI
+    share the same rules, errors, lifecycle state, and projection freshness checks.
+
 Usage:
-  bun run knb -- validate [--ledger knb/ledger.jsonl]
-  bun run knb -- append (--file row.json | --json '{"schema_version":"knb.v1",...}') [--ledger knb/ledger.jsonl]
-  bun run knb -- query [--kind claim] [--collection topic] [--subject name] [--tag tag] [--text text] [--json] [--history]
-  bun run knb -- render --collection topic [--out knb/views/topic.md] [--ledger knb/ledger.jsonl]
+  knb init    [--root <dir>] [--config <path>] [--ledger <path>] [--actor <name>] [--force] [--json|--pretty|--ndjson|--text|--quiet]
+  knb status  [--root <dir>] [--collection <c>] [--max-questions N] [--json|--pretty|--ndjson|--text|--quiet]
+  knb schema  [--json|--pretty|--ndjson|--text|--quiet]
+  knb apply   (--file ops.json | --json '{...}' | --stdin) [--atomic] [--dedupe] [--dry-run]
+  knb add     (--file row.json | --json '{...}' | --stdin)
+  knb get     <id> [<id>...] [--include-history] [--explain]
+  knb query   [--kind <kind>] [--collection <c>] [--subject <s>] [--tag <t>] [--text <q>] [--claim-key <k>] [--citing <uri>] [--limit N] [--history] [--full]
+  knb context [--collection <c>] [--subject <s>] [--tag <t>] [--max-tokens 3000] [--no-warnings]
+  knb novelty (--file candidates.json | --json '{...}' | --stdin)
+  knb render  (--collection <c> [--out path] | --all) [--format md]
+  knb check   [--json]
+  knb index   [--rebuild]
 
 Commands:
-  validate  Check JSONL syntax, row shapes, duplicate IDs, source refs, relation targets, and synthesis basis refs.
-  append    Validate the existing ledger plus one candidate row, then append the row.
-  query     Return active knowledge rows matching filters. Use --history to include rows made inactive by change rows.
-  render    Generate a Markdown view for one collection.
+  init      Create workspace config, ledger, schema, views, and indexes.
+  status    Cheap orientation packet: workspace, ledger, counts, projection freshness; with --collection, latest synthesis and open questions.
+  schema    Print row and operation contracts plus the JSON Schema.
+  apply     Apply an atomic batch of operations through the apply pipeline; use --dry-run to preview without writing.
+  add       Convenience wrapper for one add operation; identical envelope to apply.
+  get       Fetch full rows by id; default returns only active rows.
+  query     Search active rows by kind/scope/text/source URI citation. Use --history to include inactive.
+  context   Build a token-budgeted context packet for a scope.
+  novelty   Classify candidate claims against active claims (no writes).
+  render    Generate Markdown view(s) for one collection or every active collection.
+  check     Report parse, validation, state warnings, and projection freshness. Exit 0 if ok, otherwise the typed error code.
+  index     Without --rebuild, report freshness only. With --rebuild, regenerate all V1 indexes.
+
+Output formats:
+  --json    Compact JSON envelope (default when stdout is piped).
+  --pretty  Indented JSON envelope.
+  --ndjson  One JSON line per item plus a final envelope line.
+  --text    Human-readable text (default when stdout is a TTY).
+  --quiet   No output on success; only the error code on failure.
+
+Exit codes:
+  0  ok
+  1  not_found
+  2  invalid_arguments
+  3  validation_failed
+  4  duplicate_blocked
+  5  io_failed
+  6  lock_busy
+  7  broken_reference
+  8  external_dependency_failed
+  9  unsafe_operation_refused
+  10 internal_error
+
+knb check returns the exit code matching the highest-priority issue on failure (parse errors -> io_failed,
+validation errors -> validation_failed). When ok is false purely due to stale or missing projections, the
+envelope is still rendered as a success with data.ok=false and the process exits 0; rebuild via knb index
+--rebuild or knb render --all.
 `);
 }
 

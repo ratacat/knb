@@ -1,0 +1,268 @@
+{
+  "atomic": true,
+  "dedupe": true,
+  "operations": [
+    {
+      "op": "add",
+      "as": "src_ana_rare_disease_insurance_apr29",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["medicine", "insurance", "rare-disease", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "هشدار بنیاد بیماری‌های نادر: فقدان تعریف دقیق، بیماران را از حمایت محروم می‌کند",
+          "uri": "https://ana.ir/fa/news/1052228/%D9%87%D8%B4%D8%AF%D8%A7%D8%B1-%D8%A8%D9%86%DB%8C%D8%A7%D8%AF-%D8%A8%DB%8C%D9%85%D8%A7%D8%B1%DB%8C%E2%80%8C%D9%87%D8%A7%DB%8C-%D9%86%D8%A7%D8%AF%D8%B1-%D9%81%D9%82%D8%AF%D8%A7%D9%86-%D8%AA%D8%B9%D8%B1%DB%8C%D9%81-%D8%AF%D9%82%DB%8C%D9%82-%D8%A8%DB%8C%D9%85%D8%A7%D8%B1%D8%A7%D9%86-%D8%B1%D8%A7-%D8%A7%D8%B2-%D8%AD%D9%85%D8%A7%DB%8C%D8%AA-%D9%85%D8%AD%D8%B1%D9%88%D9%85-%D9%85%DB%8C%E2%80%8C%DA%A9%D9%86%D8%AF",
+          "publisher": "ANA",
+          "language": "fa",
+          "published_at": "2026-04-29T10:37:39Z",
+          "raw_path": "raw/apply-8-source-notes.md"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-01T23:55:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_iranintl_rare_disease_medicine_may01",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["medicine", "rare-disease", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "مدیرعامل بنیاد بیماری‌های نادر: وقفه کوتاه در مصرف دارو تمام روند درمانی را مختل می‌کند",
+          "uri": "https://iranintl.com/202605011417",
+          "publisher": "Iran International Persian",
+          "language": "fa",
+          "published_at": "2026-05-01T13:28:45Z",
+          "raw_path": "raw/apply-8-source-notes.md"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl; xpool SearchTimeline", "observed_at": "2026-05-01T23:55:00Z", "job_id": "a08bfdc5-c533-4633-af2c-b55d259e9d04"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_iranintl_worker_wage_may01",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["wages", "inflation", "workers", "household-costs", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "حداقل دستمزد کارگران در ایران در یک سال از ۱۲۵ دلار به ۹۰ دلار سقوط کرد",
+          "uri": "https://www.iranintl.com/202605014809",
+          "publisher": "Iran International Persian",
+          "language": "fa",
+          "published_at": "2026-05-01T10:44:58Z",
+          "raw_path": "raw/apply-8-source-notes.md"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-01T23:55:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_rare_disease_medicine_continuity",
+      "row": {
+        "kind": "claim",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["medicine", "insurance", "rare-disease", "daily-life"]},
+        "identity": {"claim_key": "iran|rare_disease|insurance_definitions_medicine_interruptions|2026-04-29_2026-05-01"},
+        "claim": {
+          "statement": "On 29 April-1 May 2026, Persian reporting around Iran's Rare Diseases Foundation turned medicine access into an institutional insurance grievance: ANA reported the foundation warning that vague definitions of special or hard-to-treat patients can deprive rare-disease patients of support, while Iran International quoted foundation head Hamidreza Edraki saying even a short medication interruption can disrupt an entire rare-disease treatment process.",
+          "atomic": true,
+          "type": "institutional_warning",
+          "subject": "Iran rare-disease patients",
+          "predicate": "face",
+          "object": "insurance-definition and medicine-continuity risk"
+        },
+        "time": {"first_observed_at": "2026-04-29", "reported_at": "2026-05-01", "precision": "day", "timezone": "Asia/Tehran"},
+        "provenance": {
+          "evidence": [
+            {"source_id": "$src_ana_rare_disease_insurance_apr29", "role": "supports", "summary": "ANA reported the Rare Diseases Foundation warning Social Security and Health Insurance that imprecise definitions can confuse coverage and deprive patients of needed support, while asking for clearer coverage of rare-disease drugs and services."},
+            {"source_id": "$src_iranintl_rare_disease_medicine_may01", "role": "supports", "summary": "Iran International quoted Hamidreza Edraki saying a short interruption in medicine can disrupt the full treatment process for rare-disease patients, and that about 560 rare-disease types have been identified in Iran."}
+          ]
+        },
+        "assessment": {"confidence": "high", "source_reliability": "medium", "information_depth": {"level": "strong", "rationale": "Two Persian sources give named institutional actors, insurer targets, and treatment-continuity consequences."}, "importance": "high"}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_min_wage_dollar_collapse_may01",
+      "row": {
+        "kind": "claim",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["wages", "inflation", "workers", "household-costs"]},
+        "identity": {"claim_key": "iran|minimum_wage|125_usd_to_90_usd_in_one_year|2026-05-01"},
+        "claim": {
+          "statement": "On 1 May 2026, Iran International reported that Iran's 1405 monthly minimum wage rose nominally to about 16.255 million toman, but its open-market dollar value fell from about $125 at the end of Farvardin 1404 to about $90 in Ordibehesht 1405; the same report cited official Farvardin 1405 point-to-point inflation of 73.5% and labor basket estimates of 40-45 million or more than 80 million toman per month.",
+          "atomic": true,
+          "type": "measurement",
+          "subject": "Iran minimum wage",
+          "predicate": "lost",
+          "object": "about 28% of dollar value while living-cost estimates outpaced pay"
+        },
+        "time": {"reported_at": "2026-05-01", "precision": "day", "timezone": "Asia/Tehran"},
+        "provenance": {
+          "evidence": [
+            {"source_id": "$src_iranintl_worker_wage_may01", "role": "supports", "summary": "The report compared the 16.255M toman minimum wage to open-market dollar rates, calculated a fall from about $125 to $90, cited 73.5% point-to-point inflation, and quoted labor basket estimates far above minimum pay."}
+          ]
+        },
+        "assessment": {"confidence": "high", "source_reliability": "medium", "information_depth": {"level": "strong", "rationale": "Concrete wage, exchange-rate, inflation, and cost-basket figures are given, though the dollar comparison depends on open-market exchange assumptions."}, "importance": "high"}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_steel_retirees_direct_ilna_health_costs",
+      "row": {
+        "kind": "claim",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Isfahan", "Tehran"], "tags": ["labor", "pensioners", "medical-insurance", "medicine"]},
+        "identity": {"claim_key": "iran|steel_retirees|ilna_nine_days_without_supplementary_insurance|2026-04-29"},
+        "claim": {
+          "statement": "On 29 April 2026, ILNA directly reported that steel retirees in Isfahan and Tehran protested after being without supplementary medical insurance for nine days; retirees said treatment, medicine, equipment, and hospital costs were severe, while officials of the Steel Pension Fund said the fund was not responsible and pointed to Zob Ahan.",
+          "atomic": true,
+          "type": "event_report",
+          "subject": "Iran steel-industry retirees",
+          "predicate": "protested",
+          "object": "a nine-day supplementary-insurance cutoff and severe health costs"
+        },
+        "time": {"occurred_at": "2026-04-29", "precision": "day", "timezone": "Asia/Tehran"},
+        "provenance": {
+          "evidence": [
+            {"source_id": "src:iran-cracks:20260501:10513b58", "role": "supports", "summary": "ILNA reported protests in Isfahan and Tehran over a nine-day supplementary-insurance cutoff and quoted retirees describing pressure from treatment, medicine, equipment, and hospitalization costs."}
+          ]
+        },
+        "assessment": {"confidence": "high", "source_reliability": "medium", "information_depth": {"level": "strong", "rationale": "Direct labor-source report gives places, duration, responsible institutions, and the concrete cost categories named by retirees."}, "importance": "high"}
+      }
+    },
+    {
+      "op": "add",
+      "as": "q_rare_disease_out_of_pocket",
+      "row": {
+        "kind": "question",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["medicine", "insurance", "rare-disease"]},
+        "question": {
+          "text": "Can rare-disease insurance warnings be tied to specific out-of-pocket prices or access failures for named medicines and patient groups in late April-May 2026?",
+          "status": "open",
+          "priority": "high",
+          "why_it_matters": "Specific medicines and patient costs would turn institutional warnings into measurable daily-life burden."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "q_health_grievances_coalesce",
+      "row": {
+        "kind": "question",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["medicine", "labor", "pensioners", "protests"]},
+        "question": {
+          "text": "Do patient, retiree, and worker grievances around medicine access, insurance coverage, and treatment costs begin to coalesce into shared protest language or coordinated actions?",
+          "status": "open",
+          "priority": "high",
+          "why_it_matters": "A shared health-access frame would connect daily-life pressure to broader legitimacy cracks across otherwise separate social groups."
+        }
+      }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_rare_disease_medicine_continuity",
+      "to_id": "claim:iran-cracks:20260501:2eb949d4",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "Rare-disease treatment-continuity warnings show how drug repricing/scarcity can become a coverage and treatment-continuity crisis.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_rare_disease_medicine_continuity",
+      "to_id": "claim:iran-cracks:20260501:a4e4088f",
+      "rel": "context_for",
+      "strength": "medium",
+      "rationale": "Rare-disease patients and diabetic patients are different groups, but both claims show medicine interruption as the lived edge of the health-access crisis.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_min_wage_dollar_collapse_may01",
+      "to_id": "claim:iran-cracks:20260501:ba56878f",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "The wage-dollar collapse and labor basket estimates explain why food baskets and basic needs consume most or all worker income.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_min_wage_dollar_collapse_may01",
+      "to_id": "claim:iran-cracks:20260501:80555b70",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "Purchasing-power collapse is a structural driver behind wage and arrears protests.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_steel_retirees_direct_ilna_health_costs",
+      "to_id": "claim:iran-cracks:20260501:d168ec46",
+      "rel": "supports",
+      "strength": "high",
+      "rationale": "The direct ILNA report corroborates and sharpens the steel-retiree half of the broader Apr 29 labor/pensioner protest claim.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_steel_retirees_direct_ilna_health_costs",
+      "to_id": "claim:iran-cracks:20260501:2eb949d4",
+      "rel": "context_for",
+      "strength": "medium",
+      "rationale": "Retirees naming medicine and treatment costs shows the drug-price shock feeding into benefits and pensioner protest grievances.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "add",
+      "as": "synth_v7_health_access_institutional_grievance",
+      "row": {
+        "kind": "synthesis",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["overview", "synthesis", "v7"]},
+        "synthesis": {
+          "title": "Cracks in the Islamic Republic, v7 — health access becomes institutional grievance",
+          "summary": "The seventh pass strengthens v6's health-access thesis. The medicine crisis is no longer only item-level price shock or pharmacy scarcity: Iran's Rare Diseases Foundation warned insurers that vague definitions can deprive patients of support, and its head said even a short drug interruption can disrupt rare-disease treatment. Steel retirees in Isfahan and Tehran add a protest-side version of the same pressure, with ILNA directly reporting nine days without supplementary insurance and severe treatment, medicine, equipment, and hospital costs. The May Day wage picture adds household context: the 1405 minimum wage rose nominally but fell from about $125 to about $90 in one year, while official inflation and labor basket estimates show basic living costs far beyond minimum pay. xPool found no corroborating recent Tehran water posts, so the water-cut item remains only low-confidence texture. Net: the strongest current crack map clusters around treatment continuity, insurance coverage, medicine costs, and purchasing-power collapse rather than a single isolated protest sector.",
+          "basis": {
+            "claim_ids": [
+              "claim:iran-cracks:20260501:2eb949d4",
+              "claim:iran-cracks:20260501:a4e4088f",
+              "$claim_rare_disease_medicine_continuity",
+              "$claim_steel_retirees_direct_ilna_health_costs",
+              "claim:iran-cracks:20260501:d168ec46",
+              "$claim_min_wage_dollar_collapse_may01",
+              "claim:iran-cracks:20260501:ba56878f",
+              "claim:iran-cracks:20260501:bb562d39",
+              "claim:iran-cracks:20260501:14fa473e",
+              "claim:iran-cracks:20260501:8e69a6e8",
+              "claim:iran-cracks:20260501:80555b70",
+              "claim:iran-cracks:20260501:ecc4b1a8",
+              "claim:iran-cracks:20260501:9bb16db8"
+            ],
+            "question_ids": [
+              "q:iran-cracks:20260501:351b0c90",
+              "$q_rare_disease_out_of_pocket",
+              "$q_health_grievances_coalesce",
+              "q:iran-cracks:20260501:e807f10c",
+              "q:iran-cracks:20260501:a4e932dc",
+              "q:iran-cracks:20260501:7680b246"
+            ],
+            "source_ids": [
+              "$src_ana_rare_disease_insurance_apr29",
+              "$src_iranintl_rare_disease_medicine_may01",
+              "$src_iranintl_worker_wage_may01",
+              "src:iran-cracks:20260501:10513b58"
+            ]
+          },
+          "limitations": "The rare-disease evidence is institutional and medical-warning evidence, not yet direct patient mobilization. The wage-dollar comparison depends on open-market exchange-rate assumptions. The xPool Tehran water query returned no recent corroborating posts, so water remains low confidence until service notices or multiple local reports appear.",
+          "status": "active"
+        },
+        "assessment": {"confidence": "high", "source_reliability": "medium", "information_depth": {"level": "strong", "rationale": "v7 combines direct Persian health-institution sources, a direct labor-source protest report already in the ledger, and a May Day wage/inflation article with concrete figures."}, "importance": "high"}
+      }
+    },
+    {
+      "op": "supersede",
+      "target_ids": ["synth:iran-cracks:20260501:faf66ec5"],
+      "replacement_id": "$synth_v7_health_access_institutional_grievance",
+      "reason": "v7 adds rare-disease insurance/medicine-continuity evidence, direct ILNA health-cost detail for steel retirees, and May Day wage-purchasing-power measurement.",
+      "scope": {"collections": ["iran-cracks"]}
+    }
+  ]
+}

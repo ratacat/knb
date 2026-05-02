@@ -1,0 +1,689 @@
+{
+  "atomic": true,
+  "dedupe": true,
+  "operations": [
+    {
+      "op": "add",
+      "as": "src_source_notes_v42",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "internet blackout", "digital economy", "employment"],
+          "tags": ["research-notes", "internet", "blackout", "digital-economy", "layoffs", "source-hygiene", "v42"]
+        },
+        "source": {
+          "type": "raw_note",
+          "title": "v42 source notes - digital-economy layoffs and livelihood collapse",
+          "raw_path": "raw/apply-48-source-notes.md",
+          "language": "en"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "agent synthesis of exa-cli search/crawl, xPool SearchTimeline, and existing KNB rows",
+            "observed_at": "2026-05-02T05:02:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_khabaronline_digikala_200_v42",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "DigiKala", "digital economy", "layoffs"],
+          "tags": ["digital-economy", "layoffs", "digikala", "employment", "persian", "v42"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "مدیرعامل دیجی‌کالا: حدود ۲۰۰ نفر معادل ۳ درصد کارکنان را تعدیل کردیم",
+          "uri": "https://www.khabaronline.ir/news/2208660/%D9%85%D8%AF%DB%8C%D8%B1%D8%B9%D8%A7%D9%85%D9%84-%D8%AF%DB%8C%D8%AC%DB%8C-%DA%A9%D8%A7%D9%84%D8%A7-%D8%AD%D8%AF%D9%88%D8%AF-%DB%B2%DB%B0%DB%B0-%D9%86%D9%81%D8%B1-%D9%85%D8%B9%D8%A7%D8%AF%D9%84-%DB%B3-%D8%AF%D8%B1%D8%B5%D8%AF-%DA%A9%D8%A7%D8%B1%DA%A9%D9%86%D8%A7%D9%86-%D8%B1%D8%A7-%D8%AA%D8%B9%D8%AF%DB%8C%D9%84",
+          "publisher": "KhabarOnline",
+          "language": "fa",
+          "published_at": "2026-04-21T15:15:00Z",
+          "raw_path": "raw/crawl20-khabaronline-digikala-200-layoffs.txt"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search and crawl",
+            "observed_at": "2026-05-02T05:02:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_shahraranews_services_layoffs_v42",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "online services", "Internet of Things", "Nasr Tehran", "layoffs"],
+          "tags": ["digital-economy", "online-services", "iot", "nasr", "layoffs", "internet", "persian", "v42"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "افزایش تعدیل نیرو در شرکت‌های خدمات آنلاین به علت قطعی اینترنت",
+          "uri": "https://shahraranews.ir/fa/news/410138/%D8%A7%D9%81%D8%B2%D8%A7%DB%8C%D8%B4-%D8%AA%D8%B9%D8%AF%DB%8C%D9%84-%D9%86%DB%8C%D8%B1%D9%88-%D8%AF%D8%B1-%D8%B4%D8%B1%DA%A9%D8%AA%E2%80%8C%D9%87%D8%A7%DB%8C-%D8%AE%D8%AF%D9%85%D8%A7%D8%AA-%D8%A2%D9%86%D9%84%D8%A7%DB%8C%D9%86-%D8%A8%D9%87-%D8%B9%D9%84%D8%AA-%D9%82%D8%B7%D8%B9%DB%8C-%D8%A7%DB%8C%D9%86%D8%AA%D8%B1%D9%86%D8%AA",
+          "publisher": "ShahraraNews",
+          "language": "fa",
+          "published_at": "2026-04-27T09:01:13Z",
+          "raw_path": "raw/crawl20-shahraranews-online-services-layoffs.txt"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search and crawl",
+            "observed_at": "2026-05-02T05:02:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_chn_online_sales_80pct_v42",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "virtual business union", "online shops", "internet blackout"],
+          "tags": ["digital-economy", "online-shops", "instagram", "sales-collapse", "freelancers", "persian", "v42"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "ضربه قطعی اینترنت به کسب و کارهای آنلاین/ فروش‌ها ۸۰ درصد کاهش یافت",
+          "uri": "https://www.chn.ir/technology/208662/",
+          "publisher": "CHN / KhabarOnline / ISNA",
+          "author": "KhabarOnline",
+          "language": "fa",
+          "published_at": "2026-01-28T18:56:00Z",
+          "raw_path": "raw/crawl20-chn-online-business-sales-80pct.txt"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search and crawl",
+            "observed_at": "2026-05-02T05:02:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_zoomit_digital_business_losses_v42",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "digital businesses", "internet blackout", "virtual business union"],
+          "tags": ["digital-economy", "sales-collapse", "limited-access", "internet-pro", "layoffs", "persian", "v42"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "یک ماه قطعی اینترنت؛ هشدار درباره تعدیل نیرو و فرار سرمایه",
+          "uri": "https://api2.zoomit.ir/iran-news/458249-irans-digital-businesses-suffer-heavy-losses-internet-blackout/",
+          "publisher": "Zoomit",
+          "language": "fa",
+          "published_at": "2026-04-01T06:30:00Z",
+          "raw_path": "raw/crawl20-zoomit-digital-business-losses.txt"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search and crawl",
+            "observed_at": "2026-05-02T05:02:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_etemad_10m_jobs_v42",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "digital economy", "online shops", "internet blackout", "employment"],
+          "tags": ["digital-economy", "online-shops", "instagram", "employment", "loss-estimate", "persian", "v42"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "خسارت نجومی قطعی اینترنت به اقتصاد دیجیتال کشور / ۱۰ میلیون نفر در ایران کسب‌وکارشان با اینترنت است",
+          "uri": "https://www.etemadonline.com/%D8%A8%D8%AE%D8%B4-%D8%A7%D9%82%D8%AA%D8%B5%D8%A7%D8%AF%DB%8C-22/768431-%D8%AE%D8%B3%D8%A7%D8%B1%D8%AA-%D9%86%D8%AC%D9%88%D9%85%DB%8C-%D8%A7%DB%8C%D9%86%D8%AA%D8%B1%D9%86%D8%AA",
+          "publisher": "EtemadOnline / Donya-e Eqtesad",
+          "language": "fa",
+          "published_at": "2026-04-12T11:20:30Z",
+          "raw_path": "raw/crawl20-etemad-digital-economy-10m-jobs.txt"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search and crawl",
+            "observed_at": "2026-05-02T05:02:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_iranintl_freelancer_income_v42",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "freelancers", "small business", "internet blackout", "layoffs"],
+          "tags": ["digital-economy", "freelancers", "small-business", "income-collapse", "layoffs", "migration", "english", "v42"],
+          "language": "en"
+        },
+        "source": {
+          "type": "article",
+          "title": "Iran blackout cripples freelancer, small business incomes",
+          "uri": "https://www.iranintl.news/en/202604160762",
+          "publisher": "Iran International",
+          "author": "Hooman Abedi",
+          "language": "en",
+          "published_at": "2026-04-16T09:32:58Z",
+          "raw_path": "raw/crawl20-iranintl-blackout-freelancer-income-direct.txt"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search and crawl",
+            "observed_at": "2026-05-02T05:02:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_netmag_workforce_reduction_v42",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "technology labor market", "hiring demand", "internet blackout"],
+          "tags": ["digital-economy", "hiring", "layoffs", "internet", "lead-source", "persian", "v42"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "از اختلال تا اخراج؛ قطار قطع ارتباطات چگونه به تعدیل نیرو رسید",
+          "uri": "https://net-mag.ir/workforce-reduction/",
+          "publisher": "Net-Mag",
+          "author": "تحریریه نت مگ",
+          "language": "fa",
+          "published_at": "2026-02-22T21:24:01Z",
+          "raw_path": "raw/crawl20-netmag-workforce-reduction.txt"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search and crawl",
+            "observed_at": "2026-05-02T05:02:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_xpool_digital_layoffs_v42",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "X discourse", "internet blackout", "layoffs", "digital economy"],
+          "tags": ["xpool", "social-sample", "internet", "layoffs", "digital-economy", "persian", "v42"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "api_response",
+          "title": "xPool SearchTimeline: Persian digital-economy layoffs, job loss, and blackout discourse, Apr 20-May 2",
+          "uri": "xpool://query-jobs/4450f1c4-fd6e-4b33-88e0-f3743a472531",
+          "publisher": "xPool SearchTimeline",
+          "language": "fa",
+          "raw_path": "raw/xpool-digital-layoffs-v42-result.json"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "xpool SearchTimeline latest query",
+            "observed_at": "2026-05-02T05:02:00Z",
+            "query": "(\"تعدیل نیرو\" OR اخراج OR بیکار OR بیکاری OR \"از دست دادن شغل\" OR مهاجرت OR دورکاری OR \"دیجی کالا\" OR دیجی‌کالا OR \"کسب‌وکار اینترنتی\" OR آنلاین‌شاپ OR \"فروش اینستاگرام\") (اینترنت OR \"قطع اینترنت\" OR \"قطعی اینترنت\" OR \"اینترنت پرو\" OR فیلترینگ OR جنگ) since:2026-04-20 lang:fa",
+            "result_paths": [
+              "raw/xpool-digital-layoffs-v42-submit.json",
+              "raw/xpool-digital-layoffs-v42-status-final.json",
+              "raw/xpool-digital-layoffs-v42-result.json",
+              "raw/xpool-digital-layoffs-v42-texts.tsv"
+            ],
+            "items_emitted": 180,
+            "stop_reason": "TARGET_ITEMS_REACHED"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_digikala_200_layoffs_v42",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "DigiKala", "digital economy", "layoffs"],
+          "tags": ["digital-economy", "layoffs", "digikala", "employment", "v42"]
+        },
+        "identity": {
+          "claim_key": "iran|digital_economy|digikala_layoffs_200_3pct|2026-04-21",
+          "novelty": "update"
+        },
+        "claim": {
+          "statement": "By 21 April 2026, DigiKala's CEO publicly confirmed roughly 200 layoffs, about 3% of employees, while rejecting a 2,000-layoff rumor; he framed the cuts as a difficult human decision shaped by country conditions, economic uncertainty, and an 18-month redesign toward a more technology- and AI-oriented organization. AP's 1 May field report treated the DigiKala cut as a visible flagship example of the blackout's broader digital-economy pain.",
+          "atomic": true,
+          "type": "event",
+          "subject": "DigiKala",
+          "predicate": "confirmed",
+          "object": "approximately 200 layoffs amid digital-economy stress"
+        },
+        "time": {
+          "reported_at": "2026-04-21T15:15:00Z",
+          "last_checked_at": "2026-05-02T05:02:00Z",
+          "precision": "instant",
+          "timezone": "UTC"
+        },
+        "provenance": {
+          "evidence": [
+            {
+              "source_id": "$src_khabaronline_digikala_200_v42",
+              "role": "supports",
+              "summary": "KhabarOnline quotes DigiKala CEO Masoud Tabatabaei confirming about 200 layoffs / 3%, rejecting the 2,000-rumor, and citing country conditions, uncertainty, redesign, and AI-oriented restructuring."
+            },
+            {
+              "source_id": "src:iran-cracks:20260502:6cb5f58e",
+              "role": "context",
+              "summary": "AP uses DigiKala's 200-person cut as a flagship digital-economy example within a report on the shutdown's business impact."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "high",
+          "information_depth": {
+            "level": "strong",
+            "rationale": "The headcount is attributed to the company's CEO and corroborated in AP; causality is mixed and should not be reduced to blackout-only."
+          },
+          "importance": "medium",
+          "uncertainty": "The company framed the decision as structural and strategic as well as shaped by national conditions, so it is an indicator of sector stress rather than a clean blackout-only layoff count."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_online_services_30_50_layoffs_v42",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "online services", "IoT", "layoffs", "internet blackout"],
+          "tags": ["digital-economy", "online-services", "iot", "layoffs", "internet", "v42"]
+        },
+        "identity": {
+          "claim_key": "iran|digital_economy|online_services_layoffs_30_50_pct|2026-04-27",
+          "novelty": "new"
+        },
+        "claim": {
+          "statement": "On 27 April 2026, ShahraraNews, citing Mojtaba Mirjafari of Tehran's Computer Trade Organization, reported that some online-service and IoT firms had cut 30-50% of staff because the internet cutoff stopped their revenue flow; Mirjafari warned that continued restrictions could push some digital businesses fully out of activity and that recovery, even after restrictions lift, could take more than a year.",
+          "atomic": true,
+          "type": "impact_assessment",
+          "subject": "Iran online service and IoT firms",
+          "predicate": "reported",
+          "object": "30-50% staff cuts in some firms amid internet cutoff"
+        },
+        "time": {
+          "reported_at": "2026-04-27T09:01:13Z",
+          "precision": "instant",
+          "timezone": "UTC"
+        },
+        "provenance": {
+          "evidence": [
+            {
+              "source_id": "$src_shahraranews_services_layoffs_v42",
+              "role": "supports",
+              "summary": "The article quotes Mirjafari saying some firms cut 30-50% of staff, that stable internet is the revenue channel, and that customer loss may create more-than-one-year recovery timelines."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "medium",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "partial",
+            "rationale": "The source is a media report quoting a sector official and gives a range but no underlying firm list or survey instrument."
+          },
+          "importance": "high",
+          "uncertainty": "The 30-50% figure is explicitly 'in some cases' and should not be generalized to the whole digital economy."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_online_commerce_livelihoods_v42",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "online shops", "freelancers", "digital economy", "internet blackout"],
+          "tags": ["digital-economy", "online-shops", "instagram", "freelancers", "sales-collapse", "livelihood", "v42"]
+        },
+        "identity": {
+          "claim_key": "iran|digital_economy|online_commerce_livelihoods_exposed_to_blackout|2026-01_to_04",
+          "novelty": "update"
+        },
+        "claim": {
+          "statement": "Persian business reporting from January-April 2026 describes the blackout as a direct livelihood shock for online commerce: CHN/KhabarOnline/ISNA quoted Reza Olfatnasab saying large online firms initially saw near-80% sales declines, about 700k Instagram shop pages support roughly 1m livelihoods, and freelancers/technical teams were hit; Zoomit quoted Pashootan Pourpezeshk on 50-80% sales drops and limited business access failing when customers and marketing remain blocked; and EtemadOnline/Donya-e Eqtesad reported near-10m internet-dependent livelihoods, 2.5m small Instagram-shop workers, and online sellers reporting up to 95% sales declines.",
+          "atomic": true,
+          "type": "impact_assessment",
+          "subject": "Iran online commerce",
+          "predicate": "faces",
+          "object": "sales collapse and livelihood exposure under the internet blackout"
+        },
+        "time": {
+          "valid_from": "2026-01-18",
+          "last_checked_at": "2026-05-02T05:02:00Z",
+          "precision": "range",
+          "timezone": "UTC"
+        },
+        "provenance": {
+          "evidence": [
+            {
+              "source_id": "$src_chn_online_sales_80pct_v42",
+              "role": "supports",
+              "summary": "CHN/KhabarOnline/ISNA quotes Olfatnasab on near-80% sales declines at large firms, 700k Instagram shop pages, roughly 1m livelihoods, freelancer disruption, and technical-worker idleness."
+            },
+            {
+              "source_id": "$src_zoomit_digital_business_losses_v42",
+              "role": "supports",
+              "summary": "Zoomit quotes Pourpezeshk on 50-80% sales losses, at least 2 hemats/day in damage, small online firms as first victims, and limited access not solving customer/marketing access."
+            },
+            {
+              "source_id": "$src_etemad_10m_jobs_v42",
+              "role": "supports",
+              "summary": "EtemadOnline/Donya-e Eqtesad gives the 10m internet-dependent livelihood estimate, 2.5m Instagram-shop workers, daily digital-core and macro-loss estimates, and online sellers reporting up to 95% sales drops."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "medium",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "strong",
+            "rationale": "Multiple Persian business/tech outlets converge on the same mechanism and broad ranges, but exact employment and loss counts are estimates rather than audited data."
+          },
+          "importance": "high",
+          "uncertainty": "The 1m, 2.5m, and 10m figures use different scopes. Treat them as exposure estimates, not mutually interchangeable unemployment counts."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_field_reporting_layoff_informalization_v42",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "internet blackout", "freelancers", "street vending", "migration", "layoffs"],
+          "tags": ["digital-economy", "freelancers", "remote-work", "street-vending", "migration", "layoffs", "v42"]
+        },
+        "identity": {
+          "claim_key": "iran|internet_shutdown|field_reports_layoffs_informalization_migration_pressure|2026-04_to_05",
+          "novelty": "corroboration"
+        },
+        "claim": {
+          "statement": "AP and Iran International field reporting in April-May 2026 show the internet shutdown converting digital work into job loss, informal work, and migration pressure: AP reports remote work wiped out for a software developer whose former company laid off almost all employees, a former internet-provider worker selling goods by a metro stop, and a tailoring business closing and laying off five employees; Iran International reports freelancers with zero income, hundreds of small digital enterprises unable to maintain sales or support, layoffs across tech/media firms, LinkedIn job-seeking among skilled workers, and digital workers weighing prolonged uncertainty against leaving the country.",
+          "atomic": true,
+          "type": "impact_assessment",
+          "subject": "Iran digital workers and small businesses",
+          "predicate": "experience",
+          "object": "job loss, informalization, and migration pressure under the shutdown"
+        },
+        "time": {
+          "valid_from": "2026-04-16",
+          "valid_until": "2026-05-01",
+          "precision": "range",
+          "timezone": "UTC"
+        },
+        "provenance": {
+          "evidence": [
+            {
+              "source_id": "src:iran-cracks:20260502:6cb5f58e",
+              "role": "supports",
+              "summary": "AP reports specific cases of no sales, remote-work loss, almost-total company layoffs, street vending after an ISP job loss, and a tailoring business closure with five layoffs."
+            },
+            {
+              "source_id": "$src_iranintl_freelancer_income_v42",
+              "role": "supports",
+              "summary": "Iran International reports freelancers and small businesses with zero or collapsed income, layoffs across tech/media firms, job-seeking on LinkedIn, and digital workers facing departure pressure."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "high",
+          "information_depth": {
+            "level": "strong",
+            "rationale": "The claim relies on concrete field examples and named outlets; it does not convert those examples into a national unemployment count."
+          },
+          "importance": "high",
+          "uncertainty": "Field reporting demonstrates mechanism and salience, not population prevalence."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_xpool_digital_layoffs_signal_v42",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "X discourse", "internet blackout", "layoffs", "digital economy"],
+          "tags": ["xpool", "social-sample", "internet", "layoffs", "business-collapse", "migration", "v42"]
+        },
+        "identity": {
+          "claim_key": "iran|xpool|digital_layoffs_blackout_discourse_signal|2026-05-02",
+          "novelty": "corroboration"
+        },
+        "claim": {
+          "statement": "A 2 May 2026 xPool latest-search sample of 180 Persian X items about layoffs/job loss/business terms plus internet terms found a noisy but visible labor-damage signal: 61 lines contained both internet/cutoff and job-loss terms, 13 contained both internet/cutoff and business/online-income terms, and 8 contained both internet/cutoff and migration/freelance/programming terms. The sample includes direct personal claims of losing work after the internet cutoff and higher-engagement anger that businesses have been destroyed, but it should be treated as discourse corroboration rather than a population estimate.",
+          "atomic": true,
+          "type": "social_signal",
+          "subject": "Persian X discourse on blackout and work loss",
+          "predicate": "contains",
+          "object": "visible but noisy job-loss and business-collapse signal"
+        },
+        "time": {
+          "observed_at": "2026-05-02T05:02:00Z",
+          "precision": "instant",
+          "timezone": "UTC"
+        },
+        "provenance": {
+          "evidence": [
+            {
+              "source_id": "$src_xpool_digital_layoffs_v42",
+              "role": "supports",
+              "summary": "The extracted TSV contains 180 latest Persian items; rg category counts found 61 internet+job-loss lines, 13 internet+business/online-income lines, and 8 internet+migration/freelance/programming lines."
+            },
+            {
+              "source_id": "$src_source_notes_v42",
+              "role": "context",
+              "summary": "The source notes list the query, job id, file paths, count definitions, and caution that social claims are not verified employment statistics."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "medium",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "partial",
+            "rationale": "The sample is directly archived and countable, but search terms preselected for the topic and the discourse is noisy, political, and duplicate-prone."
+          },
+          "importance": "medium",
+          "contested": true,
+          "uncertainty": "Do not infer unemployment prevalence from this sample. It only shows that blackout-linked job-loss framing is live in Persian X discourse."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_hiring_demand_drop_lead_v42",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "technology labor market", "hiring demand", "internet blackout"],
+          "tags": ["digital-economy", "hiring", "layoffs", "lead-source", "v42"]
+        },
+        "identity": {
+          "claim_key": "iran|technology_labor_market|reported_hiring_demand_drop_57pct|2026-02-22",
+          "novelty": "new"
+        },
+        "claim": {
+          "statement": "Net-Mag reported on 22 February 2026 that IranTalent data made available to Roomit showed a 57% drop in Iranian labor-market hiring demand since the recent internet disruptions, compared with a 35% drop during the 12-day war; the same article cited a Tehran E-Commerce Association figure of roughly 400k people made jobless. Because the underlying IranTalent and association originals were not retrieved in this pass, this remains a low-confidence lead rather than a settled metric.",
+          "atomic": true,
+          "type": "lead",
+          "subject": "Iran technology labor market",
+          "predicate": "reportedly showed",
+          "object": "57% hiring-demand drop after internet disruption"
+        },
+        "time": {
+          "reported_at": "2026-02-22T21:24:01Z",
+          "precision": "instant",
+          "timezone": "UTC"
+        },
+        "provenance": {
+          "evidence": [
+            {
+              "source_id": "$src_netmag_workforce_reduction_v42",
+              "role": "supports",
+              "summary": "Net-Mag says IranTalent data given to Roomit showed a 57% hiring-demand drop after internet disruptions and compares it to a 35% drop during the 12-day war."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "low",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "thin",
+            "rationale": "The article cites named underlying data sources, but the original IranTalent/Roomit material and E-Commerce Association statement were not obtained."
+          },
+          "importance": "medium",
+          "uncertainty": "Use this as a follow-up target, not as a headline metric."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "q_digital_labor_metrics_followup_v42",
+      "row": {
+        "kind": "question",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "digital economy", "labor market", "internet blackout"],
+          "tags": ["open-question", "digital-economy", "layoffs", "unemployment-insurance", "migration", "v42"]
+        },
+        "question": {
+          "text": "Can source-near labor-market records confirm the scale of digital-economy job loss from the blackout, especially unemployment-insurance registrations, IranTalent/LinkedIn hiring data, firm layoff notices, or union member surveys?",
+          "status": "open",
+          "priority": "high",
+          "why_it_matters": "v42 has strong directional evidence but still lacks an audited labor-market denominator for how many internet-dependent workers have actually lost jobs versus lost income or hours.",
+          "resolution_criteria": "Find direct datasets, official labor-office filings, named firm notices, IranTalent/LinkedIn metrics, or union survey methodology that can quantify digital-economy layoffs separately from broader war and inflation shocks."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "synth_v42_blackout_labor_market_shock",
+      "row": {
+        "kind": "synthesis",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "internet blackout", "digital economy", "employment", "labor unrest"],
+          "tags": ["overview", "synthesis", "v42", "internet", "blackout", "digital-economy", "layoffs", "labor"]
+        },
+        "synthesis": {
+          "title": "Cracks in the Islamic Republic, v42 - The blackout becomes a labor-market shock",
+          "status": "active",
+          "summary": "The forty-second pass reframes the shutdown as an employment shock rather than only a connectivity/control story. v41 showed that 'Internet Pro' and special access are not public restoration. v42 shows what that managed exception system is doing to the workforce: the flagship DigiKala case is now bounded at about 200 layoffs / 3%; a Nasr-linked online-services report says some IoT/services firms have cut 30-50% of staff and may need more than a year to recover; Persian union/business reporting puts large-firm sales losses around 50-80%, Instagram-shop livelihood exposure in the millions, and customer/marketing access as the unsolved problem even when firms receive limited connectivity; AP and Iran International field reporting show concrete worker paths from remote-work loss to layoffs, business closure, street vending, and migration pressure; and a 180-item xPool sample shows blackout-linked job-loss language is socially live, though noisy. Net: the regime's internet policy is no longer only producing anger about unequal access. It is now visibly turning digital livelihoods into layoffs, informal work, and exit pressure, which connects the internet crack to the broader delayed labor-unrest question.",
+          "basis": {
+            "claim_ids": [
+              "claim:iran-cracks:20260502:c7e77b11",
+              "$claim_digikala_200_layoffs_v42",
+              "$claim_online_services_30_50_layoffs_v42",
+              "$claim_online_commerce_livelihoods_v42",
+              "$claim_field_reporting_layoff_informalization_v42",
+              "$claim_xpool_digital_layoffs_signal_v42",
+              "$claim_hiring_demand_drop_lead_v42"
+            ],
+            "question_ids": [
+              "q:iran-cracks:20260502:516a1945",
+              "q:iran-cracks:20260502:6db3dc7d",
+              "$q_digital_labor_metrics_followup_v42"
+            ],
+            "source_ids": [
+              "$src_source_notes_v42",
+              "src:iran-cracks:20260502:6cb5f58e",
+              "$src_khabaronline_digikala_200_v42",
+              "$src_shahraranews_services_layoffs_v42",
+              "$src_chn_online_sales_80pct_v42",
+              "$src_zoomit_digital_business_losses_v42",
+              "$src_etemad_10m_jobs_v42",
+              "$src_iranintl_freelancer_income_v42",
+              "$src_netmag_workforce_reduction_v42",
+              "$src_xpool_digital_layoffs_v42"
+            ]
+          },
+          "limitations": "Exact national job-loss totals remain unresolved. Some figures count exposed livelihoods, some count sales losses, some count layoffs, and some are social/discourse claims. DigiKala's layoff cause is mixed and cannot be reduced to a blackout-only causal claim. The Net-Mag/IranTalent 57% hiring-demand figure is a useful lead but low confidence until the underlying dataset or Roomit article is found."
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "strong",
+            "rationale": "The synthesis combines field reporting, company-confirmed layoff numbers, sector-official claims, business-union estimates, and an archived social sample, while keeping exact job-count uncertainty explicit."
+          },
+          "importance": "high"
+        }
+      }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_online_services_30_50_layoffs_v42",
+      "to_id": "q:iran-cracks:20260502:516a1945",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "A 30-50% layoff range in some online-services firms is direct evidence for the delayed labor-protest and unemployment-pressure question.",
+      "scope": { "collections": ["iran-cracks"] }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_field_reporting_layoff_informalization_v42",
+      "to_id": "q:iran-cracks:20260502:516a1945",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "Field reports connect the blackout to worker-level outcomes: job loss, street vending, small-business closure, and migration pressure.",
+      "scope": { "collections": ["iran-cracks"] }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_xpool_digital_layoffs_signal_v42",
+      "to_id": "q:iran-cracks:20260502:6db3dc7d",
+      "rel": "context_for",
+      "strength": "medium",
+      "rationale": "The social sample shows blackout/job-loss anger escaping narrow professional complaint language and attaching to broader anti-regime labor-economic grievance.",
+      "scope": { "collections": ["iran-cracks"] }
+    },
+    {
+      "op": "supersede",
+      "target_ids": ["synth:iran-cracks:20260502:17ac50ad"],
+      "replacement_id": "$synth_v42_blackout_labor_market_shock",
+      "reason": "v42 preserves v41's measurement finding and adds evidence that the managed blackout is now producing visible digital-economy layoffs, income collapse, and migration pressure."
+    }
+  ]
+}

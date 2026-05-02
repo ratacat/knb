@@ -1,0 +1,515 @@
+{
+  "atomic": true,
+  "dedupe": true,
+  "operations": [
+    {
+      "op": "add",
+      "as": "src_source_notes_v26",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Shiraz", "Marvdasht", "death sentences"],
+          "tags": ["research-notes", "execution", "repression", "v26"]
+        },
+        "source": {
+          "type": "raw_note",
+          "title": "v26 source notes - Shiraz/Marvdasht death sentences",
+          "raw_path": "raw/apply-31-source-notes.md",
+          "language": "en"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "agent synthesis of exa-cli and xPool results",
+            "observed_at": "2026-05-02T02:50:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_xpool_shiraz_death_sentences_v26",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Shiraz", "Marvdasht", "death sentences", "X"],
+          "tags": ["xpool", "social", "execution", "repression", "persian", "v26"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "dataset",
+          "title": "xPool Persian latest query for Shiraz/Marvdasht death sentences",
+          "raw_path": "raw/xpool-shiraz-death-sentences-v26.json",
+          "publisher": "xPool / X SearchTimeline",
+          "language": "fa",
+          "published_at": "2026-05-02T02:27:35Z"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "xpool query",
+            "observed_at": "2026-05-02T02:27:35Z",
+            "job_id": "76e039dc-a320-490d-9f67-100996a4db14",
+            "query": "(\"حمیدرضا فتحی\" OR \"عبدالرضا فتحی\" OR \"سعید زارعی کردشولی\" OR \"حمیدرضا ثابت‌رای\" OR مرودشت) (اعدام OR شکنجه OR سپاه) since:2026-05-01 lang:fa",
+            "target_items": 120,
+            "max_pages": 8,
+            "items_emitted": 45
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_iranwire_marvdasht_four_death_sentences",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Shiraz", "Marvdasht", "Seyed Mahmoud Sadati"],
+          "tags": ["execution", "death-sentence", "protesters", "torture", "persian", "v26"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "چهار‌تن از بازداشت شدگان اعتراضات دی‌ماه محکوم به اعدام شدند",
+          "uri": "https://iranwire.com/fa/news-1/151859-%DA%86%D9%87%D8%A7%D8%B1%D8%AA%D9%86-%D8%A7%D8%B2-%D8%A8%D8%A7%D8%B2%D8%AF%D8%A7%D8%B4%D8%AA-%D8%B4%D8%AF%DA%AF%D8%A7%D9%86-%D8%A7%D8%B9%D8%AA%D8%B1%D8%A7%D8%B6%D8%A7%D8%AA-%D8%AF%DB%8C%D9%85%D8%A7%D9%87-%D9%85%D8%AD%DA%A9%D9%88%D9%85-%D8%A8%D9%87-%D8%A7%D8%B9%D8%AF%D8%A7%D9%85-%D8%B4%D8%AF%D9%86%D8%AF/",
+          "publisher": "IranWire",
+          "language": "fa",
+          "published_at": "2026-05-01T05:17:34Z"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search",
+            "observed_at": "2026-05-02T02:34:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_justice4iran_sadati_profile",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Seyed Mahmoud Sadati", "Shiraz Revolutionary Court"],
+          "tags": ["judiciary", "revolutionary-court", "execution", "due-process", "persian", "v26"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "web_page",
+          "title": "پرونده ناقض حقوق بشر: سید محمود ساداتی",
+          "uri": "https://justice4iran.org/persian/human-rights-violators-bank/mahmood-sadati/",
+          "publisher": "Justice for Iran",
+          "language": "fa",
+          "published_at": "2018-10-10T15:14:47Z"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search",
+            "observed_at": "2026-05-02T02:38:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_ihr_new_spy_law_death_sentences",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Dey 1404 protests", "death sentences", "new espionage law"],
+          "tags": ["execution", "death-sentence", "protesters", "law", "persian", "v26"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "صدور حکم اعدام برای چهار معترض دی‌ماه براساس قانون جدید «جاسوسی»",
+          "uri": "https://irancrises.info/75552/",
+          "publisher": "Iran Human Rights via IranCrises",
+          "language": "fa",
+          "published_at": "2026-04-24T00:00:00Z"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search",
+            "observed_at": "2026-05-02T02:45:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_marvdasht_four_death_sentences_direct",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Shiraz", "Marvdasht", "death sentences"],
+          "tags": ["execution", "death-sentence", "protesters", "repression", "v26"]
+        },
+        "identity": {
+          "claim_key": "iran-cracks|marvdasht-shiraz|four-dey-protest-detainees-death-sentences|2026-05-01",
+          "novelty": "update"
+        },
+        "claim": {
+          "statement": "On 1 May 2026, IranWire reported that Branch 1 of the Shiraz Revolutionary Court sentenced four Marvdasht-linked Dey 1404 protest detainees - Hamidreza Fathi, Abdolreza Fathi, Saeed Zarei Kardshuli, and Hamidreza Sabet-Ray - to death, with the case presided over by Judge Seyed Mahmoud Sadati.",
+          "atomic": true,
+          "type": "event",
+          "subject": "four Marvdasht-linked Dey protest detainees",
+          "predicate": "were_reported_sentenced_to",
+          "object": "death by Branch 1 of the Shiraz Revolutionary Court"
+        },
+        "time": {
+          "occurred_at": "2026-05-01",
+          "precision": "day",
+          "timezone": "Asia/Tehran"
+        },
+        "provenance": {
+          "source_ids": ["$src_iranwire_marvdasht_four_death_sentences", "src:iran-cracks:20260502:0905837b"],
+          "evidence": [
+            {
+              "source_id": "$src_iranwire_marvdasht_four_death_sentences",
+              "role": "supports",
+              "summary": "IranWire, citing the Committee to Follow Up on Detainees, names the four defendants, Marvdasht connection, Branch 1 Shiraz Revolutionary Court, and Judge Sadati."
+            },
+            {
+              "source_id": "src:iran-cracks:20260502:0905837b",
+              "role": "context",
+              "summary": "The existing KNB v19 social source had already surfaced a post naming the same four defendants and death-sentence claim."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "medium",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "partial",
+            "rationale": "IranWire provides named defendants and court/judge details through a detainee-follow-up committee; official Judiciary confirmation was not found in this pass."
+          },
+          "importance": "high",
+          "uncertainty": "Needs follow-up for formal verdict text, charges, appeal status, prison location, and Judiciary confirmation or denial."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_marvdasht_torture_confession_risk",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Marvdasht", "Saeed Zarei Kardshuli", "torture"],
+          "tags": ["torture", "forced-confession", "execution", "repression", "v26"]
+        },
+        "identity": {
+          "claim_key": "iran-cracks|marvdasht-shiraz|torture-confession-allegations-five-irgc-case|2026-05-01",
+          "novelty": "update"
+        },
+        "claim": {
+          "statement": "The Shiraz/Marvdasht death-sentence report includes serious torture-confession allegations: IranWire says Saeed Zarei Kardshuli was arrested on 22 Dey 1404 at his sister's home in Shiraz and severely tortured, with reported injuries to his face, legs, and ribs, while other defendants were allegedly tortured to accept responsibility for killing five IRGC personnel during the Marvdasht protests.",
+          "atomic": true,
+          "type": "abuse_allegation",
+          "subject": "Marvdasht protest-case defendants",
+          "predicate": "were_allegedly_tortured_to_accept",
+          "object": "responsibility for killing five IRGC personnel"
+        },
+        "time": {
+          "valid_from": "2026-01-12",
+          "valid_until": "2026-05-01",
+          "precision": "range",
+          "timezone": "Asia/Tehran"
+        },
+        "provenance": {
+          "source_ids": ["$src_iranwire_marvdasht_four_death_sentences", "$src_xpool_shiraz_death_sentences_v26", "$src_source_notes_v26"],
+          "evidence": [
+            {
+              "source_id": "$src_iranwire_marvdasht_four_death_sentences",
+              "role": "supports",
+              "summary": "IranWire reports the Zarei Kardshuli arrest date/location, severe injuries, and similar torture allegations for other defendants tied to the five-IRGC accusation."
+            },
+            {
+              "source_id": "$src_xpool_shiraz_death_sentences_v26",
+              "role": "context",
+              "summary": "The xPool sample includes repeated torture language and at least one explicit five-IRGC/five-Sepah framing item."
+            },
+            {
+              "source_id": "$src_source_notes_v26",
+              "role": "context",
+              "summary": "The notes record manual keyword counts and the limitation that this remains rights/social-sourced until formal documents appear."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "medium",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "partial",
+            "rationale": "The allegations are detailed and repeated but still rely on rights/social channels, not medical records, court files, or lawyer/family documents captured here."
+          },
+          "importance": "high",
+          "uncertainty": "Requires medical, lawyer, family, or court-document corroboration."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_xpool_shiraz_four_amplification",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Shiraz", "Marvdasht", "Persian X", "death sentences"],
+          "tags": ["xpool", "social", "execution", "anti-execution", "negative-evidence", "v26"]
+        },
+        "identity": {
+          "claim_key": "iran-cracks|xpool|shirza-marvdasht-four-amplification-no-clean-street-cluster|2026-05-01_2026-05-02",
+          "novelty": "update"
+        },
+        "claim": {
+          "statement": "The v26 xPool Shiraz/Marvdasht sample emitted 45 Persian items and amplified the four death-sentence names intensely, with simple counts showing 35 Marvdasht items, 10 torture items, 10 Sadati items, and 5 anti-execution tag/call items; it did not surface a clean in-country street, family, labor, or student mobilization cluster.",
+          "atomic": true,
+          "type": "social_signal",
+          "subject": "Persian X Shiraz/Marvdasht death-sentence discourse",
+          "predicate": "showed",
+          "object": "strong named-case amplification but no clean in-country mobilization cluster"
+        },
+        "time": {
+          "first_observed_at": "2026-05-02T02:27:35Z",
+          "precision": "instant",
+          "timezone": "UTC"
+        },
+        "provenance": {
+          "source_ids": ["$src_xpool_shiraz_death_sentences_v26", "$src_source_notes_v26"],
+          "evidence": [
+            {
+              "source_id": "$src_xpool_shiraz_death_sentences_v26",
+              "role": "supports",
+              "summary": "The saved dataset contains 45 emitted X items for the named defendants, Marvdasht, execution, torture, and IRGC terms."
+            },
+            {
+              "source_id": "$src_source_notes_v26",
+              "role": "supports",
+              "summary": "Manual and jq inspection counted Marvdasht, torture, Sadati, and anti-execution language and found mostly amplification rather than ground mobilization."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "low",
+          "information_depth": {
+            "level": "partial",
+            "rationale": "The counts are bounded and reproducible for this saved xPool sample, but the sample is not representative and blackout conditions bias visibility."
+          },
+          "importance": "medium"
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_sadati_shiraz_court_due_process_context",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Seyed Mahmoud Sadati", "Shiraz Revolutionary Court"],
+          "tags": ["judiciary", "revolutionary-court", "due-process", "execution", "v26"]
+        },
+        "identity": {
+          "claim_key": "iran-cracks|sadati|shirza-revolutionary-court-due-process-risk-context|2026-05-01",
+          "novelty": "new"
+        },
+        "claim": {
+          "statement": "The reported judge in the Shiraz/Marvdasht death-sentence case is a meaningful due-process risk signal: Justice for Iran profiles Seyed Mahmoud Sadati as head of Branch 1 of the Shiraz Revolutionary Court and links him to prior harsh political/minority cases, including the Navid Afkari file and long prison terms for peaceful Pasargad participants and Baha'i citizens.",
+          "atomic": true,
+          "type": "judicial_context",
+          "subject": "Seyed Mahmoud Sadati",
+          "predicate": "provides",
+          "object": "high-risk due-process context for the Shiraz/Marvdasht case"
+        },
+        "time": {
+          "valid_from": "2018-10-10",
+          "valid_until": "2026-05-01",
+          "precision": "range",
+          "timezone": "Asia/Tehran"
+        },
+        "provenance": {
+          "source_ids": ["$src_justice4iran_sadati_profile", "$src_iranwire_marvdasht_four_death_sentences"],
+          "evidence": [
+            {
+              "source_id": "$src_justice4iran_sadati_profile",
+              "role": "supports",
+              "summary": "Justice for Iran profiles Sadati as a Shiraz Revolutionary Court judge tied to earlier political, minority, Pasargad, and Afkari cases."
+            },
+            {
+              "source_id": "$src_iranwire_marvdasht_four_death_sentences",
+              "role": "supports",
+              "summary": "IranWire names Judge Seyed Mahmoud Sadati as presiding over Branch 1 in the current four-defendant death-sentence report."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "medium",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "partial",
+            "rationale": "The identity and prior-profile context are clear, but the current verdict text is not captured."
+          },
+          "importance": "medium"
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_protester_death_sentence_pipeline_broadens",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Dey 1404 protests", "death sentences", "revolutionary courts"],
+          "tags": ["execution", "death-sentence", "protesters", "judiciary", "wartime-governance", "v26"]
+        },
+        "identity": {
+          "claim_key": "iran-cracks|dey-protesters|death-sentence-pipeline-tehran-shiraz-broadens|2026-04-24_2026-05-01",
+          "novelty": "update"
+        },
+        "claim": {
+          "statement": "By 1 May 2026, the Dey 1404 protester death-sentence pipeline was no longer a single Tehran file: Iran Human Rights reported at least 30 Dey protesters sentenced to death and hundreds potentially facing capital charges, with a Tehran Branch 26 case using the new espionage/cooperation-with-hostile-states law, while IranWire reported a separate Shiraz Branch 1/Marvdasht four-defendant death-sentence case.",
+          "atomic": true,
+          "type": "trend",
+          "subject": "Dey 1404 protester death-sentence pipeline",
+          "predicate": "broadened_across",
+          "object": "Tehran and Shiraz Revolutionary Court files"
+        },
+        "time": {
+          "valid_from": "2026-04-24",
+          "valid_until": "2026-05-01",
+          "precision": "range",
+          "timezone": "Asia/Tehran"
+        },
+        "provenance": {
+          "source_ids": ["$src_ihr_new_spy_law_death_sentences", "$src_iranwire_marvdasht_four_death_sentences", "src:iran-cracks:20260502:e35b80d3"],
+          "evidence": [
+            {
+              "source_id": "$src_ihr_new_spy_law_death_sentences",
+              "role": "supports",
+              "summary": "Iran Human Rights, via IranCrises, reported at least 30 Dey protesters sentenced to death, hundreds potentially facing capital charges, and four Tehran Branch 26 defendants sentenced under the new espionage/cooperation law."
+            },
+            {
+              "source_id": "$src_iranwire_marvdasht_four_death_sentences",
+              "role": "supports",
+              "summary": "IranWire reported a separate Shiraz Revolutionary Court Branch 1 case involving four Marvdasht-linked death sentences."
+            },
+            {
+              "source_id": "src:iran-cracks:20260502:e35b80d3",
+              "role": "context",
+              "summary": "The existing CHRI source used in KNB v19 reports post-war political-execution acceleration and many death-penalty cases."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "medium",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "strong",
+            "rationale": "Multiple rights and media sources identify separate court files and broader death-penalty scale, though exact counts and charges require harmonization."
+          },
+          "importance": "high"
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "synth_v26_shiraz_marvdasht_execution_pipeline",
+      "row": {
+        "kind": "synthesis",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran"],
+          "tags": ["overview", "synthesis", "v26", "execution", "repression"]
+        },
+        "synthesis": {
+          "title": "Cracks in the Islamic Republic, v26 - provincial courts join the death-sentence pipeline",
+          "summary": "The twenty-sixth pass upgrades the Shiraz/Marvdasht execution-risk signal from social chatter to a direct source-near report. IranWire, citing the detainee-follow-up committee, says Branch 1 of the Shiraz Revolutionary Court under Judge Seyed Mahmoud Sadati sentenced Hamidreza Fathi, Abdolreza Fathi, Saeed Zarei Kardshuli, and Hamidreza Sabet-Ray to death over the Dey 1404 Marvdasht protest file. The core risk is due process and confession coercion: Zarei Kardshuli was reportedly arrested at his sister's home in Shiraz and badly tortured, while other defendants were allegedly tortured to accept responsibility for killing five IRGC personnel. xPool confirms strong named-case amplification but no clean in-country street/family/labor/student mobilization cluster. Pattern-wise, this means v19's wartime execution thesis is spreading through provincial revolutionary courts, not just Tehran Branch 26 or the Orumiyeh death-row transfer cluster. Net: the regime is still using execution risk as deterrence, but each named case creates a trackable martyrdom/mobilization test.",
+          "basis": {
+            "claim_ids": [
+              "$claim_marvdasht_four_death_sentences_direct",
+              "$claim_marvdasht_torture_confession_risk",
+              "$claim_xpool_shiraz_four_amplification",
+              "$claim_sadati_shiraz_court_due_process_context",
+              "$claim_protester_death_sentence_pipeline_broadens",
+              "claim:iran-cracks:20260502:779f8925",
+              "claim:iran-cracks:20260502:a9fc4948",
+              "claim:iran-cracks:20260502:e292a2c4",
+              "claim:iran-cracks:20260502:c23ec1a7"
+            ],
+            "question_ids": [
+              "q:iran-cracks:20260502:12f1079c",
+              "q:iran-cracks:20260502:b2560e89",
+              "q:iran-cracks:20260501:6094f3f5"
+            ],
+            "source_ids": [
+              "$src_source_notes_v26",
+              "$src_xpool_shiraz_death_sentences_v26",
+              "$src_iranwire_marvdasht_four_death_sentences",
+              "$src_justice4iran_sadati_profile",
+              "$src_ihr_new_spy_law_death_sentences",
+              "src:iran-cracks:20260502:0905837b"
+            ]
+          },
+          "limitations": "This pass still lacks the formal verdict text, defense-lawyer statements, medical documentation, prison location confirmation, appeal status, and official Judiciary confirmation. IranWire and the Committee to Follow Up on Detainees are useful source-near channels but not court records. The xPool sample is amplification evidence only and remains biased toward visible opposition/diaspora accounts.",
+          "status": "active"
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "strong",
+            "rationale": "The pass upgrades an existing social lead with a direct Persian article, a focused xPool sample, judicial context, and connection to existing UN/CHRI execution-acceleration claims."
+          },
+          "importance": "high"
+        }
+      }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_marvdasht_four_death_sentences_direct",
+      "to_id": "q:iran-cracks:20260502:12f1079c",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "The Shiraz/Marvdasht four add a concrete imminent-risk cluster to the question of whether death-sentence cases convert into executions.",
+      "scope": {
+        "collections": ["iran-cracks"]
+      }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_xpool_shiraz_four_amplification",
+      "to_id": "q:iran-cracks:20260502:b2560e89",
+      "rel": "context_for",
+      "strength": "medium",
+      "rationale": "The sample shows visible named-case amplification but not yet a clean in-country mobilization cluster.",
+      "scope": {
+        "collections": ["iran-cracks"]
+      }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_protester_death_sentence_pipeline_broadens",
+      "to_id": "q:iran-cracks:20260501:6094f3f5",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "The broader death-sentence pipeline sharpens the question of whether protester executions deter action or create named martyrs.",
+      "scope": {
+        "collections": ["iran-cracks"]
+      }
+    },
+    {
+      "op": "supersede",
+      "target_ids": ["synth:iran-cracks:20260502:5f7e919f"],
+      "replacement_id": "$synth_v26_shiraz_marvdasht_execution_pipeline",
+      "reason": "v26 returns from Teacher Day follow-up to the live execution/repression layer and upgrades the Shiraz/Marvdasht death-sentence lead with direct and focused-source evidence."
+    }
+  ]
+}

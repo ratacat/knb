@@ -11,10 +11,16 @@
   "bin": {
     "knb": "./src/cli.ts"
   },
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
     "knb": "bun run src/cli.ts",
     "typecheck": "tsc --noEmit",
-    "test": "bun test"
+    "test": "bun test",
+    "sync-schema": "bun run scripts/sync-schema.ts",
+    "release:smoke": "bun run scripts/release-smoke.ts",
+    "release-check": "bun test && bun run typecheck && bun run release:smoke"
   },
   "devDependencies": {
     "@types/bun": "latest",

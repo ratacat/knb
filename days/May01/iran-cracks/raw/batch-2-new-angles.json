@@ -1,0 +1,599 @@
+{
+  "atomic": true,
+  "operations": [
+    {
+      "op": "add",
+      "as": "src_rokna_aref",
+      "row": {
+        "kind": "source",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran", "Aref-Qaempanah dispute"], "tags": ["regime-cohesion", "pezeshkian", "fa"], "language": "fa" },
+        "source": {
+          "type": "article",
+          "title": "عارف کنار می‌رود؟ پزشکیان در برابر درخواست استعفا مقاومت می‌کند",
+          "uri": "https://vista.ir/n/rokna/sn22j",
+          "publisher": "Rokna via Vista",
+          "published_at": "2026-04-24",
+          "language": "fa"
+        },
+        "provenance": { "acquisition": { "method": "exa-cli search", "retrieved_at": "2026-05-01" } }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_eghtesadnews_aref_qalibaf",
+      "row": {
+        "kind": "source",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran", "Aref-Qaempanah dispute"], "tags": ["regime-cohesion", "pezeshkian", "qalibaf", "fa"], "language": "fa" },
+        "source": {
+          "type": "article",
+          "title": "عارف استعفا داده است؟/ پشت پرده تاکید رسانه های نزدیک به قالیباف بر اختلافات دولت پزشکیان",
+          "uri": "https://vista.ir/n/eghtesadnews/rfn1s",
+          "publisher": "Eghtesad News via Vista",
+          "published_at": "2026-04-25",
+          "language": "fa"
+        },
+        "provenance": { "acquisition": { "method": "exa-cli search", "retrieved_at": "2026-05-01" } }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_khabarfoori_aref",
+      "row": {
+        "kind": "source",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran", "Aref-Qaempanah dispute"], "tags": ["regime-cohesion", "pezeshkian", "fa"], "language": "fa" },
+        "source": {
+          "type": "article",
+          "title": "اختلاف بین عارف و قائم پناه جدی است؛ استعفای عارف شایعه نیست",
+          "uri": "https://vista.ir/n/khabarfoori/1qhhn",
+          "publisher": "KhabarFoori via Vista (citing Khorasan)",
+          "published_at": "2026-04-21",
+          "language": "fa"
+        },
+        "provenance": { "acquisition": { "method": "exa-cli search", "retrieved_at": "2026-05-01" } }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_bartarinha_aref_resigned",
+      "row": {
+        "kind": "source",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran", "Aref-Qaempanah dispute"], "tags": ["regime-cohesion", "pezeshkian", "fa"], "language": "fa" },
+        "source": {
+          "type": "article",
+          "title": "روزنامه نزدیک به قالیباف: عارف استعفا داده است (Sobh-e No: Aref filed resignation)",
+          "uri": "https://vista.ir/n/bartarinha/mpm0b",
+          "publisher": "Bartarinha via Vista (citing Sobh-e No)",
+          "published_at": "2026-04-29",
+          "language": "fa"
+        },
+        "provenance": { "acquisition": { "method": "exa-cli search", "retrieved_at": "2026-05-01" } }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_andishe_pourmohammadi_apology",
+      "row": {
+        "kind": "source",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran", "Pourmohammadi apology"], "tags": ["legitimacy", "wages", "fa"], "language": "fa" },
+        "source": {
+          "type": "article",
+          "title": "عذرخواهی رسمی رییس سازمان برنامه و بودجه — پورمحمدی",
+          "uri": "https://vista.ir/n/andishemoaser/3obw7",
+          "publisher": "Andishe-ye Moaser via Vista",
+          "published_at": "2026-05-01",
+          "language": "fa"
+        },
+        "provenance": { "acquisition": { "method": "exa-cli search", "retrieved_at": "2026-05-01" } }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_iranintl_atashbas_layoffs",
+      "row": {
+        "kind": "source",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran", "Industrial collapse"], "tags": ["economy", "tabriz", "layoffs", "fa"], "language": "fa" },
+        "source": {
+          "type": "article",
+          "title": "آتش‌بس؛ پایان درگیری و آغاز مواجهه با بحران مالی در پرداخت حقوق‌ها",
+          "uri": "https://www.iranintl.com/202604248214",
+          "publisher": "Iran International (Persian)",
+          "published_at": "2026-04-24",
+          "language": "fa"
+        },
+        "provenance": { "acquisition": { "method": "exa-cli search", "retrieved_at": "2026-05-01" } }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_ensafnews_bazaar_apr27",
+      "row": {
+        "kind": "source",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran", "Tehran bazaar"], "tags": ["protest", "currency", "fa"], "language": "fa" },
+        "source": {
+          "type": "article",
+          "title": "گزارش‌های ایسنا، فارس و ایرنا از تجمعات اعتراضی امروز بازار تهران",
+          "uri": "https://vista.ir/n/ensafnews/yh9h3",
+          "publisher": "Ensaf News via Vista (citing ISNA, Fars, IRNA)",
+          "published_at": "2026-04-27",
+          "language": "fa"
+        },
+        "provenance": { "acquisition": { "method": "exa-cli search", "retrieved_at": "2026-05-01" } }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_salameno_bazaar_apr27",
+      "row": {
+        "kind": "source",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran", "Tehran bazaar"], "tags": ["protest", "currency", "fa"], "language": "fa" },
+        "source": {
+          "type": "article",
+          "title": "اعتراضات امروز در بازار بزرگ تهران - سلام نو",
+          "uri": "https://vista.ir/n/salameno/s3tc2",
+          "publisher": "Salam-e No via Vista",
+          "published_at": "2026-04-27",
+          "language": "fa"
+        },
+        "provenance": { "acquisition": { "method": "exa-cli search", "retrieved_at": "2026-05-01" } }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_jahansanat_bazaar_apr29",
+      "row": {
+        "kind": "source",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran", "Tehran bazaar"], "tags": ["protest", "currency", "fa"], "language": "fa" },
+        "source": {
+          "type": "article",
+          "title": "تعطیلی سراسری بازار تهران؛ اعتراض به نرخ ارز بالا گرفت",
+          "uri": "https://vista.ir/n/jahansanatnews/kpbqy",
+          "publisher": "Jahan-e Sanat via Vista",
+          "published_at": "2026-04-29",
+          "language": "fa"
+        },
+        "provenance": { "acquisition": { "method": "exa-cli search", "retrieved_at": "2026-05-01" } }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_mehr_salmas_55th",
+      "row": {
+        "kind": "source",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran", "Salmas mobilization"], "tags": ["regime-mobilization", "salmas", "fa"], "language": "fa" },
+        "source": {
+          "type": "article",
+          "title": "قیام مردم سلماس در موج پنجاه و پنجم مقاومت ملی",
+          "uri": "https://vista.ir/n/mehrnews/n6a8p",
+          "publisher": "Mehr News via Vista",
+          "published_at": "2026-04-26",
+          "language": "fa"
+        },
+        "provenance": { "acquisition": { "method": "exa-cli search", "retrieved_at": "2026-05-01" } }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_reuters_irgc_seize",
+      "row": {
+        "kind": "source",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran", "IRGC ascent"], "tags": ["mojtaba", "irgc", "succession"], "language": "en" },
+        "source": {
+          "type": "article",
+          "title": "Iran's Guards seize wartime power, blunting Supreme Leader's role",
+          "uri": "https://www.reuters.com/world/asia-pacific/irans-guards-seize-wartime-power-blunting-supreme-leaders-role-2026-04-28/",
+          "publisher": "Reuters",
+          "published_at": "2026-04-28",
+          "language": "en"
+        },
+        "provenance": { "acquisition": { "method": "exa-cli search", "retrieved_at": "2026-05-01" } }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_melliun_generals",
+      "row": {
+        "kind": "source",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran", "IRGC ascent"], "tags": ["mojtaba", "irgc", "succession", "fa"], "language": "fa" },
+        "source": {
+          "type": "article",
+          "title": "ژنرال‌هایی که ایران را اداره می‌کنند",
+          "uri": "https://melliun.org/iran/524300",
+          "publisher": "Melliun (citing NYT / Farnaz Fassihi)",
+          "published_at": "2026-04-23",
+          "language": "fa"
+        },
+        "provenance": { "acquisition": { "method": "exa-cli search", "retrieved_at": "2026-05-01" } }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_radiofarda_paragraph_aval",
+      "row": {
+        "kind": "source",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran", "IRGC ascent"], "tags": ["mojtaba", "irgc", "fa"], "language": "fa" },
+        "source": {
+          "type": "article",
+          "title": "پاراگراف اول؛ سپاه پس از خامنه‌ای، فروپاشی درونی یا بازسازی اقتدار؟",
+          "uri": "https://www.radiofarda.com/a/paragraph-aval-revolutionary-guards-after-khamenei/33745324.html",
+          "publisher": "Radio Farda",
+          "published_at": "2026-04-30",
+          "language": "fa"
+        },
+        "provenance": { "acquisition": { "method": "exa-cli search", "retrieved_at": "2026-05-01" } }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_radiofarda_dollar180k_2",
+      "row": {
+        "kind": "source",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran", "Currency"], "tags": ["currency", "fa"], "language": "fa" },
+        "source": {
+          "type": "article",
+          "title": "قیمت دلار در بازار ایران رکورد ۱۸۰ هزار تومان را شکست",
+          "uri": "https://www.radiofarda.com/a/33745022.html",
+          "publisher": "Radio Farda",
+          "published_at": "2026-04-29",
+          "language": "fa"
+        },
+        "provenance": { "acquisition": { "method": "exa-cli search", "retrieved_at": "2026-05-01" } }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_jpost_snsc_protest_fear",
+      "row": {
+        "kind": "source",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran", "SNSC protest fear"], "tags": ["snsc", "protest", "blockade"], "language": "en" },
+        "source": {
+          "type": "article",
+          "title": "Iran's Supreme National Security Council fears protests as unemployment rises",
+          "uri": "https://www.jpost.com/middle-east/iran-news/article-894370",
+          "publisher": "Jerusalem Post (citing Iran International)",
+          "published_at": "2026-04-28",
+          "language": "en"
+        },
+        "provenance": { "acquisition": { "method": "exa-cli search", "retrieved_at": "2026-05-01" } }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_eghtesad_iran_resignation_domino",
+      "row": {
+        "kind": "source",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran", "Civil servant resignations"], "tags": ["wages", "civil-servants", "fa"], "language": "fa" },
+        "source": {
+          "type": "article",
+          "title": "اعتراض کارمندان به حقوق ۲۰ درصدی؛ دومینوی استعفا در دولت آغاز شد",
+          "uri": "https://vista.ir/n/eghtesadeirani/6spef",
+          "publisher": "Eghtesad-e Irani via Vista",
+          "published_at": "2026-04-30",
+          "language": "fa"
+        },
+        "provenance": { "acquisition": { "method": "exa-cli search", "retrieved_at": "2026-05-01" } }
+      }
+    },
+    {
+      "op": "add",
+      "row": {
+        "kind": "claim",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran", "Aref-Qaempanah dispute"], "tags": ["regime-cohesion", "pezeshkian"] },
+        "identity": { "claim_key": "iran|pezeshkian|aref_resignation_filed_pezeshkian_declined_apr2026" },
+        "claim": {
+          "statement": "Between approximately April 20 and April 29, 2026, multiple Iranian outlets (some allied with parliament speaker Qalibaf) reported that First Vice President Mohammad-Reza Aref filed a resignation letter to President Pezeshkian over an unresolved dispute with Chief of Staff Mohammad-Jafar Qaempanah; Pezeshkian declined to accept the resignation and the disagreement is described not as rumor but as 'sediment of long-running disputes at the highest level' of the cabinet.",
+          "atomic": true,
+          "type": "event",
+          "subject": "Mohammad-Reza Aref",
+          "predicate": "filed_resignation_unaccepted",
+          "object": "Pezeshkian cabinet"
+        },
+        "time": { "valid_from": "2026-04-20", "valid_until": "2026-04-29", "precision": "range", "timezone": "Asia/Tehran" },
+        "provenance": {
+          "evidence": [
+            { "source_id": "$src_rokna_aref", "role": "supports", "summary": "Rokna (Apr 24): Aref under pressure to resign; Pezeshkian resisting." },
+            { "source_id": "$src_eghtesadnews_aref_qalibaf", "role": "supports", "summary": "Eghtesad News (Apr 25): outlets close to Qalibaf amplifying Aref-resignation reports." },
+            { "source_id": "$src_khabarfoori_aref", "role": "supports", "summary": "KhabarFoori/Khorasan (Apr 21): Aref-Qaempanah dispute is 'serious'; resignation 'not a rumor'." },
+            { "source_id": "$src_bartarinha_aref_resigned", "role": "supports", "summary": "Bartarinha citing Sobh-e No (Apr 29): Aref filed resignation; Pezeshkian 'has not accepted'." },
+            { "source_id": "src:iran-regime-cracks:20260502:e3c3525b", "role": "supports", "summary": "Hamshahri Online (Apr 20): pro-government agency raises possibility Aref steps down due to Qaempanah dispute." }
+          ]
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "medium",
+          "contested": true,
+          "uncertainty": "Cabinet officially silent; Qalibaf-aligned outlets may amplify for factional reasons. But four independent outlets and a pro-Pezeshkian outlet all describe a real dispute and resignation event."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "row": {
+        "kind": "claim",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran", "Pourmohammadi apology"], "tags": ["legitimacy", "wages"] },
+        "identity": { "claim_key": "iran|pourmohammadi|public_apology_to_civil_servants_2026-05-01" },
+        "claim": {
+          "statement": "On 1 May 2026, the head of Iran's Plan and Budget Organization, Davoud Manzoor (Pourmohammadi per Andishe-ye Moaser), publicly apologized to civil servants and pensioners for being able to provide only a 20% wage increase against tripled inflation, conceding the increase 'is not proportional to inflation' and citing only an expanded tax-exemption ceiling as compensation.",
+          "atomic": true,
+          "type": "event",
+          "subject": "Plan and Budget Organization head",
+          "predicate": "publicly_apologized",
+          "object": "civil servants and pensioners"
+        },
+        "time": { "occurred_at": "2026-05-01", "precision": "day", "timezone": "Asia/Tehran" },
+        "provenance": {
+          "evidence": [
+            { "source_id": "$src_andishe_pourmohammadi_apology", "role": "supports", "summary": "Andishe-ye Moaser (May 1): Pourmohammadi: 'I apologize to civil servants and pensioners. With the resources available we could only add 20%. The increase is not proportional to inflation.'" }
+          ]
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "medium",
+"uncertainty": "Single Persian outlet; need state media or wire confirmation. But the wording is highly specific and corroborated structurally by the resignation-domino reporting at $src_eghtesad_iran_resignation_domino."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "row": {
+        "kind": "claim",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran", "Tehran bazaar"], "tags": ["protest", "currency"] },
+        "identity": { "claim_key": "iran|bazaar|tehran_apr27_apr29_protest_partial_closure" },
+        "claim": {
+          "statement": "On 27 April 2026 (7 Ordibehesht) state news agencies ISNA, Fars, and IRNA reported scattered protest gatherings in Tehran's Grand Bazaar, including roughly 150 people chanting on Naser-Khosrow Street; on 29 April 2026 (9 Ordibehesht) Jahan-e Sanat reported partial-to-widespread closure of Tehran Bazaar driven by anger at the dollar exchange rate.",
+          "atomic": true,
+          "type": "event",
+          "subject": "Tehran Grand Bazaar",
+          "predicate": "protested_and_partially_closed",
+          "object": "currency-rate grievance"
+        },
+        "time": { "valid_from": "2026-04-27", "valid_until": "2026-04-29", "precision": "range", "timezone": "Asia/Tehran" },
+        "provenance": {
+          "evidence": [
+            { "source_id": "$src_ensafnews_bazaar_apr27", "role": "supports", "summary": "Ensaf News compiling ISNA/Fars/IRNA reports on Apr 27 bazaar protests." },
+            { "source_id": "$src_salameno_bazaar_apr27", "role": "supports", "summary": "Salam-e No (Apr 27): scattered gatherings in central Tehran near the bazaar." },
+            { "source_id": "$src_jahansanat_bazaar_apr29", "role": "supports", "summary": "Jahan-e Sanat (Apr 29): nationwide bazaar partial closure protesting currency rate." }
+          ]
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "high",
+"uncertainty": "Crowd size at 150 is one-source. State agencies acknowledged the protest, which is itself notable."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "row": {
+        "kind": "claim",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran", "Industrial collapse"], "tags": ["economy", "tabriz", "layoffs"] },
+        "identity": { "claim_key": "iran|tabriz|salimi_industrial_estate_60_of_1500_factories_operating_apr2026" },
+        "claim": {
+          "statement": "Per Iran International (24 April 2026), in the Salimi industrial estate 35 km from Tabriz, only ~60 of approximately 1,500 small and large factories were operating; the rest had been closed since before Nowruz 1405 with all workers reported unemployed. The same report says ~250 export, digital-marketing, and media companies had fully shut down with only managers remaining, and other firms were on the verge of bankruptcy and planning further layoffs over the following one-to-two months.",
+          "atomic": true,
+          "type": "state",
+          "subject": "Iran private-sector industry",
+          "predicate": "wartime_collapse",
+          "qualifiers": { "tabriz_operating_factories": 60, "tabriz_total_factories": 1500, "fully_closed_companies": 250 }
+        },
+        "time": { "valid_at": "2026-04-24", "precision": "day", "timezone": "Asia/Tehran" },
+        "provenance": {
+          "evidence": [
+            { "source_id": "$src_iranintl_atashbas_layoffs", "role": "supports", "summary": "Iran International (Apr 24): 'In the Salimi industrial estate 35 km from Tabriz, of 1,500 factories only 60 are operating; the rest have been closed since before Nowruz, all workers unemployed.' Also: 250 firms fully closed, layoffs continuing in private sector." }
+          ]
+        },
+        "assessment": {
+          "confidence": "medium",
+          "source_reliability": "medium",
+"uncertainty": "Iran International is opposition-aligned. But the specific figures align with ISW (Apr 29) and JNS/Iran-Intl (Apr 28) reports of ~2 million private sector job losses by end of spring."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "row": {
+        "kind": "claim",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran", "SNSC protest fear"], "tags": ["snsc", "protest", "blockade"] },
+        "identity": { "claim_key": "iran|snsc|emergency_meeting_protest_inevitability_apr2026" },
+        "claim": {
+          "statement": "Per Iran International (cited by Jerusalem Post and JNS, 28 April 2026), Iran's Supreme National Security Council held an emergency meeting and received intelligence assessments warning that (a) protests are 'inevitable' due to the economic crisis, blockade, and unemployment; (b) up to 2 million private-sector workers could lose jobs by end of spring; (c) Iran's economy 'cannot withstand more than six to eight weeks' of continued US naval blockade; and (d) a wave of protests during talks or after a ceasefire extension could 'pose a real risk of the fall of the Islamic Republic.'",
+          "atomic": true,
+          "type": "event",
+          "subject": "Supreme National Security Council",
+          "predicate": "internally_warned",
+          "object": "protests inevitable; regime-fall risk"
+        },
+        "time": { "valid_at": "2026-04-28", "precision": "day", "timezone": "Asia/Tehran" },
+        "provenance": {
+          "evidence": [
+            { "source_id": "$src_jpost_snsc_protest_fear", "role": "supports", "summary": "JPost summarizing Iran International: SNSC briefed that protests 'inevitable', economy can withstand 6-8 more weeks of blockade, regime-fall risk." },
+            { "source_id": "src:iran-regime-cracks:20260502:555fa590", "role": "supports", "summary": "JNS independent restatement: emergency SNSC meeting; ~2 million job losses; oil/petrochemical/steel near-shutdown; 60-day internet blackout has disabled ~20% workforce." }
+          ]
+        },
+        "assessment": {
+          "confidence": "medium",
+          "source_reliability": "medium",
+          "contested": false,
+          "uncertainty": "Source chain is JPost/JNS → Iran International → unnamed sources at SNSC. No independent regime confirmation. But the specific numerical claims (6-8 weeks, 2M jobs, 20% workforce, 60-day blackout) line up with multiple other reporting and would be hard to fabricate consistently."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "row": {
+        "kind": "claim",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran", "Civil servant resignations"], "tags": ["wages", "civil-servants"] },
+        "identity": { "claim_key": "iran|civil_servants|resignation_domino_started_apr2026" },
+        "claim": {
+          "statement": "Per Eghtesad-e Irani (30 April 2026), the 20% civil-service wage increase in Iran's 1405 budget is described by the outlet's analysts as having triggered 'the start of a resignation domino' inside government, with experts warning that the gap between the 20% raise and an inflation rate ~3x higher will deepen the resignation crisis and 'social damage.'",
+          "atomic": true,
+          "type": "state",
+          "subject": "Iranian civil service",
+          "predicate": "resignation_wave_starting",
+          "object": "wage-vs-inflation gap"
+        },
+        "time": { "valid_at": "2026-04-30", "precision": "day", "timezone": "Asia/Tehran" },
+        "provenance": {
+          "evidence": [
+            { "source_id": "$src_eghtesad_iran_resignation_domino", "role": "supports", "summary": "Eghtesad-e Irani: '20% raise vs tripled inflation has triggered protests by employees and pensioners; experts warn of expanding resignation crisis and social damage.'" },
+            { "source_id": "$src_andishe_pourmohammadi_apology", "role": "context", "summary": "Plan & Budget head's May 1 apology corroborates that the gap is real and acknowledged at the top of the budget process." }
+          ]
+        },
+        "assessment": {
+          "confidence": "medium",
+          "source_reliability": "medium",
+"uncertainty": "'Resignation domino' is the framing of one outlet. But the public apology by the head of Plan & Budget Organization is itself an unusual and corroborating institutional signal."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "row": {
+        "kind": "claim",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran", "Salmas mobilization"], "tags": ["regime-mobilization", "salmas"] },
+        "identity": { "claim_key": "iran|salmas|55th_wave_is_pro_regime_baya_not_anti_regime" },
+        "claim": {
+          "statement": "The 'Salmas uprising' / '55th wave of National Resistance' reported by Mehr News on 26 April 2026 is a regime-organized 'بیعت با رهبر انقلاب' (pledge of allegiance to the new Supreme Leader) night-march in support of the homeland and the new leadership, not an anti-regime protest. Mehr describes the Salmas crowds as gathering nightly in بیعت (allegiance) and 'in support of the homeland' and explicitly frames the wave as part of a state-organized national resistance series across multiple cities.",
+          "atomic": true,
+          "type": "event",
+          "subject": "Salmas night gatherings",
+          "predicate": "are_regime_organized",
+          "object": "allegiance to new Supreme Leader"
+        },
+        "time": { "valid_from": "2026-04-22", "valid_until": "2026-04-29", "precision": "range", "timezone": "Asia/Tehran" },
+        "provenance": {
+          "evidence": [
+            { "source_id": "$src_mehr_salmas_55th", "role": "supports", "summary": "Mehr (Apr 26): Salmas crowds 'pledging allegiance to the leader of the revolution' in the 55th wave of national resistance." }
+          ]
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "high",
+          "contested": false,
+          "uncertainty": "This corrects an easy misreading: 'قیام' (uprising) in IRGC-aligned media usage often means a pro-regime mobilization. Significant for distinguishing genuine cracks from staged crowds."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "row": {
+        "kind": "claim",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran", "IRGC ascent"], "tags": ["mojtaba", "irgc", "succession"] },
+        "identity": { "claim_key": "iran|mojtaba|figure_of_assent_irgc_board_running_state_apr2026" },
+        "claim": {
+          "statement": "Reuters (28 April 2026) and a NYT/Farnaz Fassihi report (relayed via Mehr/Melliun and Straits Times, 23-25 April 2026) describe Iran's effective leadership as a 'board of generals' running war, security, and diplomacy, with new Supreme Leader Mojtaba Khamenei serving as a 'figure of assent rather than command.' Named pivotal figures include IRGC commander Ahmad Vahidi, new SNSC secretary Mohammad-Bagher Zolqadr (a former hardline IRGC general), senior military advisor Yahya Rahim Safavi, and Saeed Jalili. Reuters identifies Vahidi as 'Iran's pivotal figure.'",
+          "atomic": true,
+          "type": "state",
+          "subject": "Iranian regime power center",
+          "predicate": "shifted_from_clerical_to_security",
+          "object": "IRGC general staff"
+        },
+        "time": { "valid_at": "2026-04-28", "precision": "day", "timezone": "Asia/Tehran" },
+        "provenance": {
+          "evidence": [
+            { "source_id": "$src_reuters_irgc_seize", "role": "supports", "summary": "Reuters Apr 28: 'Mojtaba is a figure of assent rather than command. Vahidi identified as Iran's pivotal figure.'" },
+            { "source_id": "$src_melliun_generals", "role": "supports", "summary": "Melliun/NYT (Apr 23): Mojtaba 'has not been seen or heard since his appointment in March'; IRGC commanders, Vahidi, Zolqadr, Rahim Safavi 'are now the principal decision-makers.'" },
+            { "source_id": "$src_radiofarda_paragraph_aval", "role": "context", "summary": "Radio Farda (Apr 30): cites internal IRGC tensions between Zolqadr/Jalili and Qalibaf; speculation that if Mojtaba cannot recover, Iran enters 'a period of serious turmoil.'" }
+          ]
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "high",
+          "contested": false,
+          "uncertainty": "The 'figure of assent' characterization matches a separate Reuters thread cited by the prior NPR-based claim that the IRGC operates a 'board' that 'helps take the calls.' The internal split between Zolqadr/Jalili and Qalibaf is one source."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "row": {
+        "kind": "claim",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran", "Currency"], "tags": ["currency"] },
+        "identity": { "claim_key": "iran|rial|180k_toman_per_dollar_record_apr29_2026" },
+        "claim": {
+          "statement": "On 29 April 2026 (9 Ordibehesht 1405), the open-market dollar in Iran broke 180,000 toman (1.81 million rials) for the first time in Iranian history, jumping ~16,000 toman in one day and ~26,000 toman over two days. Pre-12-day-war (Khordad 1404 / June 2025) the dollar had been around 82,000 toman; a 120% rise in roughly 10 months and a record low for the rial.",
+          "atomic": true,
+          "type": "event",
+          "subject": "USD/IRR open-market rate",
+          "predicate": "passed",
+          "object": "180,000 toman"
+        },
+        "time": { "occurred_at": "2026-04-29", "precision": "day", "timezone": "Asia/Tehran" },
+        "provenance": {
+          "evidence": [
+            { "source_id": "$src_radiofarda_dollar180k_2", "role": "supports", "summary": "Radio Farda Apr 29: 'Dollar in Iran's open market broke the 180,000 toman record. Pre-war it was 82k toman. 120% rise over 10 months.'" }
+          ]
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "high",
+          "contested": false,
+          "uncertainty": "Precise close-of-day rate is a single Persian source (Radio Farda) but corroborated structurally by Iran International (Apr 29) at $1.81m and BBC Persian (Apr 29) at >180k toman."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "row": {
+        "kind": "question",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran", "Aref-Qaempanah dispute"], "tags": ["regime-cohesion"] },
+        "question": {
+          "text": "If Aref's resignation is eventually accepted, which faction (Pezeshkian's reformist allies, Qalibaf's parliamentary bloc, or the IRGC general staff) names his replacement — and does the choice signal further IRGC dominance in cabinet appointments?",
+          "status": "open",
+          "priority": "high"
+        }
+      }
+    },
+    {
+      "op": "add",
+      "row": {
+        "kind": "question",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran", "Tehran bazaar"], "tags": ["protest", "currency"] },
+        "question": {
+          "text": "Does the Tehran Bazaar partial closure of 27-29 April 2026 grow into a sustained Bazaar strike (as in 1979 and Dey 1404 / Dec 2025), or does it dissipate as the regime makes targeted FX allocations?",
+          "status": "open",
+          "priority": "high"
+        }
+      }
+    },
+    {
+      "op": "add",
+      "row": {
+        "kind": "question",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran", "Salmas mobilization"], "tags": ["regime-mobilization"] },
+        "question": {
+          "text": "How large is the gap between the regime-organized 'national resistance waves' (Salmas, Farahan, Langarud, etc) and the labor/pensioner protest wave — i.e., how much of the visible street activity is allegiance theater vs. genuine grievance?",
+          "status": "open",
+          "priority": "medium"
+        }
+      }
+    },
+    {
+      "op": "add",
+      "row": {
+        "kind": "question",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran", "IRGC ascent"], "tags": ["mojtaba", "irgc"] },
+        "question": {
+          "text": "Does the Zolqadr/Jalili-vs-Qalibaf split inside the SNSC harden into an open factional contest, and if Mojtaba's recovery is incomplete, who in the IRGC general staff steps into a stabilizing role — Vahidi, Rahim Safavi, or someone else?",
+          "status": "open",
+          "priority": "high"
+        }
+      }
+    },
+    {
+      "op": "add",
+      "row": {
+        "kind": "synthesis",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["synthesis", "regime-stress", "may-01-snapshot"] },
+        "synthesis": {
+          "title": "Iran regime-stress map: 17-30 April 2026 (Persian-source-weighted)",
+          "summary": "Cracks visible across five reinforcing layers as of late Ordibehesht 1405. Layer 1 (currency / household pressure): the open-market dollar broke 180,000 toman on 29 April, a 120% rise from pre-12-day-war levels and a historic record low for the rial; BBC Persian and Iran International report households selling assets and buying on credit. Layer 2 (industrial collapse and labor unrest): Iran International reports only ~60 of 1,500 factories operating in the Tabriz Salimi estate; ~250 export/digital companies fully closed; HRANA/ILNA confirmed at least four labor protests on 29 April including steel pensioners in Esfahan and Tehran and railway workers in Dorud and Andimeshk; Tehran University staff struck 26 April; Eghtesad-e Irani describes a 'resignation domino' inside government and the head of the Plan & Budget Organization publicly apologized on 1 May for the 20% wage gap. Layer 3 (legitimacy and bazaar): on 27 April 2026 even state news agencies (ISNA/Fars/IRNA) acknowledged scattered protest gatherings inside Tehran's Grand Bazaar with chanting on Naser-Khosrow Street; Jahan-e Sanat reported partial bazaar closure on 29 April driven by exchange-rate anger. Layer 4 (regime cohesion): Reuters (28 April) and a NYT/Farnaz Fassihi report (relayed by Melliun and Straits Times) describe Mojtaba Khamenei as a 'figure of assent rather than command' while a 'board' of IRGC generals (Vahidi, Zolqadr, Rahim Safavi) makes operational calls; Radio Farda flags a Zolqadr/Jalili-vs-Qalibaf rift inside the SNSC; multiple Persian outlets describe a real Aref-Qaempanah dispute with Aref reportedly filing a resignation Pezeshkian declined to accept. Layer 5 (regime self-assessment): per Iran International (relayed by Jerusalem Post and JNS, 28 April), the SNSC itself was briefed that protests are 'inevitable,' that Iran's economy 'cannot withstand more than six to eight weeks' of continued US naval blockade, that ~2 million private-sector workers will lose jobs by end of spring, and that protests during talks could 'pose a real risk of the fall of the Islamic Republic.' What is NOT yet a crack: the visible Salmas / Langarud / Farahan night-marches are state-organized بیعت (allegiance) rallies for the new Supreme Leader, not anti-regime protests, and should not be confused with the labor/bazaar protest wave. Net read: the regime is under cumulative stress that even its own security apparatus describes in regime-collapse language; the missing ingredient versus 2022 (Mahsa) and December 2025 (Dey 1404) is a single politicized trigger event capable of bridging the still-sectoral labor/bazaar protests into a unified street movement.",
+          "basis": {
+            "claim_ids": ["$op16", "$op17", "$op18", "$op19", "$op20", "$op21", "$op22", "$op23", "$op24"]
+          },
+          "status": "active",
+          "importance": "high"
+        }
+      }
+    }
+  ]
+}

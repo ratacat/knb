@@ -2,6 +2,8 @@
 
 `knb` is a small CLI-first package with a library underneath. Agents use the `knb` command. Host applications import the same core library. Both paths operate on the same append-only JSONL ledger.
 
+This is the live greenfield V1 spec. It incorporates the relevant decisions from [pro-refactor.md](/Users/jaredsmith/Projects/knb/docs/design/pro-refactor.md); treat that file as historical analysis, not an additional contract.
+
 ## Goals
 
 - Write many ledger changes in one atomic call.
@@ -9,6 +11,7 @@
 - Keep the canonical model portable, auditable, and dependency-light.
 - Keep generated indexes and views disposable.
 - Keep each module deep: callers learn a small interface and get a lot of behavior.
+- Replace prototype helpers with deep modules instead of extending broad helper files.
 
 ## Architecture Principles
 
@@ -19,6 +22,8 @@ The library owns correctness. Write ordering, current-state projection, row cont
 The module interface is the test surface. Tests should exercise the same seams that the CLI and host applications use.
 
 Do not add new CLI commands directly on top of prototype helpers. Establish the workspace, output, contract, ledger, and state seams first, then route commands through the public library.
+
+Do not add fallback formats, deprecated aliases, dual storage layouts, or compatibility shims. This is a greenfield project; the final implementation should expose one current contract.
 
 ## Module Depth Standard
 
@@ -153,52 +158,63 @@ Atomic write semantics:
 
 The ledger module does not validate row meaning. It guarantees that read, validation by the caller, and append by the ledger share one locked snapshot. Either the requested batch is appended as supplied by the callback, or the caller receives an error and no rows append.
 
-## Migration From Current Prototype
+This is logical atomicity for normal process errors. A process or OS crash during the underlying append can still leave a partial trailing line on some filesystems. The loader must report that line-numbered parse issue, preserve valid rows before and after any bad line, and let `check` become the explicit recovery surface.
 
-The pre-rename prototype was named `knowbase`, exposed `knowbase` and `kb` CLI bins, stored canonical data under `kb/`, used `.kb/` for config and locks, exposed `kb.v1` as the schema version, and backed `validate`, `append`, `query`, and `render` with a broad `src/kb.ts` helper module. Treat that shape as historical scaffolding, not the target architecture.
+## Prototype Replacement Rules
 
-V1 uses `knb` as the product name, package name, CLI command, storage namespace, and schema namespace. Do not keep compatibility aliases for `knowbase` or `kb` unless a later compatibility decision explicitly overrides the greenfield rule.
+The current implementation is scaffold. It has useful row vocabulary, fixtures, and validation behavior, but it is not a compatibility target. V1 should replace broad helpers with the target module graph and then remove the old paths.
 
-Prototype-to-V1 naming map:
+Final V1 command set:
 
 ```text
-knowbase package             -> knb package
-knowbase CLI bin             -> knb CLI bin
-kb CLI bin                   -> knb CLI bin
-bun run kb --                -> bun run knb --
-.kb/config.json              -> .knb/config.json
-.kb/ledger.lock              -> .knb/ledger.lock
-kb/ledger.jsonl              -> knb/ledger.jsonl
-kb/schema.json               -> knb/schema.json
-kb/indexes/                  -> knb/indexes/
-kb/views/                    -> knb/views/
-kb.v1                        -> knb.v1
-kb.projection.v1             -> knb.projection.v1
-src/kb.ts                    -> src/core/knb.ts plus deeper core modules
-scripts/kb/*                 -> remove or fold behind knb CLI/library tests
-KB_SCHEMA_VERSION            -> KNB_SCHEMA_VERSION
-KB*, openKB                  -> Knb*, openKnb
+init
+status
+schema
+apply
+add
+get
+query
+context
+novelty
+render
+check
+index
 ```
 
-Naming rules for V1:
+Removed public commands:
+
+```text
+validate
+append
+```
+
+`validate` is replaced by `check`. `append` is replaced by `apply` and `add`. Do not preserve aliases in the final release.
+
+Naming rules:
 
 - Use lowercase `knb` for package names, command examples, file paths, schema namespaces, and prose that names the project.
 - Use PascalCase `Knb` for exported TypeScript symbols: `Knb`, `KnbRow`, `KnbWorkspace`, `KnbRuntime`, `KnbStatus`, and `openKnb`.
-- Prefer neutral module names for domain responsibilities: `ledger`, `contract`, `state`, `apply`, `query`, `context`, `novelty`, `projections`, `output`, and `errors`.
-- Do not use `KB` as a shorthand in new code or outside migration notes. It is too generic and now conflicts with the project name.
+- Do not use `KB` as shorthand in new code.
 
-Migration rules:
+Extraction rules:
 
-- Replace broad helper functions with deep modules under `src/core/`.
-- Move row loading and JSONL parsing into `core/ledger.ts`.
-- Move row and operation validation into `core/contract.ts`.
-- Move current-state projection into `core/state.ts`.
-- Build `apply` as a new write pipeline. Do not extend single-row append into the primary writer.
-- Replace `validate` with `check`.
-- Replace `append` with `apply` plus `add`.
-- Remove package-level `validate`, `append`, and `render` script entry points once their behavior is behind `knb`.
-- Keep no compatibility aliases unless a separate compatibility decision says otherwise.
-- Keep generated `knb/schema.json` synchronized with the contract module until schema generation exists.
+- Move row and operation contracts from `src/types.ts` and `src/knb.ts` into `src/core/contract.ts`.
+- Move JSONL loading, fingerprints, locking, and append transactions into `src/core/ledger.ts`.
+- Move current-state projection into `src/core/state.ts`; all reads consume `EffectiveState`.
+- Move rendering, indexes, metadata, and freshness checks into `src/core/projections.ts`.
+- Move deterministic retrieval into `src/core/query.ts`; do not use raw `JSON.stringify` search as the main query path.
+- Build atomic writes in `src/core/apply.ts`; do not extend single-row append into the primary writer.
+- Build `src/core/context.ts` and `src/core/novelty.ts` as separate modules because agents need both orientation and duplicate pressure.
+- Route the CLI through `openKnb` and output envelopes. The CLI should not import ledger, validation, query, or projection helpers directly.
+
+Final cleanup rules:
+
+- Delete `src/knb.ts`, or reduce it to a private wrapper only if tests still need a temporary bridge during the branch.
+- Do not import broad helpers from `src/knb.ts` after final cutover.
+- Reject obsolete schema versions such as `kb.v1` instead of translating them.
+- Keep `knb/schema.json` synchronized with `contract.jsonSchema()` until schema generation exists.
+- Add the package export: `{ "exports": { ".": "./src/index.ts" } }`.
+- Update public docs and agent examples to use `status`, `schema`, `apply`, `add`, `context`, `check`, `render`, and `index`.
 
 ## Row Model
 
@@ -210,11 +226,22 @@ The canonical row kinds are:
 - `synthesis`: readable interpretation.
 - `change`: an operational event that changes effective state.
 
-Every canonical row in V1 uses `schema_version: "knb.v1"`. The current prototype's `kb.v1` schema string should be replaced during the V1 cutover, not preserved as an alias.
+Every canonical row in V1 uses `schema_version: "knb.v1"`. Obsolete schema strings such as `kb.v1` should be rejected during the V1 cutover, not preserved as aliases.
 
 Knowledge rows remain immutable. Current state is a deterministic projection over ledger order.
 
 `relations` express semantic links between knowledge rows. They do not retract, supersede, or merge rows. Lifecycle changes belong in `change` rows.
+
+Claim identity policy:
+
+- `identity` is required for claim rows.
+- `identity.claim_key` is optional. Agents should provide it when they know a stable key, but V1 should not force agents to invent weak keys.
+- `identity.dedupe_hash` is optional. Novelty may compute normalized statement hashes internally, but apply must not silently persist a dedupe hash that the caller did not provide.
+
+Source dedupe policy:
+
+- Duplicate source URI or content-hash evidence should produce warnings, not blocked writes.
+- Claim-level novelty is the V1 duplicate-control surface.
 
 ## Change Rows
 
@@ -224,7 +251,7 @@ Use `change` rows for operational history:
 - `supersede`: mark target rows ineffective in favor of a replacement row.
 - `merge`: mark target rows as duplicates of a canonical row.
 - `relate`: add relation state without rewriting rows.
-- `patch`: record a mechanical repair without rewriting the target row.
+- `patch`: record a mechanical repair without rewriting the target row. V1 records audit metadata and explanations only; `EffectiveState` does not apply JSON patches to mutate row content.
 
 Physical in-place repair is reserved for broken JSONL, invalid IDs, or other mechanical corruption that prevents the ledger from loading.
 
@@ -324,6 +351,7 @@ Interface responsibilities:
 
 - Accept an `ApplyRequest`.
 - Open a ledger write transaction.
+- Validate the locked snapshot before accepting operations.
 - Validate all operations against the locked snapshot.
 - Resolve intra-batch references such as `$op0`.
 - Complete draft rows through the contract module using actor, time, and ID allocator inputs.
@@ -335,6 +363,20 @@ Interface responsibilities:
 - Return an `ApplyResult` with created IDs, skipped operations, warnings, and novelty classifications.
 
 `knb apply` is atomic by default. If any operation fails inside the write transaction, no operation writes. Apply must not validate against one ledger snapshot and append against another.
+
+Reference resolution is structural. Apply resolves `$op<N>` and `$<as>` only in known reference fields:
+
+- `provenance.source_ids[]`
+- `provenance.evidence[].source_id`
+- `relations[].target_id`
+- `synthesis.basis.claim_ids[]`
+- `synthesis.basis.question_ids[]`
+- `synthesis.basis.source_ids[]`
+- `question.answer_claim_id`
+
+Apply must not blindly string-replace arbitrary row fields.
+
+When `dedupe` skips a duplicate claim that later operations reference, apply resolves that reference to the matched active canonical row only when novelty returns exactly one unambiguous match. If no match or multiple matches exist, apply fails the whole batch with `duplicate_blocked`.
 
 Result shape:
 
@@ -395,11 +437,12 @@ Projection algorithm:
 1. Read rows in ledger order.
 2. Build an ID map.
 3. Initialize each valid row as `active`.
-4. Mark rows with intrinsic archived status as `archived`.
+4. Mark rows with intrinsic archived status as `archived`; V1 treats `question.status === "archived"` and `synthesis.status === "archived"` as intrinsic archives.
 5. Apply `change` rows in order.
 6. Mark retracted, superseded, and merged rows inactive.
 7. Add relation changes to the effective relation graph.
-8. Preserve enough history to explain why a row is inactive.
+8. Record `patch` changes as audit history without mutating target row content.
+9. Preserve enough history to explain why a row is inactive.
 
 Effective statuses:
 
@@ -420,6 +463,8 @@ Interface responsibilities:
 - Return explanation data for `get --explain`.
 - Return the effective relation graph.
 - Return projection warnings for invalid, dangling, or contradictory change rows.
+- Warn when lifecycle changes target already inactive rows.
+- Warn when relation changes point at missing endpoints.
 
 Suggested interface:
 
@@ -475,6 +520,8 @@ projected   effective state was built from a validated ledger
 
 `status` and `check` may use a `loaded` snapshot. `get`, `query`, `context`, `render`, and `index` require `projected`; if the snapshot cannot project, they fail with `validation_failed` or `broken_reference`. Status fields derived from effective state should be `unknown` when the snapshot is not projected.
 
+Validation warnings do not block projection. The read snapshot should build `EffectiveState` when there are no parse or validation errors, carry warnings forward, and surface them through `status`, `check`, and `context`.
+
 ## Contract Module
 
 Agents need `knb schema` to learn the contract without reading docs. That only works if TypeScript types, JSON Schema, examples, samples, and validation stay in one contract.
@@ -493,11 +540,24 @@ Interface responsibilities:
 - Produce apply-operation samples.
 - Explain validation errors with stable paths.
 
+Validation issues use stable machine-readable fields:
+
+```ts
+type ValidationIssue = {
+  level: "error" | "warning";
+  code?: string;
+  message: string;
+  path?: string;
+  line?: number;
+  id?: string;
+};
+```
+
 Source of truth:
 
 Use TypeScript constants and validator rules as the source of truth for v1. Generate or update `knb/schema.json` from that contract once the module exists. Until then, code changes must update TypeScript, validator behavior, tests, and `knb/schema.json` together.
 
-After `core/contract.ts` exists, do not hand-edit `knb/schema.json`. Update the contract and regenerate the schema.
+After `core/contract.ts` exists, do not hand-edit `knb/schema.json`. Update the contract and regenerate the schema. A schema sync test must fail when `contract.jsonSchema()` and `knb/schema.json` diverge.
 
 The contract module must not read files, inspect the workspace, choose clocks, or allocate randomness itself. Apply supplies actor, time, ID-generator inputs, and row maps; contract applies the row rules.
 
@@ -697,26 +757,38 @@ Both modules accept `EffectiveState` from the read snapshot as input. They do no
 The query module returns matching rows. It should:
 
 1. Filter by collection, subject, tag, kind, and time.
-2. Search exact IDs and claim keys first.
-3. Search normalized text fields:
+2. Search exact IDs first.
+3. Search exact `identity.claim_key` values second.
+4. Search normalized text fields:
    - `claim.statement`
    - `source.title`
    - `question.text`
    - `synthesis.title`
    - `synthesis.summary`
-4. Score with deterministic lexical matching.
-5. Return compact rows unless `--full` is set.
+5. Score with deterministic lexical matching.
+6. Return compact rows unless `--full` is set.
 
 The context module builds a research packet. It should:
 
 1. Read effective state.
-2. Select active syntheses by importance.
-3. Select active claims by importance, confidence, and evidence depth.
-4. Include open questions.
-5. Include sources cited by selected rows.
-6. Respect `--max-tokens` by dropping lower-value details first.
+2. Filter active rows by collection, subject, and tag.
+3. Select active syntheses by importance, recency, and basis depth.
+4. Select active claims by importance, confidence, information depth, evidence depth, and contested status.
+5. Select open questions by priority, importance, and recency.
+6. Include sources cited by selected claims and syntheses.
+7. Estimate tokens deterministically with `ceil(chars / 4)` by default.
+8. Respect `--max-tokens` by dropping lower-value details first.
 
 `context` is not filtered `query`. It is a briefing module with its own interface and tests.
+
+When a context packet is over budget, drop details in this order:
+
+1. Source metadata details.
+2. Low-importance claims.
+3. Low-priority questions.
+4. Lower-ranked syntheses.
+
+Context should surface information gaps, contested claims, thin evidence, stale projections, and open questions. It should not only retrieve related rows.
 
 Default `query` fields:
 
@@ -752,10 +824,27 @@ Interface responsibilities:
 - Match exact `identity.claim_key` first.
 - Match exact `identity.dedupe_hash` second.
 - Compare normalized claim statements lexically.
+- Use structured evidence and relation signals, including evidence roles such as `supports` and `contradicts`, relation `contradicts`, and explicit correction or novelty metadata.
 - Classify candidates as `new`, `duplicate`, `corroboration`, `update`, `contradiction`, or `correction`.
 - Return matched row IDs and reasons for each classification.
 
 The novelty module is deterministic and local. It does not use embeddings, network calls, LLM calls, or semantic search in v1. `contradiction` and `correction` require explicit structured signals, such as matching claim keys plus candidate metadata, evidence roles, or relation data. The module should classify conservatively when structured signals are absent.
+
+Classification policy:
+
+- `duplicate`: the candidate adds no material statement, time, evidence, or assessment.
+- `corroboration`: the statement or key matches, but the source or evidence is materially new.
+- `update`: the same key or thread has a newer time, changed value, or changed assessment.
+- `contradiction`: explicit structured contradiction signals exist.
+- `correction`: explicit correction metadata or relation exists.
+- `new`: no meaningful active match exists.
+
+Apply integration policy:
+
+- Skip `duplicate` claims when `dedupe` is enabled.
+- Allow `corroboration`, `update`, `contradiction`, `correction`, and `new` claims by default.
+- Report every novelty classification in `ApplyResult`.
+- Resolve references to skipped duplicates only under the single-match rule in the apply module.
 
 ## Projection Module
 
@@ -771,6 +860,8 @@ Interface responsibilities:
 - Report fresh, stale, missing, and unknown projection states.
 
 Projection metadata lives with generated outputs, not in the canonical ledger. It can be deleted and rebuilt.
+
+For V1, projection paths must stay under workspace-managed view and index directories. If `--out` points outside those directories, reject the request unless a later design explicitly allows external writes.
 
 Suggested metadata shape:
 
@@ -794,6 +885,13 @@ Suggested metadata shape:
 ```
 
 Use `LedgerFingerprint` for freshness checks. File mtimes can be displayed as diagnostics, but they are not the source of truth. Apply does not need to mark existing projections stale; a new ledger fingerprint makes old projection metadata stale automatically.
+
+V1 indexes are deterministic and disposable:
+
+- Active rows by ID.
+- Active rows by collection.
+- Active claims by `identity.claim_key`.
+- Active sources by URI or content hash when present.
 
 ## Library Seam
 
@@ -884,39 +982,44 @@ parse args -> open workspace -> call library -> render command result
 Test through module interfaces:
 
 - Workspace tests cover config precedence, path normalization, and actor resolution.
-- Contract tests cover row samples, operation samples, JSON Schema, and validation errors.
-- Ledger tests cover defensive JSONL loading, line-numbered parse errors, locked write transactions, and flush behavior.
-- Apply tests cover atomic writes, lock contention, intra-batch references, dedupe, and failed validation.
-- Effective state tests cover retraction, supersession, merge, relation changes, and explanations.
+- Contract tests cover row samples, operation samples, JSON Schema, schema sync, duplicate IDs, cross-row references, and validation errors.
+- Ledger tests cover empty and missing ledgers, defensive JSONL loading, line-numbered parse errors, fingerprint changes, locked write transactions, lock contention, callback failure, and flush behavior.
+- Apply tests cover atomic writes, lock contention, allowed reference paths, forward-reference rejection, generated IDs, collision retry, lifecycle operations, scope derivation, dedupe, skipped duplicate references, and failed validation.
+- Effective state tests cover active rows, archived rows, retraction, supersession, merge, relation changes, patch audit history, inactive explanations, hidden change rows, and dangling-change warnings.
 - Read snapshot tests cover partial snapshots, validation summaries, effective state inclusion, and projection freshness.
-- Novelty tests cover claim-key matches, dedupe-hash matches, normalized statement matches, and dedupe blocking.
-- Projection tests cover deterministic render output, index rebuilds, metadata, and stale detection.
+- Query tests cover exact ID matches, claim-key matches, normalized text matches, filters, active/history behavior, and compact/full output.
+- Get tests cover active rows, hidden inactive rows, history mode, and explanations.
+- Novelty tests cover claim-key matches, dedupe-hash matches, normalized statement matches, corroboration, explicit contradiction, conservative classification, and dedupe blocking.
+- Projection tests cover deterministic render output, index rebuilds, metadata, stale detection, and workspace path constraints.
 - Output tests cover JSON envelopes, human text, stderr, and exit codes.
-- Context tests cover ranking, source inclusion, and token-budget truncation.
-- Facade tests cover the same flow agents use: `status`, `context`, `apply`, `check`, and `render` against a temporary workspace.
+- Context tests cover ranking, source inclusion, warnings, information gaps, and token-budget truncation.
+- Facade tests cover the same flow agents use: `init`, `status`, `schema`, `apply`, `check`, `context`, `novelty`, `render`, and `index` against a temporary workspace.
 
 Avoid tests that pin private helper behavior. If a helper needs direct tests, first ask whether it is a real module seam or only an internal implementation detail.
 
 ## Implementation Order
 
-1. Define row schemas for `source`, `claim`, `question`, `synthesis`, and `change`.
-2. Define the apply operation contract.
-3. Add the workspace module.
-4. Add the output and error module.
-5. Move JSONL loading and writing into a defensive ledger module with locked write transactions.
-6. Add the contract module.
-7. Add the public `openKnb` facade and package export.
-8. Deepen effective state projection around `change` rows.
-9. Add projection metadata and stale detection.
-10. Add the read snapshot module.
-11. Add `init`, `status`, and `schema`.
-12. Add `check` as the validation and health command.
-13. Add the apply pipeline on top of ledger write transactions, auto IDs, intra-batch references, and atomic writes.
-14. Replace `append` with `apply` and `add`.
-15. Add `get` and replace `query` internals with the query module.
-16. Add `context` as a separate research-packet module.
-17. Add deterministic novelty checks.
-18. Add deterministic rendering and disposable indexes through the projection module.
+1. Lock the current baseline with `bun test` and `bun run typecheck`.
+2. Extract `contract.ts`; move row constants, row types, validation, schema, samples, and stable validation issues.
+3. Add apply operation contract types and validation.
+4. Add `errors.ts` and stable exit-code mapping.
+5. Add `output.ts` and command result envelopes.
+6. Add `workspace.ts` for path, config, and actor resolution.
+7. Add `ledger.ts` with defensive JSONL loading, fingerprints, locks, and append transactions.
+8. Add `index.ts`, `core/knb.ts`, `openKnb`, runtime injection, and the package export.
+9. Add `read-snapshot.ts` to centralize load, validate, project, and freshness.
+10. Add `init`, `status`, `schema`, and `check`.
+11. Replace `effectiveRows` with `state.ts`.
+12. Add `apply.ts` and route `add` through the same module.
+13. Add `get`.
+14. Replace prototype query internals with `query.ts`.
+15. Add `context.ts` as a separate research-packet module.
+16. Add `novelty.ts` and wire `apply --dedupe` through it.
+17. Add `projections.ts`, render metadata, freshness checks, and indexes.
+18. Cut over the CLI to `parse args -> openKnb -> facade method -> output.render`.
+19. Remove public `validate` and `append`.
+20. Remove broad helper imports from `src/knb.ts`; delete the file if no temporary private wrapper remains.
+21. Update public docs, agent examples, package exports, and the full agent-loop facade test.
 
 ## Deferred Features
 

@@ -1,0 +1,18 @@
+{
+  "atomic": true,
+  "dedupe": true,
+  "operations": [
+    {
+      "op": "merge",
+      "target_ids": ["src:iran-cracks:20260502:804323f4"],
+      "canonical_id": "src:iran-cracks:20260502:d3ff1a26",
+      "reason": "Mechanical v39 cleanup: duplicate IranWire Hossam Aladdin Starlink-death article URI already existed from v21; keep the earlier canonical source and let read-side canonical resolution preserve v39 references."
+    },
+    {
+      "op": "merge",
+      "target_ids": ["src:iran-cracks:20260502:2dfd9213"],
+      "canonical_id": "src:iran-cracks:20260502:d8ba5e96",
+      "reason": "Mechanical v39 cleanup: duplicate Iran International Hossam Aladdin Starlink-death article URI already existed from v21; keep the earlier canonical source and let read-side canonical resolution preserve v39 references."
+    }
+  ]
+}

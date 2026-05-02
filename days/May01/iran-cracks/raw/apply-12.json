@@ -1,0 +1,244 @@
+{
+  "atomic": true,
+  "dedupe": true,
+  "operations": [
+    {
+      "op": "add",
+      "as": "src_snn_dorm_access_limited_apr29",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "universities", "students", "dormitories"], "tags": ["students", "campus", "war", "dorms", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "کدام دانشگاه‌ها اسکان خوابگاهی برای دانشجویان دارند؟+ جزئیات",
+          "uri": "https://snn.ir/fa/news/1398839/%DA%A9%D8%AF%D8%A7%D9%85-%D8%AF%D8%A7%D9%86%D8%B4%DA%AF%D8%A7%D9%87%E2%80%8C%D9%87%D8%A7-%D8%A7%D8%B3%DA%A9%D8%A7%D9%86-%D8%AE%D9%88%D8%A7%D8%A8%DA%AF%D8%A7%D9%87%DB%8C-%D8%A8%D8%B1%D8%A7%DB%8C-%D8%AF%D8%A7%D9%86%D8%B4%D8%AC%D9%88%DB%8C%D8%A7%D9%86-%D8%AF%D8%A7%D8%B1%D9%86%D8%AF-%D8%AC%D8%B2%D8%A6%DB%8C%D8%A7%D8%AA",
+          "publisher": "Student News Network (SNN)",
+          "language": "fa",
+          "published_at": "2026-04-29T06:10:38Z",
+          "raw_path": "raw/apply-12-source-notes.md"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-02T00:08:49Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_snn_sharif_internet_return_apr29",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Sharif University", "students", "internet"], "tags": ["students", "internet", "campus", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "بازگشت تدریجی اینترنت به دانشگاه شریف",
+          "uri": "https://snn.ir/fa/news/1398987/%D8%A8%D8%A7%D8%B2%DA%AF%D8%B4%D8%AA-%D8%AA%D8%AF%D8%B1%DB%8C%D8%AC%DB%8C-%D8%A7%DB%8C%D9%86%D8%AA%D8%B1%D9%86%D8%AA-%D8%A8%D9%87-%D8%AF%D8%A7%D9%86%D8%B4%DA%AF%D8%A7%D9%87-%D8%B4%D8%B1%DB%8C%D9%81",
+          "publisher": "Student News Network (SNN), citing Sharif newspaper",
+          "language": "fa",
+          "published_at": "2026-04-29T00:08:14Z",
+          "raw_path": "raw/apply-12-source-notes.md"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli search", "observed_at": "2026-05-02T00:08:49Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_asriran_sharif_phd_reopen_apr28",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Sharif University", "students"], "tags": ["students", "campus", "dorms", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "بازگشایی دانشگاه صنعتی شریف برای دانشجویان دکتری از ۱۴ اردیبهشت",
+          "uri": "https://www.asriran.com/fa/news/1159206/%D8%A8%D8%A7%D8%B2%DA%AF%D8%B4%D8%A7%DB%8C%DB%8C-%D8%AF%D8%A7%D9%86%D8%B4%DA%AF%D8%A7%D9%87-%D8%B5%D9%86%D8%B9%D8%AA%DB%8C-%D8%B4%D8%B1%DB%8C%D9%81-%D8%A8%D8%B1%D8%A7%DB%8C-%D8%AF%D8%A7%D9%86%D8%B4%D8%AC%D9%88%DB%8C%D8%A7%D9%86-%D8%AF%DA%A9%D8%AA%D8%B1%DB%8C-%D8%A7%D8%B2-14-%D8%A7%D8%B1%D8%AF%DB%8C%D8%A8%D9%87%D8%B4%D8%AA",
+          "publisher": "AsrIran, citing Tasnim",
+          "language": "fa",
+          "published_at": "2026-04-28T17:12:31Z",
+          "raw_path": "raw/apply-12-source-notes.md"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-02T00:08:49Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_snn_amirkabir_basij_market_may1",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Amirkabir University", "students", "inflation"], "tags": ["students", "inflation", "market", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "انتقاد بسیج دانشجویی دانشگاه امیرکبیر پیرامون رهاشدگی بازار/ مردم در میانه گرانی رها شده اند",
+          "uri": "https://snn.ir/fa/news/1399605/%D8%A7%D9%86%D8%AA%D9%82%D8%A7%D8%AF-%D8%A8%D8%B3%DB%8C%D8%AC-%D8%AF%D8%A7%D9%86%D8%B4%D8%AC%D9%88%DB%8C%DB%8C-%D8%AF%D8%A7%D9%86%D8%B4%DA%AF%D8%A7%D9%87-%D8%A7%D9%85%DB%8C%D8%B1%DA%A9%D8%A8%DB%8C%D8%B1-%D9%BE%DB%8C%D8%B1%D8%A7%D9%85%D9%88%D9%86-%D8%B1%D9%87%D8%A7%D8%B4%D8%AF%DA%AF%DB%8C-%D8%A8%D8%A7%D8%B2%D8%A7%D8%B1-%D9%85%D8%B1%D8%AF%D9%85-%D8%AF%D8%B1-%D9%85%DB%8C%D8%A7%D9%86%D9%87-%DA%AF%D8%B1%D8%A7%D9%86%DB%8C-%D8%B1%D9%87%D8%A7-%D8%B4%D8%AF%D9%87-%D8%A7%D9%86%D8%AF-%E2%80%8C",
+          "publisher": "Student News Network (SNN)",
+          "language": "fa",
+          "published_at": "2026-05-01T07:52:30Z",
+          "raw_path": "raw/apply-12-source-notes.md"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-02T00:08:49Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_war_virtual_university_dorm_restrictions",
+      "row": {
+        "kind": "claim",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "universities", "students", "dormitories"], "tags": ["students", "campus", "war", "dorms"]},
+        "identity": {"claim_key": "iran|universities|dorm_access_limited_under_war_virtual_classes|2026-04-29"},
+        "claim": {
+          "statement": "On 29 April 2026, SNN reported that because universities were operating virtually under wartime conditions, student physical presence and dorm accommodation were banned or limited across multiple Tehran universities: University of Tehran had no dorm accommodation notice and dorms were closed; Alzahra and Shahid Beheshti did not allow dorm presence; Iran University of Science and Technology dorms were not in condition for accommodation; Allameh Tabataba'i dorms were fully evacuated; while Sharif and Amirkabir allowed only limited doctoral or graduate research cases.",
+          "atomic": true,
+          "type": "administrative_report",
+          "subject": "Iranian universities",
+          "predicate": "limited",
+          "object": "student physical presence and dorm access under wartime virtual classes"
+        },
+        "time": {"occurred_at": "2026-04-29", "precision": "day", "timezone": "Asia/Tehran"},
+        "provenance": {"evidence": [{"source_id": "$src_snn_dorm_access_limited_apr29", "role": "supports", "summary": "SNN listed dorm access by university and tied the limits to virtual classes caused by U.S.-Israeli attack conditions."}]},
+        "assessment": {"confidence": "high", "source_reliability": "medium", "information_depth": {"level": "strong", "rationale": "The source gives named universities and explicit accommodation status rather than generic student hardship."}, "importance": "high"}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_sharif_partial_reopen_internet_gated",
+      "row": {
+        "kind": "claim",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Sharif University", "students", "internet"], "tags": ["students", "internet", "campus", "dorms"]},
+        "identity": {"claim_key": "iran|sharif_university|partial_phd_reopening_gated_by_internet_and_approval|2026-04-29"},
+        "claim": {
+          "statement": "By 28-29 April 2026, Sharif University's partial reopening was gated by restored international internet and administrative approvals: SNN reported that gradual restoration of the university network and international internet enabled some PhD students to return and be housed, that graduate dorm internet was only gradually reconnecting, remote access through Sharif VPN was unavailable, and undergraduates remained virtual; AsrIran/Tasnim said PhD students who passed comprehensive exams could return from 14 Ordibehesht only after education-system request, advisor approval, and separate dorm request.",
+          "atomic": true,
+          "type": "administrative_report",
+          "subject": "Sharif University",
+          "predicate": "partially_reopened",
+          "object": "PhD research access under internet and approval constraints"
+        },
+        "time": {"valid_from": "2026-04-28", "valid_until": "2026-04-29", "precision": "range", "timezone": "Asia/Tehran"},
+        "provenance": {
+          "evidence": [
+            {"source_id": "$src_snn_sharif_internet_return_apr29", "role": "supports", "summary": "SNN/Sharif newspaper tied PhD return to gradual international internet restoration, dorm internet reconnection, on-campus database access, and undergraduates remaining virtual."},
+            {"source_id": "$src_asriran_sharif_phd_reopen_apr28", "role": "supports", "summary": "AsrIran/Tasnim reported 14 Ordibehesht PhD return rules: education-system request, advisor approval, and separate dorm request."}
+          ]
+        },
+        "assessment": {"confidence": "high", "source_reliability": "medium", "information_depth": {"level": "strong", "rationale": "Two Persian reports describe the same limited reopening mechanism with operational details."}, "importance": "high"}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_amirkabir_basij_market_abandonment",
+      "row": {
+        "kind": "claim",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Amirkabir University", "inflation"], "tags": ["students", "inflation", "market", "regime-aligned-criticism"]},
+        "identity": {"claim_key": "iran|amirkabir_student_basij|criticized_market_abandonment|2026-05-01"},
+        "claim": {
+          "statement": "On 1 May 2026, SNN reported that Amirkabir University's student Basij criticized unbridled inflation and market abandonment, writing that people who had preserved unity and the streets for two months were now left among market prices, while responsible officials seemed to have no program for this stage of the war and were only intensifying market tensions.",
+          "atomic": true,
+          "type": "institutional_student_statement",
+          "subject": "Amirkabir University student Basij",
+          "predicate": "criticized",
+          "object": "market-price abandonment and official lack of economic program"
+        },
+        "time": {"occurred_at": "2026-05-01", "precision": "day", "timezone": "Asia/Tehran"},
+        "provenance": {"evidence": [{"source_id": "$src_snn_amirkabir_basij_market_may1", "role": "supports", "summary": "SNN quoted the Amirkabir student Basij X post criticizing market prices, unbridled inflation, and officials' lack of a wartime economic plan."}]},
+        "assessment": {"confidence": "high", "source_reliability": "medium", "information_depth": {"level": "partial", "rationale": "The source clearly records an institutional student statement, though it is a regime-aligned political current rather than broad student opinion."}, "importance": "high"}
+      }
+    },
+    {
+      "op": "add",
+      "as": "q_student_welfare_virtual_campus",
+      "row": {
+        "kind": "question",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "students", "universities"], "tags": ["students", "campus", "open"]},
+        "question": {
+          "text": "Do virtual-class, dorm-closure, and international-internet restrictions trigger broader student welfare protests, or does the regime normalize a restricted campus model after the war?",
+          "status": "open",
+          "priority": "high",
+          "resolution_criteria": "Student-council statements; university dorm reopening notices; on-campus protest reports after 14 Ordibehesht; evidence of undergraduates returning or remaining virtual; internet-access policy for students versus faculty.",
+          "why_it_matters": "Universities concentrate young, technical, and politically responsive groups; campus access and internet are direct sensors for regime control versus normalisation."
+        }
+      }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_war_virtual_university_dorm_restrictions",
+      "to_id": "claim:iran-cracks:20260501:2989de1b",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "Broad virtual/dorm restrictions give administrative context for the Sharif boycott and student mobilization environment.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_sharif_partial_reopen_internet_gated",
+      "to_id": "claim:iran-cracks:20260501:14fa473e",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "Sharif's gated international-internet restoration is a concrete campus instance of tiered internet access and its legitimacy problem.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_amirkabir_basij_market_abandonment",
+      "to_id": "claim:iran-cracks:20260501:ba56878f",
+      "rel": "context_for",
+      "strength": "medium",
+      "rationale": "The Amirkabir statement turns quantified food and household-cost pressure into regime-aligned student criticism.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_amirkabir_basij_market_abandonment",
+      "to_id": "claim:iran-cracks:20260502:4c097c00",
+      "rel": "context_for",
+      "strength": "medium",
+      "rationale": "The statement shows another youth/regime-adjacent channel warning that the wartime economic narrative is not matching market reality.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "add",
+      "as": "synth_v11_campus_life_rationed",
+      "row": {
+        "kind": "synthesis",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["overview", "synthesis", "v11"]},
+        "synthesis": {
+          "title": "Cracks in the Islamic Republic, v11 — campus life is still rationed",
+          "summary": "The eleventh pass adds a campus-life layer rather than a clean new protest wave. The reliable current signal is restriction and partial restoration. SNN says war/virtual-class conditions still leave dorm access banned or limited across major universities: Tehran, Alzahra, Shahid Beheshti, Iran University of Science and Technology, and Allameh are effectively closed or unavailable for ordinary dorming, while Sharif and Amirkabir allow narrow doctoral or graduate research cases. Sharif is the clearest sensor: gradual international-internet restoration enabled some PhD students to return, but dorm internet is only reconnecting gradually, remote VPN access to international internet is unavailable, undergraduates remain virtual, and PhD return from 14 Ordibehesht requires advisor/education-system approval plus a separate dorm request. Separately, Amirkabir student Basij criticized unbridled inflation and said people who held unity and the streets for two months are abandoned among market prices. Net: campuses show the regime's post-war normalisation problem in miniature — knowledge work, housing, internet, and student politics are being selectively reopened while price anger now leaks even through regime-aligned student channels.",
+          "basis": {
+            "claim_ids": [
+              "$claim_war_virtual_university_dorm_restrictions",
+              "$claim_sharif_partial_reopen_internet_gated",
+              "$claim_amirkabir_basij_market_abandonment",
+              "claim:iran-cracks:20260501:2989de1b",
+              "claim:iran-cracks:20260501:14fa473e",
+              "claim:iran-cracks:20260501:bb562d39",
+              "claim:iran-cracks:20260502:3322c2bf",
+              "claim:iran-cracks:20260502:b8315179",
+              "claim:iran-cracks:20260502:4c097c00",
+              "claim:iran-cracks:20260501:ba56878f",
+              "claim:iran-cracks:20260501:c449be15"
+            ],
+            "question_ids": [
+              "$q_student_welfare_virtual_campus",
+              "q:iran-cracks:20260501:00218f9b",
+              "q:iran-cracks:20260501:7680b246",
+              "q:iran-cracks:20260502:af797f00",
+              "q:iran-cracks:20260501:e49ee5e4"
+            ],
+            "source_ids": [
+              "$src_snn_dorm_access_limited_apr29",
+              "$src_snn_sharif_internet_return_apr29",
+              "$src_asriran_sharif_phd_reopen_apr28",
+              "$src_snn_amirkabir_basij_market_may1"
+            ]
+          },
+          "limitations": "Several apparent current student-protest hits were stale Esfand 1404 or older source pages republished by aggregators and were excluded. Khajeh Nasir welfare snippets look important but need a clean direct source/date before promotion. The Amirkabir Basij item is regime-aligned criticism, not a measure of broad student sentiment.",
+          "status": "active"
+        },
+        "assessment": {"confidence": "high", "source_reliability": "medium", "information_depth": {"level": "strong", "rationale": "The pass uses named universities, concrete access rules, international-internet details, and a dated institutional student statement while excluding stale protest hits."}, "importance": "high"}
+      }
+    },
+    {
+      "op": "supersede",
+      "target_ids": ["synth:iran-cracks:20260502:0cb3638c"],
+      "replacement_id": "$synth_v11_campus_life_rationed",
+      "reason": "v11 adds current university dorm/internet rationing and regime-aligned student price criticism to v10's industrial energy and labor pressure map.",
+      "scope": {"collections": ["iran-cracks"]}
+    }
+  ]
+}

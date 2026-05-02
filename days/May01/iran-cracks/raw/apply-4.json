@@ -1,0 +1,489 @@
+{
+  "atomic": true,
+  "dedupe": true,
+  "operations": [
+    {
+      "op": "add",
+      "as": "src_radiofarda_internet_pro_apr27",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["internet", "internet-pro", "corruption", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "دامنۀ انتقادها از واگذاری «اینترنت پرو» به قوه قضائیه رسید؛ اژه‌ای: تبعیض و فساد است",
+          "uri": "https://www.radiofarda.com/a/cope-of-criticism-over-the-transfer-of-internet-pro-has-reached-the-judiciary-ejei-it-is-discrimination-and-corruption-/33743281.html",
+          "publisher": "Radio Farda",
+          "language": "fa",
+          "published_at": "2026-04-27T07:43:04Z",
+          "raw_path": "raw/crawl4-radiofarda-internet-pro.txt"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-01T23:25:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_iranintl_internet_pro_apr30",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["internet", "internet-pro", "citizen-reports", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "شهروندان: «اینترنت پرو» رانت حکومتی و خیانت به مردم است",
+          "uri": "https://www.iranintl.com/202604306312",
+          "publisher": "Iran International Persian",
+          "language": "fa",
+          "published_at": "2026-04-30T11:07:09Z",
+          "raw_path": "raw/crawl4-iranintl-internet-pro.txt"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-01T23:25:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_internet_pro_overcharge_apr30",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["internet", "internet-pro", "overcharging", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "تخلف اپراتورها در اینترنت پرو؛ طرح نجات کسب‌وکارها چگونه به گران‌فروشی تبدیل شد؟",
+          "uri": "https://vista.ir/n/safheeghtesad/z16ox",
+          "publisher": "Safhe Eghtesad via Vista",
+          "language": "fa",
+          "published_at": "2026-04-30T22:27:42Z",
+          "raw_path": "raw/crawl4-internet-pro-overcharge.txt"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-01T23:25:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_hrana_sasan_apr30",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Sasan Azadvar"], "tags": ["executions", "protesters", "repression", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "جزییات بیشتر حقوقی و تناقض‌های پرونده ساسان آزادوار جونقانی؛ از صدور حکم اعدام تا اجرای شتاب‌زده",
+          "uri": "https://www.hra-news.org/2026/hranews/a-39ef2b11/",
+          "publisher": "HRANA",
+          "language": "fa",
+          "published_at": "2026-04-30T18:57:05Z",
+          "raw_path": "raw/crawl4-hrana-sasan.txt"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-01T23:25:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_radiofarda_multicity_protests_apr27",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["labor", "wages", "protests", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "اعتراضات صنفی در چند شهر ایران به تأخیر در پرداخت حقوق و فشار معیشتی بر مردم",
+          "uri": "https://www.radiofarda.com/a/iran-groups-nurses-teachers-workers-under-pressure-from-economy/33743685.html",
+          "publisher": "Radio Farda",
+          "language": "fa",
+          "published_at": "2026-04-27T16:30:07Z",
+          "raw_path": "raw/crawl4-radiofarda-multicity-protests.txt"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-01T23:25:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_ilna_steel_retirees_apr29",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Isfahan", "Tehran"], "tags": ["retirees", "healthcare", "labor", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "اعتراض بازنشستگان فولاد اصفهان و تهران به قطع شدن بیمه تکمیلی",
+          "uri": "https://www.ilna.ir/%D8%A8%D8%AE%D8%B4-%DA%A9%D8%A7%D8%B1%DA%AF%D8%B1%DB%8C-9/1779747-%D8%A7%D8%B9%D8%AA%D8%B1%D8%A7%D8%B6-%D8%A8%D8%A7%D8%B2%D9%86%D8%B4%D8%B3%D8%AA%DA%AF%D8%A7%D9%86-%D9%81%D9%88%D9%84%D8%A7%D8%AF-%D8%A7%D8%B5%D9%81%D9%87%D8%A7%D9%86-%D8%AA%D9%87%D8%B1%D8%A7%D9%86-%D8%A8%D9%87-%D9%82%D8%B7%D8%B9-%D8%B4%D8%AF%D9%86-%D8%A8%DB%8C%D9%85%D9%87-%D8%AA%DA%A9%D9%85%DB%8C%D9%84%DB%8C",
+          "publisher": "ILNA",
+          "language": "fa",
+          "published_at": "2026-04-28T23:14:25Z",
+          "raw_path": "raw/crawl4-ilna-steel-retirees.txt"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-01T23:25:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_hrana_darugar_factories_apr18",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Saveh", "Arak", "Tehran"], "tags": ["labor", "industry", "war-damage", "wage-arrears", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "بیکاری کارگران در سایه آسیب به واحدهای صنعتی/ ۵ ماه معوقات مزدی کارگران کارخانه داروگر",
+          "uri": "https://www.hra-news.org/2026/hranews/a-83f5ab36/",
+          "publisher": "HRANA",
+          "language": "fa",
+          "published_at": "2026-04-18T18:54:43Z",
+          "raw_path": "raw/crawl4-hrana-darugar-factories.txt"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-01T23:25:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_asriran_power_grid_apr22",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Tehran", "Qom", "Alborz"], "tags": ["power-grid", "infrastructure", "war-damage", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "نیمی از آسیب به شبکه برق در استان‌های تهران قم و البرز بود",
+          "uri": "https://vista.ir/n/asriran/u5sbg",
+          "publisher": "AsrIran via Vista",
+          "language": "fa",
+          "published_at": "2026-04-22T01:16:48Z",
+          "raw_path": "raw/crawl4-asriran-power-grid-damage.txt"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-01T23:25:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_entekhab_power_restored_apr25",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Tehran", "Qom", "Alborz"], "tags": ["power-grid", "infrastructure", "war-damage", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "برق منطقه‌ای تهران: با وجود حمله به ۱۵۷ نقطه از تاسیسات برق در تهران، قم و البرز، ۹۷.۵ درصد آن دوباره در مدار قرار گرفت",
+          "uri": "https://vista.ir/n/entekhab/psakv",
+          "publisher": "Entekhab via Vista",
+          "language": "fa",
+          "published_at": "2026-04-25T22:16:48Z",
+          "raw_path": "raw/crawl4-entekhab-power-restored.txt"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-01T23:25:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_sedayemardom_teachers_kerman_may01",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Kerman"], "tags": ["teachers", "repression", "labor", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "تشدید سرکوب علیه معلمان در کرمان؛ اجرای احکام زندان و فشارهای مالی",
+          "uri": "https://www.sedayemardom.net/?p=161555",
+          "publisher": "Sedaye Mardom",
+          "language": "fa",
+          "published_at": "2026-05-01T07:11:04Z",
+          "raw_path": "raw/crawl4-sedayemardom-teachers-kerman.txt"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-01T23:25:00Z"}}
+      }
+    },
+
+    {
+      "op": "add",
+      "as": "claim_internet_pro_backlash",
+      "row": {
+        "kind": "claim",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["internet", "internet-pro", "corruption", "elite-split"]},
+        "identity": {"claim_key": "iran|internet_pro|backlash_discrimination_corruption|2026-04-27"},
+        "claim": {
+          "statement": "By 27-30 April 2026, Iran's 'Internet Pro' / 'white line' scheme had become an open legitimacy problem: judiciary chief Gholamhossein Mohseni-Ejei called reported special access and payments of tens of millions of toman 'both discrimination and corruption', while citizen reports called the scheme a government rent and betrayal during the continuing national internet restrictions.",
+          "atomic": true,
+          "type": "event_cluster",
+          "subject": "Internet Pro",
+          "predicate": "triggered",
+          "object": "elite and public backlash"
+        },
+        "time": {"valid_from": "2026-04-27", "valid_until": "2026-04-30", "precision": "range", "timezone": "Asia/Tehran"},
+        "provenance": {
+          "evidence": [
+            {"source_id": "$src_radiofarda_internet_pro_apr27", "role": "supports", "summary": "Radio Farda reported Ejei's comments that special access and large payments were discrimination and corruption, and that the president's office framed Internet Pro as temporary access under SNSC approval."},
+            {"source_id": "$src_iranintl_internet_pro_apr30", "role": "supports", "summary": "Iran International collected citizen messages calling Internet Pro a government rent and betrayal and urging refusal of special access."},
+            {"source_id": "$src_internet_pro_overcharge_apr30", "role": "context", "summary": "Safhe Eghtesad/Vista reported operator misuse, astronomical tariffs, and regulator-confirmed violations around Internet Pro."}
+          ]
+        },
+        "assessment": {"confidence": "high", "source_reliability": "medium", "information_depth": {"level": "strong", "rationale": "Multiple Persian sources combine official criticism, citizen reports, and tariff-abuse reporting."}, "importance": "high"}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_sasan_rapid_execution",
+      "row": {
+        "kind": "claim",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Sasan Azadvar"], "tags": ["executions", "protesters", "repression"]},
+        "identity": {"claim_key": "iran|execution|sasan_azadvar_rapid_contested|2026-04-30"},
+        "claim": {
+          "statement": "On 30 April 2026, HRANA reported that Sasan Azadvar Joneghani, a 21-year-old karate athlete and baker arrested during the Dey 1404 Isfahan protests, was executed in Dastgerd prison three days after Supreme Court confirmation, with alleged limits on legal review, prior solitary detention, contested forced-confession evidence, and a burial reportedly limited to about 10 family members.",
+          "atomic": true,
+          "type": "event",
+          "subject": "Sasan Azadvar Joneghani",
+          "predicate": "was executed",
+          "object": "Dastgerd prison"
+        },
+        "time": {"occurred_at": "2026-04-30", "precision": "day", "timezone": "Asia/Tehran"},
+        "provenance": {"evidence": [{"source_id": "$src_hrana_sasan_apr30", "role": "supports", "summary": "HRANA detailed the execution, timeline, legal contradictions, forced-confession concerns, and post-execution security restrictions."}]},
+        "assessment": {"confidence": "medium", "source_reliability": "medium", "information_depth": {"level": "strong", "rationale": "Detailed rights-report evidence, but key facts are contested by regime judicial framing."}, "importance": "high", "contested": true}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_multicity_wage_protests",
+      "row": {
+        "kind": "claim",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["labor", "wages", "protests", "universities", "healthcare"]},
+        "identity": {"claim_key": "iran|labor|multicity_wage_delay_protests|2026-04-27"},
+        "claim": {
+          "statement": "On 27 April 2026, Radio Farda reported multi-sector protests over delayed wages and economic pressure: university employees protested delayed Farvardin salaries and discriminatory pay decisions, some University of Tehran staff reportedly struck, Yazd health workers gathered for a second day, and Tabriz drivers/claimants protested unmet transport-company obligations.",
+          "atomic": true,
+          "type": "event_cluster",
+          "subject": "Iranian workers and employees",
+          "predicate": "protested",
+          "object": "delayed pay and livelihood pressure"
+        },
+        "time": {"occurred_at": "2026-04-27", "precision": "day", "timezone": "Asia/Tehran"},
+        "provenance": {"evidence": [{"source_id": "$src_radiofarda_multicity_protests_apr27", "role": "supports", "summary": "Radio Farda listed university pay protests, University of Tehran strike reports, Yazd health-worker gathering, Tabriz drivers/claimants, delayed health salaries, and SSI debt beyond 1,000 hemmat."}]},
+        "assessment": {"confidence": "medium", "source_reliability": "medium", "information_depth": {"level": "partial", "rationale": "Cross-sector reporting is specific, but some subclaims rely on social-media reports cited by the outlet."}, "importance": "high"}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_steel_retirees_insurance",
+      "row": {
+        "kind": "claim",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Isfahan", "Tehran"], "tags": ["retirees", "healthcare", "labor", "protests"]},
+        "identity": {"claim_key": "iran|retirees|steel_supplemental_insurance_protest|2026-04-29"},
+        "claim": {
+          "statement": "On 29 April 2026, ILNA reported that retired steel workers gathered in Isfahan and Tehran after nine days without supplemental health insurance, demanding restoration of coverage amid sharply rising medical, drug, equipment, and hospital-service costs.",
+          "atomic": true,
+          "type": "event",
+          "subject": "retired steel workers",
+          "predicate": "protested",
+          "object": "cut supplemental health insurance"
+        },
+        "time": {"occurred_at": "2026-04-29", "precision": "day", "timezone": "Asia/Tehran"},
+        "provenance": {"evidence": [{"source_id": "$src_ilna_steel_retirees_apr29", "role": "supports", "summary": "ILNA quoted a retiree saying coverage had lapsed for nine days and that retirees faced severe rises in treatment and medicine costs."}]},
+        "assessment": {"confidence": "high", "source_reliability": "high", "information_depth": {"level": "partial", "rationale": "Official labor-news report with location, grievance, and direct retiree quotation."}, "importance": "medium"}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_factories_jobs_damage",
+      "row": {
+        "kind": "claim",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Saveh", "Arak", "Tehran"], "tags": ["labor", "industry", "war-damage", "wage-arrears"]},
+        "identity": {"claim_key": "iran|industry|saveh_arak_90_factories_darugar_arrears|2026-04-18"},
+        "claim": {
+          "statement": "On 18 April 2026, HRANA reported that military damage to about 90 factories in Saveh and Arak had stopped production and begun worker layoffs, while Tehran's Darugar factory workers were owed three to five months of wages plus year-end bonuses.",
+          "atomic": true,
+          "type": "event_cluster",
+          "subject": "Iran industrial workers",
+          "predicate": "faced",
+          "object": "war-damage layoffs and wage arrears"
+        },
+        "time": {"occurred_at": "2026-04-18", "precision": "day", "timezone": "Asia/Tehran"},
+        "provenance": {"evidence": [{"source_id": "$src_hrana_darugar_factories_apr18", "role": "supports", "summary": "HRANA, citing IRNA and labor reports, described damaged Saveh/Arak factories, disrupted materials, layoffs, and Darugar workers' 3-5 months of unpaid wages and bonus arrears."}]},
+        "assessment": {"confidence": "medium", "source_reliability": "medium", "information_depth": {"level": "strong", "rationale": "Specific numbers, places, official provincial context, and a separate wage-arrears case."}, "importance": "high"}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_power_grid_damage_restoration",
+      "row": {
+        "kind": "claim",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Tehran", "Qom", "Alborz"], "tags": ["power-grid", "infrastructure", "war-damage"]},
+        "identity": {"claim_key": "iran|power_grid|2000_damage_157_points_975_restored|2026-04-25"},
+        "claim": {
+          "statement": "By 22-25 April 2026, Persian reports citing power officials said the war caused about 2,000 serious damages to Iran's electricity network, half in Tehran/Qom/Alborz, while Tehran Regional Electricity said 157 attacked points in those provinces had been 97.5% restored to service.",
+          "atomic": true,
+          "type": "measurement",
+          "subject": "Iran power grid",
+          "predicate": "sustained",
+          "object": "wartime damage and rapid restoration"
+        },
+        "time": {"valid_from": "2026-04-22", "valid_until": "2026-04-25", "precision": "range", "timezone": "Asia/Tehran"},
+        "provenance": {
+          "evidence": [
+            {"source_id": "$src_asriran_power_grid_apr22", "role": "supports", "summary": "AsrIran/Vista cited the deputy electricity minister saying 2,000 serious damages occurred and 50% were in Tehran, Qom, and Alborz."},
+            {"source_id": "$src_entekhab_power_restored_apr25", "role": "supports", "summary": "Entekhab/Vista cited Tehran Regional Electricity saying 157 attacked points in Tehran/Qom/Alborz were 97.5% back in service."}
+          ]
+        },
+        "assessment": {"confidence": "high", "source_reliability": "medium", "information_depth": {"level": "partial", "rationale": "Officially sourced figures, but reported through aggregators and paired with resilience framing."}, "importance": "medium"}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_kerman_teacher_sentences",
+      "row": {
+        "kind": "claim",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Kerman"], "tags": ["teachers", "repression", "labor"]},
+        "identity": {"claim_key": "iran|teachers|kerman_prison_fines|2026-05-01"},
+        "claim": {
+          "statement": "On 1 May 2026, Sedaye Mardom reported that Kerman authorities moved to enforce sentences against teacher-union activists: Mohammadreza Behzadpour, Hossein Rashidi, and Majid Naderi were each to start six-month prison terms from 10 Ordibehesht, while five other named teachers were fined 70 million toman each.",
+          "atomic": true,
+          "type": "event",
+          "subject": "Kerman teacher-union activists",
+          "predicate": "faced",
+          "object": "prison enforcement and large fines"
+        },
+        "time": {"occurred_at": "2026-05-01", "precision": "day", "timezone": "Asia/Tehran"},
+        "provenance": {"evidence": [{"source_id": "$src_sedayemardom_teachers_kerman_may01", "role": "supports", "summary": "Sedaye Mardom attributed the report to teacher-council information and listed the prison terms and 70-million-toman fines."}]},
+        "assessment": {"confidence": "medium", "source_reliability": "medium", "information_depth": {"level": "partial", "rationale": "Specific named defendants and penalties, but single-source activist/media report."}, "importance": "medium"}
+      }
+    },
+
+    {
+      "op": "relate",
+      "from_id": "$claim_internet_pro_backlash",
+      "to_id": "claim:iran-cracks:20260501:61caa690",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "Internet Pro backlash is a direct social/elite consequence of the prolonged national internet restrictions.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_sasan_rapid_execution",
+      "to_id": "claim:iran-cracks:20260501:c852b255",
+      "rel": "context_for",
+      "strength": "medium",
+      "rationale": "A rapidly executed protest case adds concrete pressure behind prisoners' anti-execution hunger-strike campaign.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_multicity_wage_protests",
+      "to_id": "claim:iran-cracks:20260501:d3ac0ad6",
+      "rel": "supports",
+      "strength": "high",
+      "rationale": "Multi-sector wage protests instantiate the broader resumed-protests trend.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_steel_retirees_insurance",
+      "to_id": "$claim_multicity_wage_protests",
+      "rel": "supports",
+      "strength": "medium",
+      "rationale": "Retiree healthcare-insurance protests are another livelihood protest in the same late-April wave.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_factories_jobs_damage",
+      "to_id": "claim:iran-cracks:20260501:456141cb",
+      "rel": "supports",
+      "strength": "high",
+      "rationale": "Factory shutdowns, layoffs, and wage arrears are concrete domestic effects of war damage on the economy.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_power_grid_damage_restoration",
+      "to_id": "claim:iran-cracks:20260501:456141cb",
+      "rel": "supports",
+      "strength": "medium",
+      "rationale": "Officially acknowledged power-grid damage substantiates the wider claim that strikes battered infrastructure and the economy, even if restoration was rapid.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_kerman_teacher_sentences",
+      "to_id": "claim:iran-cracks:20260501:2989de1b",
+      "rel": "context_for",
+      "strength": "medium",
+      "rationale": "Kerman teacher repression broadens the education-sector pressure context beyond Sharif students.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+
+    {
+      "op": "add",
+      "as": "q_internet_pro_refusal_coalition",
+      "row": {
+        "kind": "question",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["internet", "open"]},
+        "question": {
+          "text": "Does Internet Pro backlash become an organized refusal coalition among professional associations, or does the regime normalize tiered access?",
+          "status": "open",
+          "priority": "high",
+          "resolution_criteria": "Statements from nursing, teacher, lawyer, journalist, university, tech, and business associations; official allocation lists; tariff enforcement."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "q_execution_tempo_mobilization",
+      "row": {
+        "kind": "question",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["executions", "open"]},
+        "question": {
+          "text": "Do rapid protester executions after contested wartime cases deter protest, or create named martyrs that intensify anti-execution mobilization?",
+          "status": "open",
+          "priority": "high",
+          "resolution_criteria": "Family/grave repression, protest calls, prisoner hunger-strike expansion, execution counts, and public response around named cases."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "q_war_damage_jobs_chain",
+      "row": {
+        "kind": "question",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["labor", "industry", "open"]},
+        "question": {
+          "text": "Does wartime damage to factories and infrastructure turn into sustained layoffs, unpaid wages, and industrial noncompliance?",
+          "status": "open",
+          "priority": "high",
+          "resolution_criteria": "Insurance-bikari registrations, layoffs by province, wage-arrears reports, production stoppages, and official subsidy/forbearance measures."
+        }
+      }
+    },
+
+    {
+      "op": "add",
+      "as": "synth_v4_cracks",
+      "row": {
+        "kind": "synthesis",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["overview", "synthesis", "v4"]},
+        "synthesis": {
+          "title": "Cracks in the Islamic Republic, v4 — digital class split, wage pressure, execution tempo, war-damaged infrastructure",
+          "summary": "The fourth pass adds four crack-planes to the v3 everyday-scarcity picture. First, the internet blackout has produced a visible class split: 'Internet Pro' is now criticized by citizens as rent/betrayal and by the judiciary chief as discrimination and corruption, with reports of large payments and operator overcharging. Second, repression is accelerating through named protester executions: HRANA's Sasan Azadvar file describes a 21-year-old protest detainee executed within days of Supreme Court confirmation, with alleged legal contradictions, forced-confession concerns, and security-restricted burial. Third, livelihood protests are spreading across wage-dependent institutions: university employees, health workers, drivers/claimants, steel retirees, and teachers all appear in late-April/May reports, while the Social Security debt and delayed salaries are becoming political facts. Fourth, war damage is now measurable in the production and grid layer: about 90 factories in Saveh/Arak reportedly faced shutdown/layoff pressure, Darugar workers had 3-5 months wage arrears, and officials acknowledged 2,000 serious electricity-network damages even while claiming rapid restoration. The regime is still functioning, but the stress field is broadening: command/succession opacity, currency collapse, bread-food-medicine scarcity, water pressure cuts, internet tiering, execution tempo, labor arrears, and infrastructure damage are no longer separate stories.",
+          "basis": {
+            "claim_ids": [
+              "$claim_internet_pro_backlash",
+              "$claim_sasan_rapid_execution",
+              "$claim_multicity_wage_protests",
+              "$claim_steel_retirees_insurance",
+              "$claim_factories_jobs_damage",
+              "$claim_power_grid_damage_restoration",
+              "$claim_kerman_teacher_sentences",
+              "claim:iran-cracks:20260501:39500a81",
+              "claim:iran-cracks:20260501:3d29837a",
+              "claim:iran-cracks:20260501:f3462b41",
+              "claim:iran-cracks:20260501:845ab13d",
+              "claim:iran-cracks:20260501:4a7d57be",
+              "claim:iran-cracks:20260501:ded4c10d",
+              "claim:iran-cracks:20260501:f2ddb054",
+              "claim:iran-cracks:20260501:1d1c9f5c",
+              "claim:iran-cracks:20260501:f897f060",
+              "claim:iran-cracks:20260501:d3ac0ad6"
+            ],
+            "question_ids": ["$q_internet_pro_refusal_coalition", "$q_execution_tempo_mobilization", "$q_war_damage_jobs_chain"]
+          },
+          "limitations": "This pass still privileges Persian media and rights/labor reporting, which is appropriate for near-ground signal but leaves regime-confirmed counter-narratives uneven except where official statements are embedded in the reports. Hijab-policing results were excluded because the strongest hit was an older republished item, not a clean current artifact.",
+          "status": "active"
+        }
+      }
+    },
+    {
+      "op": "supersede",
+      "target_ids": ["synth:iran-cracks:20260501:8dd61384"],
+      "replacement_id": "$synth_v4_cracks",
+      "reason": "v4 adds Internet Pro backlash, Sasan Azadvar execution tempo, wage/retiree/teacher pressure, factory layoffs, and grid-damage evidence.",
+      "scope": {"collections": ["iran-cracks"]}
+    }
+  ]
+}

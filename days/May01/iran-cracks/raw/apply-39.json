@@ -1,0 +1,440 @@
+{
+  "atomic": true,
+  "dedupe": true,
+  "operations": [
+    {
+      "op": "add",
+      "as": "src_source_notes_v34",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Tehran Bazaar", "currency", "stock market"],
+          "tags": ["research-notes", "bazaar", "currency", "stock-market", "v34"]
+        },
+        "source": {
+          "type": "raw_note",
+          "title": "v34 source notes - Bazaar rumor test and capital-market freeze",
+          "raw_path": "raw/apply-39-source-notes.md",
+          "language": "en"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "agent synthesis of exa-cli search/crawl, existing KNB rows, and xPool SearchTimeline results",
+            "observed_at": "2026-05-02T04:05:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_xpool_market_bazaar_v34",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Tehran Bazaar", "Ferdowsi FX market", "Aladdin mall", "Persian X"],
+          "tags": ["xpool", "social", "bazaar", "currency", "strike", "negative-evidence", "persian", "v34"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "dataset",
+          "title": "xPool Persian latest query for Bazaar, Ferdowsi, Aladdin, currency, and stock-market rumors, v34",
+          "uri": "xpool://query-jobs/9c026702-1831-4428-b34f-94366c3aee9b/result",
+          "raw_path": "raw/xpool-market-bazaar-v34-result.json",
+          "publisher": "xPool / X SearchTimeline",
+          "language": "fa",
+          "published_at": "2026-05-02T03:43:21Z"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "xpool query",
+            "observed_at": "2026-05-02T03:43:21Z",
+            "notes": "Completed 10 pages, emitted 13 items, stopReason MAX_PAGES_REACHED."
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_ibena_market_tools_partial_reopen_v34",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Securities and Exchange Organization", "stock market"],
+          "tags": ["stock-market", "market-freeze", "partial-reopening", "official", "persian", "v34"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "بازگشایی صندوق‌های املاک و مستغلات بورس از هفته آینده",
+          "uri": "https://www.ibena.ir/fa/news/182786/%D8%A8%D8%A7%D8%B2%DA%AF%D8%B4%D8%A7%DB%8C%DB%8C-%D8%B5%D9%86%D8%AF%D9%88%D9%82%E2%80%8C%D9%87%D8%A7%DB%8C-%D8%A7%D9%85%D9%84%D8%A7%DA%A9-%D9%88-%D9%85%D8%B3%D8%AA%D8%BA%D9%84%D8%A7%D8%AA-%D8%A8%D9%88%D8%B1%D8%B3-%D8%A7%D8%B2-%D9%87%D9%81%D8%AA%D9%87-%D8%A2%DB%8C%D9%86%D8%AF%D9%87",
+          "publisher": "IBENA, citing Tasnim and the Securities and Exchange Organization",
+          "language": "fa",
+          "published_at": "2026-05-01T06:35:16Z",
+          "raw_path": "raw/crawl12-ibena-real-estate-funds-reopen-may2.txt"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search and crawl",
+            "observed_at": "2026-05-02T03:55:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_nournews_staged_controlled_stock_reopen_v34",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Economic Commission", "Central Bank", "stock market"],
+          "tags": ["stock-market", "central-bank", "controlled-reopening", "official", "persian", "v34"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "بازار بورس چه زمانی بازگشایی می‌شود؟",
+          "uri": "https://vista.ir/n/nournews/0ockq",
+          "publisher": "NourNews via Vista",
+          "language": "fa",
+          "published_at": "2026-05-01T12:55:59Z",
+          "raw_path": "raw/crawl12-nournews-stock-staged-controlled.txt"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search and crawl",
+            "observed_at": "2026-05-02T03:55:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_fararu_dollar_177910_v34",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "currency", "free dollar"],
+          "tags": ["currency", "free-market", "prices", "inflation", "persian", "v34"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "قیمت دلار امروز جمعه 11 اردیبهشت 1405",
+          "uri": "https://fararu.com/fa/news/967409/%D9%82%DB%8C%D9%85%D8%AA-%D8%AF%D9%84%D8%A7%D8%B1-%D8%A7%D9%85%D8%B1%D9%88%D8%B2-%D8%AC%D9%85%D8%B9%D9%87-11-%D8%A7%D8%B1%D8%AF%DB%8C%D8%A8%D9%87%D8%B4%D8%AA-1405",
+          "publisher": "Fararu",
+          "language": "fa",
+          "published_at": "2026-05-01T08:00:08Z",
+          "raw_path": "raw/crawl12-fararu-dollar-may1-177910.txt"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search and crawl",
+            "observed_at": "2026-05-02T03:55:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_stock_market_controlled_freeze_v34",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "stock market", "Securities and Exchange Organization"],
+          "tags": ["stock-market", "market-freeze", "controlled-reopening", "capital-flight", "v34"]
+        },
+        "identity": {
+          "claim_key": "iran-cracks|stock-market|safe-tools-reopen-equities-stopped-to-may4-with-disclosure-support-conditions|2026-05-01",
+          "novelty": "update"
+        },
+        "claim": {
+          "statement": "On 1 May 2026, domestic financial reporting showed Iran's capital-market reopening was a controlled freeze rather than normalization: IBENA, citing the Securities and Exchange Organization, said real-estate funds and fixed-income/housing-bond tools would trade again from Saturday 12 Ordibehesht, but equity trading would remain stopped through the end of Monday 14 Ordibehesht; the same report said equity reopening required issuer disclosure with security-information constraints, while SNN/Vista said reopening also depended on the scope of government support packages and final coordination, and NourNews/Vista said the capital market would resume in a staged and controlled way.",
+          "atomic": true,
+          "type": "market_control_signal",
+          "subject": "Iran's capital market",
+          "predicate": "remained",
+          "object": "partly frozen with staged reopening limited to safer instruments"
+        },
+        "time": {
+          "occurred_at": "2026-05-01",
+          "precision": "day",
+          "timezone": "Asia/Tehran"
+        },
+        "provenance": {
+          "source_ids": [
+            "$src_ibena_market_tools_partial_reopen_v34",
+            "src:iran-cracks:20260502:acb6b06d",
+            "$src_nournews_staged_controlled_stock_reopen_v34",
+            "src:iran-cracks:20260502:44a3d269"
+          ],
+          "evidence": [
+            {
+              "source_id": "$src_ibena_market_tools_partial_reopen_v34",
+              "role": "supports",
+              "summary": "IBENA reports real-estate funds and fixed-income/housing-bond tools resume from 12 Ordibehesht, but equity-market trading remains stopped through Monday 14 Ordibehesht; it also says issuer disclosure must consider security-information constraints."
+            },
+            {
+              "source_id": "src:iran-cracks:20260502:acb6b06d",
+              "role": "supports",
+              "summary": "Existing SNN/Vista source says the Securities and Exchange Organization chair described technical readiness but conditioned reopening on issuer transparency, government support-package scope, and final coordination."
+            },
+            {
+              "source_id": "$src_nournews_staged_controlled_stock_reopen_v34",
+              "role": "supports",
+              "summary": "NourNews/Vista says a joint Economic Commission, Central Bank, and Securities and Exchange Organization meeting put capital-market activity on a staged and controlled restart path."
+            },
+            {
+              "source_id": "src:iran-cracks:20260502:44a3d269",
+              "role": "context",
+              "summary": "Existing Shahrara source records the equity-market halt through Monday 14 Ordibehesht."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "strong",
+            "rationale": "Multiple domestic financial sources and existing KNB rows converge on the same halted-equities, partial-tools, conditional-reopening pattern."
+          },
+          "importance": "high"
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_fx_high_plateau_not_stabilized_v34",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "currency", "free dollar"],
+          "tags": ["currency", "rial", "inflation", "market-stress", "v34"]
+        },
+        "identity": {
+          "claim_key": "iran-cracks|currency|free-dollar-177910-14pct-weekly-rise-not-stabilized|2026-05-01",
+          "novelty": "update"
+        },
+        "claim": {
+          "statement": "On 1 May 2026, Fararu reported the free dollar at 177,910 tomans, near the 180,000-toman band, with a 14% weekly increase, 12% monthly increase, and 117% yearly increase, showing the rial had not stabilized even after the immediate 180k record; existing KNB rows also record the late-April 180k break and official/trade-dollar controls around separate exchange channels.",
+          "atomic": true,
+          "type": "price_signal",
+          "subject": "Iran's free dollar market",
+          "predicate": "remained",
+          "object": "near a high 178-180k plateau after a sharp weekly rise"
+        },
+        "time": {
+          "occurred_at": "2026-05-01",
+          "precision": "day",
+          "timezone": "Asia/Tehran"
+        },
+        "provenance": {
+          "source_ids": [
+            "$src_fararu_dollar_177910_v34",
+            "src:iran-cracks:20260502:fad60119",
+            "src:iran-cracks:20260502:7fcc69d2"
+          ],
+          "evidence": [
+            {
+              "source_id": "$src_fararu_dollar_177910_v34",
+              "role": "supports",
+              "summary": "Fararu reports the free dollar at 177,910 tomans on 11 Ordibehesht with 14% weekly, 12% monthly, and 117% yearly increases."
+            },
+            {
+              "source_id": "src:iran-cracks:20260502:fad60119",
+              "role": "context",
+              "summary": "Existing KNB source records the late-April free-dollar break through 180,000 tomans."
+            },
+            {
+              "source_id": "src:iran-cracks:20260502:7fcc69d2",
+              "role": "context",
+              "summary": "Existing KNB source records the commercial dollar crossing the 141,000-toman channel in the exchange center, showing separate official/trade-dollar controls."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "partial",
+            "rationale": "The source gives precise price movement, but street-liquidity depth and executed transaction volume remain unclear."
+          },
+          "importance": "high"
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_no_confirmed_may2_bazaar_strike_cluster_v34",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Tehran Bazaar", "Aladdin mall", "Ferdowsi FX market"],
+          "tags": ["bazaar", "currency", "strike", "negative-evidence", "xpool", "v34"]
+        },
+        "identity": {
+          "claim_key": "iran-cracks|bazaar|no-confirmed-may2-aladdin-ferdowsi-bazaar-strike-cluster|2026-05-02",
+          "novelty": "update"
+        },
+        "claim": {
+          "statement": "A 2 May 2026 follow-up did not confirm the rumored Aladdin/Ferdowsi/Tehran Bazaar strike: Exa exact searches for Aladdin, Ferdowsi, Bazaar, Saturday, strike, closure, and reopening did not surface source-near strike confirmation, while an xPool latest query over Bazaar/Aladdin/Ferdowsi/currency/stock-market terms emitted only 13 items and none formed a clean source-near strike or closure cluster.",
+          "atomic": true,
+          "type": "bounded_negative_evidence",
+          "subject": "May 2 Aladdin/Ferdowsi/Tehran Bazaar strike rumor",
+          "predicate": "remained",
+          "object": "unconfirmed in fresh Persian search and xPool sampling"
+        },
+        "time": {
+          "occurred_at": "2026-05-02",
+          "precision": "day",
+          "timezone": "Asia/Tehran"
+        },
+        "provenance": {
+          "source_ids": [
+            "$src_source_notes_v34",
+            "$src_xpool_market_bazaar_v34",
+            "src:iran-cracks:20260502:125a9529"
+          ],
+          "evidence": [
+            {
+              "source_id": "$src_source_notes_v34",
+              "role": "supports",
+              "summary": "The source notes list the exact Exa searches and record that they did not return source-near May 2 Aladdin/Ferdowsi/Tehran Bazaar strike confirmation."
+            },
+            {
+              "source_id": "$src_xpool_market_bazaar_v34",
+              "role": "supports",
+              "summary": "The xPool query completed 10 pages but emitted only 13 items, with general dollar/market commentary and no clean source-near strike or closure cluster."
+            },
+            {
+              "source_id": "src:iran-cracks:20260502:125a9529",
+              "role": "context",
+              "summary": "Existing IranWire source records earlier security pressure in Aladdin and Ferdowsi, so the absence here is a May 2 confirmation check rather than proof that pressure ended."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "medium",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "thin",
+            "rationale": "This is bounded negative evidence under blackout/noisy-search conditions; it lowers strike probability but cannot exclude local closures."
+          },
+          "importance": "high",
+          "uncertainty": "A direct trader video, guild statement, or source-near market report could overturn this quickly."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "synth_v34_market_freeze_not_bazaar_strike",
+      "row": {
+        "kind": "synthesis",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran"],
+          "tags": ["overview", "synthesis", "v34", "bazaar", "currency", "stock-market"]
+        },
+        "synthesis": {
+          "title": "Cracks in the Islamic Republic, v34 - market stress is managed freeze, not verified Bazaar strike",
+          "status": "active",
+          "summary": "The thirty-fourth pass tests the May 2 Bazaar/Ferdowsi/Aladdin rumor lane and updates the financial-market crack. Fresh Persian Exa searches and a 13-item xPool latest sample did not confirm a renewed May 2 Bazaar or Aladdin/Ferdowsi strike. That lowers the probability of visible merchant collective action today, but it does not mean normalization. The clearer signal is institutional market control: equity trading remains stopped through Monday 14 Ordibehesht, while safer instruments such as real-estate funds and fixed-income/housing-bond tools resume with extended hours; reopening equities is conditioned on issuer disclosure, security-information constraints, government support packages, and staged/controlled coordination with the Central Bank and parliament. FX remains unstable rather than calm: Fararu puts the free dollar at 177,910 tomans, near the 180k band, after a 14% weekly rise. Net: the regime appears to be containing market stress by freezing price discovery and reopening only controlled segments, while the Bazaar strike trigger remains unproven.",
+          "basis": {
+            "claim_ids": [
+              "$claim_stock_market_controlled_freeze_v34",
+              "$claim_fx_high_plateau_not_stabilized_v34",
+              "$claim_no_confirmed_may2_bazaar_strike_cluster_v34",
+              "claim:iran-cracks:20260502:d9d832d7",
+              "claim:iran-cracks:20260502:c035dffa"
+            ],
+            "question_ids": [
+              "q:iran-cracks:20260502:7bde737a",
+              "q:iran-cracks:20260502:2648e903",
+              "q:iran-cracks:20260502:52634e28",
+              "q:iran-cracks:20260501:17058533",
+              "q:iran-cracks:20260502:c607af87"
+            ],
+            "source_ids": [
+              "$src_source_notes_v34",
+              "$src_xpool_market_bazaar_v34",
+              "$src_ibena_market_tools_partial_reopen_v34",
+              "$src_nournews_staged_controlled_stock_reopen_v34",
+              "$src_fararu_dollar_177910_v34",
+              "src:iran-cracks:20260502:44a3d269",
+              "src:iran-cracks:20260502:acb6b06d",
+              "src:iran-cracks:20260502:125a9529"
+            ]
+          },
+          "limitations": "Negative strike evidence is bounded by search visibility, internet controls, and noisy X search. Stock-market rows show formal controls, not the eventual selling pressure once equities reopen. FX-price rows show posted prices and percentage moves, not street liquidity depth."
+        },
+        "assessment": {
+          "confidence": "medium",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "strong",
+            "rationale": "The synthesis combines fresh Persian financial reporting, existing KNB Bazaar/currency rows, and a bounded xPool rumor test."
+          },
+          "importance": "high"
+        }
+      }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_no_confirmed_may2_bazaar_strike_cluster_v34",
+      "to_id": "q:iran-cracks:20260502:7bde737a",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "The claim directly tests whether the May 2 Aladdin/Ferdowsi security-pressure reports and strike rumors became a verifiable market strike.",
+      "scope": { "collections": ["iran-cracks"] }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_no_confirmed_may2_bazaar_strike_cluster_v34",
+      "to_id": "q:iran-cracks:20260502:2648e903",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "The lack of source-near confirmation supports the forced-quiet/containment side of the May 2-4 reopening question.",
+      "scope": { "collections": ["iran-cracks"] }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_stock_market_controlled_freeze_v34",
+      "to_id": "q:iran-cracks:20260502:52634e28",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "Controlled reopening and issuer-disclosure constraints update whether stabilization is occurring through market controls and information limits.",
+      "scope": { "collections": ["iran-cracks"] }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_fx_high_plateau_not_stabilized_v34",
+      "to_id": "q:iran-cracks:20260501:17058533",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "The 177,910-toman dollar after a 14% weekly rise updates the question of whether the rial is stabilizing or breaking lower.",
+      "scope": { "collections": ["iran-cracks"] }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_stock_market_controlled_freeze_v34",
+      "to_id": "q:iran-cracks:20260502:2648e903",
+      "rel": "context_for",
+      "strength": "medium",
+      "rationale": "The capital-market freeze is part of the broader May 2-4 market reopening test, even though it is not a physical Bazaar closure.",
+      "scope": { "collections": ["iran-cracks"] }
+    },
+    {
+      "op": "supersede",
+      "target_ids": ["synth:iran-cracks:20260502:950fa787"],
+      "replacement_id": "$synth_v34_market_freeze_not_bazaar_strike",
+      "reason": "v34 updates the active read from basic-service stress to the current market test: fresh evidence still does not verify a May 2 Bazaar/Aladdin strike, but financial-market controls and FX pressure remain a high-signal crack."
+    }
+  ]
+}

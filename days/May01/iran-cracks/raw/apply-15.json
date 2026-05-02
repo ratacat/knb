@@ -1,0 +1,351 @@
+{
+  "atomic": true,
+  "dedupe": true,
+  "operations": [
+    {
+      "op": "add",
+      "as": "src_payamema_semnan_bar_internet_pro",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Semnan Bar Association", "internet"], "tags": ["internet", "internet-pro", "professional-associations", "lawyers", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "بیانیه «کانون وکلای دادگستری استان سمنان» در مخالفت با اینترنت طبقاتی",
+          "uri": "https://payamema.ir/payam/150677",
+          "publisher": "Payamema",
+          "language": "fa",
+          "published_at": "2026-04-26T12:32:52Z",
+          "raw_path": "raw/apply-15-source-notes.md"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-02T01:20:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_zoomit_isfahan_bar_internet_pro",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Isfahan Bar Association", "internet"], "tags": ["internet", "internet-pro", "professional-associations", "lawyers", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "کانون وکلای اصفهان هم اینترنت «پرو» را نپذیرفت",
+          "uri": "https://www.zoomit.ir/iran-news/459229-isfahan-bar-rejects-prointernet-access/",
+          "publisher": "Zoomit",
+          "language": "fa",
+          "published_at": "2026-04-27T09:48:37Z",
+          "raw_path": "raw/apply-15-source-notes.md"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-02T01:20:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_khabaronline_nursing_internet_pro",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Nursing Organization", "internet"], "tags": ["internet", "internet-pro", "professional-associations", "nurses", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "نظام پرستاری دریافت اینترنت پرو را رد کرد/ شرط پذیرش این «امتیاز ویژه»",
+          "uri": "https://www.khabaronline.ir/news/2210645/%D9%86%D8%B8%D8%A7%D9%85-%D9%BE%D8%B1%D8%B3%D8%AA%D8%A7%D8%B1%DB%8C-%D8%AF%D8%B1%DB%8C%D8%A7%D9%81%D8%AA-%D8%A7%DB%8C%D9%86%D8%AA%D8%B1%D9%86%D8%AA-%D9%BE%D8%B1%D9%88-%D8%B1%D8%A7-%D8%B1%D8%AF-%DA%A9%D8%B1%D8%AF-%D8%B4%D8%B1%D8%B7-%D9%BE%D8%B0%DB%8C%D8%B1%D8%B4",
+          "publisher": "KhabarOnline",
+          "language": "fa",
+          "published_at": "2026-04-26T09:04:27Z",
+          "raw_path": "raw/apply-15-source-notes.md"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-02T01:20:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_zoomit_graphic_designers_internet_pro",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Graphic Designers Society", "internet"], "tags": ["internet", "internet-pro", "professional-associations", "designers", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "انجمن صنفی طراحان گرافیک: برای اینترنت پرو درخواست نمی‌دهیم؛ اعضا به‌صورت موردی اقدام کنند",
+          "uri": "https://www.zoomit.ir/iran-news/459208-graphic-designers-union-about-internet-pro/",
+          "publisher": "Zoomit",
+          "language": "fa",
+          "published_at": "2026-04-26T17:30:57Z",
+          "raw_path": "raw/apply-15-source-notes.md"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-02T01:20:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_ilna_journalists_internet_pro",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Tehran Journalists Association", "internet"], "tags": ["internet", "internet-pro", "professional-associations", "media", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "اینترنت آزاد حق همه است و با هر نامی نباید فروخته شود",
+          "uri": "https://www.ilna.ir/%D8%A8%D8%AE%D8%B4-%D9%81%D8%B1%D9%87%D9%86%DA%AF-%D9%87%D9%86%D8%B1-6/1779848-%D8%A7%DB%8C%D9%86%D8%AA%D8%B1%D9%86%D8%AA-%D8%A2%D8%B2%D8%A7%D8%AF-%D8%AD%D9%82-%D9%87%D9%85%D9%87-%D8%A7%D8%B3%D8%AA-%D8%A8%D8%A7-%D9%87%D8%B1-%D9%86%D8%A7%D9%85%DB%8C-%D9%86%D8%A8%D8%A7%DB%8C%D8%AF-%D9%81%D8%B1%D9%88%D8%AE%D8%AA%D9%87-%D8%B4%D9%88%D8%AF",
+          "publisher": "ILNA",
+          "language": "fa",
+          "published_at": "2026-04-29T15:25:26Z",
+          "raw_path": "raw/apply-15-source-notes.md"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-02T01:20:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_payamema_ecommerce_internet_cut",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Tehran E-Commerce Association", "internet", "digital economy"], "tags": ["internet", "internet-pro", "business", "digital-economy", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "بیانیه‌ انجمن تجارت الکترونیک در مخالفت با ادامه قطعی اینترنت",
+          "uri": "https://payamema.ir/payam/150823",
+          "publisher": "Payamema",
+          "language": "fa",
+          "published_at": "2026-04-29T07:57:21Z",
+          "raw_path": "raw/apply-15-source-notes.md"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-02T01:20:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_ilna_article90_internet_pro",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Parliament Article 90 Commission", "internet"], "tags": ["internet", "internet-pro", "official", "parliament", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "کمیسیون اصل ۹۰ به موضوع «اینترنت پرو» ورود می‌کند/ مردم حق دارند از تبعیض ناراحت باشند",
+          "uri": "https://www.ilna.ir/%D8%A8%D8%AE%D8%B4-%D8%B3%DB%8C%D8%A7%D8%B3%DB%8C-3/1779412-%DA%A9%D9%85%DB%8C%D8%B3%DB%8C%D9%88%D9%86-%D8%A7%D8%B5%D9%84-%D8%A8%D9%87-%D9%85%D9%88%D8%B6%D9%88%D8%B9-%D8%A7%DB%8C%D9%86%D8%AA%D8%B1%D9%86%D8%AA-%D9%BE%D8%B1%D9%88-%D9%88%D8%B1%D9%88%D8%AF-%D9%85%DB%8C-%DA%A9%D9%86%D8%AF-%D9%85%D8%B1%D8%AF%D9%85-%D8%AD%D9%82-%D8%AF%D8%A7%D8%B1%D9%86%D8%AF-%D8%A7%D8%B2-%D8%AA%D8%A8%D8%B9%DB%8C%D8%B6-%D9%86%D8%A7%D8%B1%D8%A7%D8%AD%D8%AA-%D8%A8%D8%A7%D8%B4%D9%86%D8%AF",
+          "publisher": "ILNA",
+          "language": "fa",
+          "published_at": "2026-05-01T09:49:45Z",
+          "raw_path": "raw/apply-15-source-notes.md"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-02T01:20:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_eghtesadonline_ministry_denial_internet_pro",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Ministry of Communications", "internet"], "tags": ["internet", "internet-pro", "official", "ministry", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "وزارت ارتباطات: مجوزی برای «اینترنت پرو» نداده‌ایم",
+          "uri": "https://www.eghtesadonline.com/fa/news/2134923/%D9%88%D8%B2%D8%A7%D8%B1%D8%AA-%D8%A7%D8%B1%D8%AA%D8%A8%D8%A7%D8%B7%D8%A7%D8%AA-%D9%85%D8%AC%D9%88%D8%B2%DB%8C-%D8%A8%D8%B1%D8%A7%DB%8C-%D8%A7%DB%8C%D9%86%D8%AA%D8%B1%D9%86%D8%AA-%D9%BE%D8%B1%D9%88-%D9%86%D8%AF%D8%A7%D8%AF%D9%87%E2%80%8C%D8%A7%DB%8C%D9%85",
+          "publisher": "Eghtesad Online / ISNA",
+          "language": "fa",
+          "published_at": "2026-05-01T06:57:19Z",
+          "raw_path": "raw/apply-15-source-notes.md"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-02T01:20:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_internet_pro_professional_refusal_front",
+      "row": {
+        "kind": "claim",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "internet", "professional associations"], "tags": ["internet", "internet-pro", "professional-associations", "civil-society", "legitimacy"]},
+        "identity": {"claim_key": "iran|internet_pro|cross_sector_professional_refusal_and_condemnation|2026-04-26_2026-04-29", "novelty": "new"},
+        "claim": {
+          "statement": "Between 26 and 29 April 2026, opposition to Iran's Internet Pro / tiered-internet scheme broadened into a cross-sector professional refusal and condemnation cluster: Semnan Bar refused differentiated access; Isfahan Bar's board unanimously rejected Internet Pro; the Nursing Organization said it would request no privilege until public access returned; the Iranian Graphic Designers Society declined a collective request and promised transparency for any individual applicants; the Tehran Journalists Association said free internet is a public right that must not be sold to special buyers; and the Tehran E-Commerce Association condemned both the continuing cutoff and tiered internet.",
+          "atomic": true,
+          "type": "event_cluster",
+          "subject": "Professional and civic associations in Iran",
+          "predicate": "formed",
+          "object": "a refusal and condemnation cluster against Internet Pro"
+        },
+        "time": {"valid_from": "2026-04-26", "valid_until": "2026-04-29", "precision": "range", "timezone": "Asia/Tehran"},
+        "provenance": {
+          "evidence": [
+            {"source_id": "$src_payamema_semnan_bar_internet_pro", "role": "supports", "summary": "Semnan Bar's statement refused differentiated internet access as contrary to justice, equality, and free access to information."},
+            {"source_id": "$src_zoomit_isfahan_bar_internet_pro", "role": "supports", "summary": "Zoomit reported Isfahan Bar's board unanimously rejected Internet Pro and quoted its equality/Article 20 reasoning."},
+            {"source_id": "$src_khabaronline_nursing_internet_pro", "role": "supports", "summary": "KhabarOnline reproduced the Nursing Organization notice saying it would request no special privilege until public access is restored."},
+            {"source_id": "$src_zoomit_graphic_designers_internet_pro", "role": "supports", "summary": "Zoomit reported the Graphic Designers Society's notice declining a collective request and requiring transparency for individual requests."},
+            {"source_id": "$src_ilna_journalists_internet_pro", "role": "supports", "summary": "ILNA published the Tehran Journalists Association statement against selling free internet under any name to special buyers."},
+            {"source_id": "$src_payamema_ecommerce_internet_cut", "role": "supports", "summary": "Payamema reproduced the Tehran E-Commerce Association statement condemning continued internet cuts and tiered internet."}
+          ]
+        },
+        "assessment": {"confidence": "high", "source_reliability": "medium", "information_depth": {"level": "strong", "rationale": "The row is supported by multiple dated Persian sources quoting named professional bodies; the Isfahan source is indirect but explicit about quoting the bar website."}, "importance": "high", "uncertainty": "The recovered sources do not include every association's original website post; some are near-primary reproductions in Persian media."}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_ecommerce_internet_cut_indictment",
+      "row": {
+        "kind": "claim",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Tehran E-Commerce Association", "internet", "digital economy"], "tags": ["internet", "internet-pro", "business", "cybersecurity", "digital-economy"]},
+        "identity": {"claim_key": "iran|tehran_ecommerce_association|cutoff_and_tiered_internet_indictment|2026-04-29", "novelty": "new"},
+        "claim": {
+          "statement": "On 29 April 2026, the Tehran E-Commerce Association said internet in Iran had been cut for more than 100 days in the past year and for more than 60 continuous days during the recent war, argued that cybersecurity justifications were technically false because major bank hacks had occurred during full cutoff, and called official tiered internet at at least five times the price an inhuman abuse of a basic need rather than a legitimate crisis measure.",
+          "atomic": true,
+          "type": "institutional_statement",
+          "subject": "Tehran E-Commerce Association",
+          "predicate": "condemned",
+          "object": "the continuing internet cutoff and tiered-internet pricing"
+        },
+        "time": {"occurred_at": "2026-04-29", "precision": "day", "timezone": "Asia/Tehran"},
+        "provenance": {
+          "evidence": [
+            {"source_id": "$src_payamema_ecommerce_internet_cut", "role": "supports", "summary": "Payamema reproduced the association statement with the 100-day/year, 60-day continuous-war cutoff, cybersecurity rebuttal, and fivefold-price tiered-internet critique."}
+          ]
+        },
+        "assessment": {"confidence": "high", "source_reliability": "medium", "information_depth": {"level": "strong", "rationale": "A named sector association gives concrete duration, technical, and pricing claims; the figures are treated as the association's public statement."}, "importance": "high"}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_internet_pro_official_distancing",
+      "row": {
+        "kind": "claim",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Ministry of Communications", "Parliament Article 90 Commission", "internet"], "tags": ["internet", "internet-pro", "official", "elite-split", "legitimacy"]},
+        "identity": {"claim_key": "iran|internet_pro|official_distancing_and_investigation_signal|2026-05-01", "novelty": "new"},
+        "claim": {
+          "statement": "On 1 May 2026, official responses to Internet Pro showed ownership avoidance and internal pressure: a Ministry of Communications adviser said the ministry had issued no Internet Pro license and that the plan/proposal was not from the ministry or government, while the Article 90 Commission spokesman said people had the right to be upset about discrimination, white SIM cards as privileges for favorites were unacceptable, and the commission could seek a ministry report to resolve the discriminatory space.",
+          "atomic": true,
+          "type": "official_statement_cluster",
+          "subject": "Iranian communications and parliamentary officials",
+          "predicate": "distanced_from",
+          "object": "Internet Pro while acknowledging discrimination pressure"
+        },
+        "time": {"occurred_at": "2026-05-01", "precision": "day", "timezone": "Asia/Tehran"},
+        "provenance": {
+          "evidence": [
+            {"source_id": "$src_eghtesadonline_ministry_denial_internet_pro", "role": "supports", "summary": "Eghtesad Online/ISNA quoted a communications-ministry adviser denying ministry/government ownership or licensing and saying violations were under investigation."},
+            {"source_id": "$src_ilna_article90_internet_pro", "role": "supports", "summary": "ILNA quoted the Article 90 Commission spokesman saying society has a right to be upset about the discriminatory space and that white-SIM privileges for favorites are unacceptable."}
+          ]
+        },
+        "assessment": {"confidence": "high", "source_reliability": "medium", "information_depth": {"level": "strong", "rationale": "Two Persian sources quote named or role-identified officials, showing both executive distancing and parliamentary oversight pressure."}, "importance": "high"}
+      }
+    },
+    {
+      "op": "add",
+      "as": "q_internet_pro_rollback_or_containment",
+      "row": {
+        "kind": "question",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "internet"], "tags": ["internet", "internet-pro", "open"]},
+        "question": {
+          "text": "Does official pressure over Internet Pro produce an actual rollback and restoration path for ordinary users, or only punish visible profiteers while preserving tiered access under a narrower crisis-service label?",
+          "status": "open",
+          "priority": "high",
+          "resolution_criteria": "Ministry directives, Article 90 follow-up, judiciary or regulator enforcement records, operator tariff changes, allocation lists, association follow-up statements, and measurable restoration of ordinary international internet access."
+        }
+      }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_internet_pro_professional_refusal_front",
+      "to_id": "claim:iran-cracks:20260501:14fa473e",
+      "rel": "supports",
+      "strength": "high",
+      "rationale": "The professional refusal/condemnation cluster directly answers the prior uncertainty about whether Internet Pro backlash was becoming organized.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_internet_pro_professional_refusal_front",
+      "to_id": "q:iran-cracks:20260501:00218f9b",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "This row is the strongest current evidence that the old Internet Pro backlash question is moving toward an organized refusal coalition.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_ecommerce_internet_cut_indictment",
+      "to_id": "claim:iran-cracks:20260501:14fa473e",
+      "rel": "supports",
+      "strength": "high",
+      "rationale": "The e-commerce association's statement frames Internet Pro as a rights, pricing, and technical-governance failure.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_ecommerce_internet_cut_indictment",
+      "to_id": "claim:iran-cracks:20260501:61caa690",
+      "rel": "context_for",
+      "strength": "medium",
+      "rationale": "The association's duration figures and business-impact framing add institutional context to the national internet blackout claim.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_internet_pro_official_distancing",
+      "to_id": "claim:iran-cracks:20260501:14fa473e",
+      "rel": "supports",
+      "strength": "high",
+      "rationale": "Executive denial and parliamentary discrimination language show Internet Pro has become an official legitimacy liability, not only a public complaint.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_internet_pro_official_distancing",
+      "to_id": "$q_internet_pro_rollback_or_containment",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "The split between denial, investigation, and continued crisis-service framing is the key uncertainty for rollback versus containment.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "add",
+      "as": "synth_v14_professional_refusal",
+      "row": {
+        "kind": "synthesis",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["overview", "synthesis", "v14"]},
+        "synthesis": {
+          "title": "Cracks in the Islamic Republic, v14 — Internet Pro refusal becomes cross-sector",
+          "summary": "The fourteenth pass moves Internet Pro from a student/citizen legitimacy problem into a cross-sector professional one. Persian near-primary reporting now shows Semnan lawyers, Isfahan lawyers, nurses, graphic designers, journalists, Sharif student bodies, and the Tehran E-Commerce Association either refusing special access, refusing collective applications, or condemning tiered internet as a public-rights violation. The most important update is not only that groups dislike the scheme; it is that they are refusing a scarce wartime advantage in public, using equality, legal rights, transparency, and civic solidarity language. The e-commerce association adds a harsher technical-economic indictment: more than 100 days of internet cuts in the past year, more than 60 continuous days during the recent war, security rationales that allegedly failed even on their own terms, and Internet Pro sold at at least five times the price. On 1 May, the state itself showed strain: a communications-ministry adviser denied ministry/government ownership or licensing, while the Article 90 Commission spokesman said people are entitled to be upset about discrimination and that white-SIM privileges for favorites are unacceptable. Net: tiered internet is now a regime-management failure with a visible refusal coalition, a digital-economy indictment, and officials trying to narrow or disown responsibility while preserving crisis-security language.",
+          "basis": {
+            "claim_ids": [
+              "$claim_internet_pro_professional_refusal_front",
+              "$claim_ecommerce_internet_cut_indictment",
+              "$claim_internet_pro_official_distancing",
+              "claim:iran-cracks:20260502:304efb9d",
+              "claim:iran-cracks:20260501:bb562d39",
+              "claim:iran-cracks:20260501:14fa473e",
+              "claim:iran-cracks:20260502:58169613",
+              "claim:iran-cracks:20260502:8b5d6056",
+              "claim:iran-cracks:20260502:30e3df25",
+              "claim:iran-cracks:20260502:3322c2bf",
+              "claim:iran-cracks:20260501:c449be15",
+              "claim:iran-cracks:20260501:ba56878f"
+            ],
+            "question_ids": [
+              "$q_internet_pro_rollback_or_containment",
+              "q:iran-cracks:20260501:00218f9b",
+              "q:iran-cracks:20260502:2df836b3",
+              "q:iran-cracks:20260502:751166cb",
+              "q:iran-cracks:20260501:7680b246"
+            ],
+            "source_ids": [
+              "$src_payamema_semnan_bar_internet_pro",
+              "$src_zoomit_isfahan_bar_internet_pro",
+              "$src_khabaronline_nursing_internet_pro",
+              "$src_zoomit_graphic_designers_internet_pro",
+              "$src_ilna_journalists_internet_pro",
+              "$src_payamema_ecommerce_internet_cut",
+              "$src_ilna_article90_internet_pro",
+              "$src_eghtesadonline_ministry_denial_internet_pro"
+            ]
+          },
+          "limitations": "This pass is strong on Persian, source-near public statements but still imperfect on original-web provenance: some association statements were recovered through Iranian media reproductions rather than association websites. The e-commerce duration and price claims are recorded as the association's public claims, not independently audited network measurements. Official distancing could mean real rollback pressure or only a narrowing of labels and enforcement against visible profiteers.",
+          "status": "active"
+        },
+        "assessment": {"confidence": "high", "source_reliability": "medium", "information_depth": {"level": "strong", "rationale": "The synthesis rests on multiple dated Persian sources, named professional bodies, and named/role-identified officials while explicitly separating direct statements from media reproductions."}, "importance": "high"}
+      }
+    },
+    {
+      "op": "supersede",
+      "target_ids": ["synth:iran-cracks:20260502:a5ddd540"],
+      "replacement_id": "$synth_v14_professional_refusal",
+      "reason": "v14 adds a cross-sector Internet Pro refusal/condemnation cluster, the Tehran E-Commerce Association's technical-economic indictment, and official ownership-avoidance/investigation signals.",
+      "scope": {"collections": ["iran-cracks"]}
+    }
+  ]
+}

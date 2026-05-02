@@ -1,0 +1,468 @@
+{
+  "atomic": true,
+  "dedupe": true,
+  "operations": [
+    {
+      "op": "add",
+      "as": "src_iranintl_bread_apr20",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["bread", "scarcity", "prices", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "شهروندان از وضعیت نان می‌گویند؛ برکت سفره زیر سایه سنگین کمبود و گرانی",
+          "uri": "https://www.iranintl.com/fa/202604201237",
+          "publisher": "Iran International Persian",
+          "language": "fa",
+          "published_at": "2026-04-20T16:27:12Z",
+          "raw_path": "raw/crawl3-iranintl-bread.txt"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-01T23:55:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_90eghtesadi_bread_may01",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["bread", "subsidy", "parliament", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "نه مردم و نه نانواها از وضعیت مدیریت نان در کشور راضی نیستند",
+          "uri": "https://vista.ir/n/90eghtesadi/uah5d",
+          "publisher": "90Eghtesadi via Vista",
+          "language": "fa",
+          "published_at": "2026-05-01T02:43:11Z",
+          "raw_path": "raw/crawl3-90eghtesadi-bread.txt"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-01T23:55:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_water_ettelaat_may01",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Tehran"], "tags": ["water", "infrastructure", "rationing", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "محدودیت آبی شبانه در تهران کلید خورد",
+          "uri": "https://vista.ir/n/ettelaat/18vcb",
+          "publisher": "Ettelaat via Vista",
+          "language": "fa",
+          "published_at": "2026-05-01T09:51:55Z",
+          "raw_path": "raw/exa3-fa-tehran-night-water.json"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli search", "observed_at": "2026-05-01T23:55:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_fararu_basic_foods_apr29",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["food", "prices", "inflation", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "قیمت جدید گوشت، روغن و لبنیات در بازار",
+          "uri": "https://fararu.com/fa/news/966954/%D9%82%DB%8C%D9%85%D8%AA-%D8%AC%D8%AF%DB%8C%D8%AF-%DA%AF%D9%88%D8%B4%D8%AA-%D8%B1%D9%88%D8%BA%D9%86-%D9%84%D8%A8%D9%86%DB%8C%D8%A7%D8%AA-%D8%AF%D8%B1-%D8%A8%D8%A7%D8%B2%D8%A7%D8%B1",
+          "publisher": "Fararu / Mehr",
+          "language": "fa",
+          "published_at": "2026-04-29T07:36:05Z",
+          "raw_path": "raw/crawl3-fararu-basic-foods.txt"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-01T23:55:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_iranintl_cold_apr20",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["healthcare", "drugs", "household-costs", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "یک سرماخوردگی ساده دو میلیون تومان آب می‌خورد",
+          "uri": "https://www.iranintl.com/fa/202604209331",
+          "publisher": "Iran International Persian",
+          "language": "fa",
+          "published_at": "2026-04-20T11:57:26Z",
+          "raw_path": "raw/crawl3-iranintl-cold-cost.txt"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-01T23:55:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_iranintl_graves_apr20",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["repression", "protest-dead", "memory", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "سنگ مزار شماری از جاویدنام‌ها را در رشت و تهران مخدوش و تخریب کرده‌اند",
+          "uri": "https://www.iranintl.com/fa/202604203600",
+          "publisher": "Iran International Persian",
+          "language": "fa",
+          "published_at": "2026-04-20T11:35:46Z",
+          "raw_path": "raw/crawl3-iranintl-graves.txt"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-01T23:55:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_hrana_workers_apr30",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["labor", "workers", "repression", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "روز جهانی کارگر؛ نگاهی آماری به وضعیت کارگران در یک سال اخیر ۱۴۰۵-۱۴۰۴",
+          "uri": "https://www.hra-news.org/periodical/a-213/",
+          "publisher": "HRANA",
+          "language": "fa",
+          "published_at": "2026-04-30T07:37:40Z",
+          "raw_path": "raw/crawl3-hrana-workers-year.txt"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-01T23:55:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_hrana_kurd_arrests_apr30",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Kurdistan"], "tags": ["kurd", "arrests", "repression", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "گزارشی از بازداشت دو شهروند در نقده و سردشت",
+          "uri": "https://www.hra-news.org/2026/hranews/a-8e144f27/",
+          "publisher": "HRANA",
+          "language": "fa",
+          "published_at": "2026-04-30T17:29:19Z",
+          "raw_path": "raw/crawl3-hrana-kurd-arrests.txt"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-01T23:55:00Z"}}
+      }
+    },
+
+    {
+      "op": "add",
+      "as": "claim_bread_shortage",
+      "row": {
+        "kind": "claim",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["bread", "scarcity", "prices"]},
+        "identity": {"claim_key": "iran|bread|queues_shortage_price_spike|2026-04-20"},
+        "claim": {
+          "statement": "On 20 April 2026, Iran International Persian reported citizen accounts from multiple Iranian areas of bread shortages, long bakery lines, and post-war price doubling, including reports of barbari at 25,000 toman and sangak at 35,000 toman versus much lower official rates.",
+          "atomic": true,
+          "type": "trend",
+          "subject": "Iran bread supply",
+          "predicate": "showed",
+          "object": "shortage and price spike",
+          "qualifiers": {"reported_examples": ["Malard flour shortage and bakery lines", "barbari 25,000 toman", "sangak 35,000 toman"]}
+        },
+        "time": {"occurred_at": "2026-04-20", "precision": "day", "timezone": "Asia/Tehran"},
+        "provenance": {
+          "evidence": [
+            {"source_id": "$src_iranintl_bread_apr20", "role": "supports", "summary": "Citizen reports described flour shortages, long bakery lines, doubled bread prices after the war, and bread/cereal inflation near 140%."},
+            {"source_id": "$src_90eghtesadi_bread_may01", "role": "context", "summary": "A parliament agriculture commission member said neither people nor bakers were satisfied with bread management and noted pricing diversity and bakery violations."}
+          ]
+        },
+        "assessment": {"confidence": "medium", "source_reliability": "medium", "information_depth": {"level": "partial", "rationale": "Combines citizen reports with official/parliamentary dissatisfaction but lacks nationwide administrative data."}, "importance": "high"}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_bread_management_dissatisfaction",
+      "row": {
+        "kind": "claim",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["bread", "subsidy", "governance"]},
+        "identity": {"claim_key": "iran|bread|management_dissatisfaction_subsidy|2026-05-01"},
+        "claim": {
+          "statement": "On 1 May 2026, MP Peyman Falsafi said Iran had budgeted 504 'hemmat' for flour, bread, and wheat subsidies, but that neither citizens nor bakers were satisfied with bread management and bakery pricing violations still required serious enforcement.",
+          "atomic": true,
+          "type": "official_statement",
+          "subject": "Peyman Falsafi",
+          "predicate": "acknowledged",
+          "object": "bread management dissatisfaction"
+        },
+        "time": {"occurred_at": "2026-05-01", "precision": "day", "timezone": "Asia/Tehran"},
+        "provenance": {"evidence": [{"source_id": "$src_90eghtesadi_bread_may01", "role": "supports", "summary": "90Eghtesadi/Vista quoted Falsafi on the 504-hemmat subsidy and dissatisfaction among both people and bakers."}]},
+        "assessment": {"confidence": "high", "source_reliability": "medium", "information_depth": {"level": "partial", "rationale": "Directly attributed official statement, but reported through a media aggregator."}, "importance": "medium"}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_tehran_night_water_pressure",
+      "row": {
+        "kind": "claim",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Tehran"], "tags": ["water", "infrastructure", "rationing"]},
+        "identity": {"claim_key": "iran|tehran_water|night_pressure_reduction|2026-05-01"},
+        "claim": {
+          "statement": "By 1 May 2026, Tehran had entered a de facto nightly water restriction regime: Persian reports said pressure across Tehran neighborhoods had been noticeably reduced overnight to manage water resources and refill main reservoirs.",
+          "atomic": true,
+          "type": "policy_event",
+          "subject": "Tehran water network",
+          "predicate": "reduced",
+          "object": "overnight water pressure",
+          "qualifiers": {"window": "midnight to morning", "stated_purpose": "resource management and reservoir refilling"}
+        },
+        "time": {"occurred_at": "2026-05-01", "precision": "day", "timezone": "Asia/Tehran"},
+        "provenance": {"evidence": [{"source_id": "$src_water_ettelaat_may01", "role": "supports", "summary": "Ettelaat/Vista reported that pressure in all Tehran neighborhoods had been noticeably lowered overnight to manage water resources and fill reservoirs."}]},
+        "assessment": {"confidence": "high", "source_reliability": "medium", "information_depth": {"level": "partial", "rationale": "Consistent with multiple same-window Persian search results quoting water-industry spokespeople; this row stores one concrete source."}, "importance": "high"}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_basic_food_prices",
+      "row": {
+        "kind": "claim",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["food", "prices", "inflation"]},
+        "identity": {"claim_key": "iran|basic_foods|price_spikes_week_9_ordibehesht|2026-04-29"},
+        "claim": {
+          "statement": "For the week ending 9 Ordibehesht 1405 (29 April 2026), Fararu/Mehr reported basic-food stress in Iran: eggs had doubled over three weeks before easing to 440,000-550,000 toman per tray, chicken was 340,000-360,000 toman/kg versus 279,000-285,000 at the start of the year, macaroni jumped 31%, and lamb leg/rump was 1.9-2.2 million toman/kg.",
+          "atomic": true,
+          "type": "measurement",
+          "subject": "Iran basic foods",
+          "predicate": "cost",
+          "object": "elevated prices"
+        },
+        "time": {"occurred_at": "2026-04-29", "precision": "day", "timezone": "Asia/Tehran"},
+        "provenance": {"evidence": [{"source_id": "$src_fararu_basic_foods_apr29", "role": "supports", "summary": "Fararu/Mehr listed current prices and recent changes for eggs, chicken, macaroni, lamb, and edible oil."}]},
+        "assessment": {"confidence": "high", "source_reliability": "medium", "information_depth": {"level": "strong", "rationale": "Specific price table and recent-change figures for multiple staple categories."}, "importance": "high"}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_healthcare_ordinary_illness",
+      "row": {
+        "kind": "claim",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["healthcare", "drugs", "household-costs"]},
+        "identity": {"claim_key": "iran|healthcare|ordinary_illness_unaffordable|2026-04-20"},
+        "claim": {
+          "statement": "On 20 April 2026, Iran International Persian reported citizen accounts that a simple cold could cost around 2 million toman in Iran, with serum at 1.5 million, GP visit around 400,000, several antibiotic/ordinary medicines around 300,000, and cancer treatments reaching hundreds of millions of toman per cycle.",
+          "atomic": true,
+          "type": "trend",
+          "subject": "Iran household healthcare costs",
+          "predicate": "became",
+          "object": "unaffordable for ordinary illness"
+        },
+        "time": {"occurred_at": "2026-04-20", "precision": "day", "timezone": "Asia/Tehran"},
+        "provenance": {"evidence": [{"source_id": "$src_iranintl_cold_apr20", "role": "supports", "summary": "Citizen reports put simple-cold treatment near 2 million toman and described 30-150% medical price increases, insulin/neuro/cancer-drug shortages, and cancer-drug cycles at 250-450 million toman."}]},
+        "assessment": {"confidence": "medium", "source_reliability": "medium", "information_depth": {"level": "partial", "rationale": "Detailed citizen accounts with concrete prices, but not a formal price index."}, "importance": "high"}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_protest_graves_defaced",
+      "row": {
+        "kind": "claim",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Rasht", "Tehran"], "tags": ["repression", "protest-dead", "memory"]},
+        "identity": {"claim_key": "iran|protest_dead|graves_defaced_rasht_tehran|2026-04-20"},
+        "claim": {
+          "statement": "On 20 April 2026, Iran International Persian reported that graves of protest dead in Rasht's Baghe Rezvan and parts of Tehran's Behesht-e Zahra had recently been defaced, broken, or covered with cement under pressure and threats, including pressure on families to remove words such as 'جاویدنام' and 'فرزند ایران'.",
+          "atomic": true,
+          "type": "event_cluster",
+          "subject": "graves of Iranian protest dead",
+          "predicate": "were defaced",
+          "object": "Rasht and Tehran grave markers"
+        },
+        "time": {"occurred_at": "2026-04-20", "precision": "day", "timezone": "Asia/Tehran"},
+        "provenance": {"evidence": [{"source_id": "$src_iranintl_graves_apr20", "role": "supports", "summary": "The report describes cement coverings in Rasht, reports from Behesht-e Zahra, pressure on inscription wording, and families temporarily removing stones to avoid further destruction."}]},
+        "assessment": {"confidence": "medium", "source_reliability": "medium", "information_depth": {"level": "partial", "rationale": "Single detailed outlet report with local witness/source attribution."}, "importance": "medium", "contested": false}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_workers_hrana_annual",
+      "row": {
+        "kind": "claim",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["labor", "workers", "repression", "protest"]},
+        "identity": {"claim_key": "iran|workers|hrana_annual_repression_protests|2026-04-30"},
+        "claim": {
+          "statement": "In its 30 April 2026 May Day report, HRANA recorded extensive labor and guild unrest/repression over the previous 12 months, including 682 labor gatherings, 691 guild gatherings, 383 labor strikes, 39 guild strikes, at least 10 worker/labor-activist arrests, and hundreds of months of prison sentences, lashes, fines, rights deprivations, and exile terms in the union/guild domain.",
+          "atomic": true,
+          "type": "measurement",
+          "subject": "Iran labor movement",
+          "predicate": "experienced",
+          "object": "protests, strikes, and repression"
+        },
+        "time": {"valid_from": "2025-05-01", "valid_until": "2026-04-30", "precision": "range", "timezone": "Asia/Tehran"},
+        "provenance": {"evidence": [{"source_id": "$src_hrana_workers_apr30", "role": "supports", "summary": "HRANA annual report enumerated gatherings, strikes, arrests, workplace casualties, and union/guild sentences for 1404-1405."}]},
+        "assessment": {"confidence": "high", "source_reliability": "medium", "information_depth": {"level": "strong", "rationale": "A structured annual rights report with counts across protest, strike, injury, arrest, and sentencing categories."}, "importance": "high"}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_kurd_concrete_arrests",
+      "row": {
+        "kind": "claim",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Kurdistan", "Naqadeh", "Sardasht"], "tags": ["kurd", "arrests", "repression"]},
+        "identity": {"claim_key": "iran|kurdistan|naqadeh_sardasht_two_arrests|2026-04-30"},
+        "claim": {
+          "statement": "On 30 April 2026, HRANA reported that Mamand Khodadadi of Naqadeh and Kamran Rasoulnejad of Sardasht had been arrested by security forces and transferred to unknown locations, with no information available on their place of detention, reasons for arrest, or charges.",
+          "atomic": true,
+          "type": "event",
+          "subject": "Mamand Khodadadi and Kamran Rasoulnejad",
+          "predicate": "were arrested",
+          "object": "unknown-location security detention"
+        },
+        "time": {"occurred_at": "2026-04-30", "precision": "day", "timezone": "Asia/Tehran"},
+        "provenance": {"evidence": [{"source_id": "$src_hrana_kurd_arrests_apr30", "role": "supports", "summary": "HRANA, citing Kurdpa, said Rasoulnejad was arrested on 8 Ordibehesht in Sardasht and Khodadadi earlier in Ordibehesht without a warrant in Naqadeh."}]},
+        "assessment": {"confidence": "medium", "source_reliability": "medium", "information_depth": {"level": "partial", "rationale": "Named detainees and locations are specific, but charges and detention site remain unknown."}, "importance": "medium"}
+      }
+    },
+
+    {
+      "op": "relate",
+      "from_id": "$claim_bread_shortage",
+      "to_id": "claim:iran-cracks:20260501:f897f060",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "Bread scarcity and price spikes are the household-level expression of currency and import pressure.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_bread_management_dissatisfaction",
+      "to_id": "$claim_bread_shortage",
+      "rel": "supports",
+      "strength": "medium",
+      "rationale": "Official/parliamentary dissatisfaction corroborates that bread-market stress is not only anecdotal.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_tehran_night_water_pressure",
+      "to_id": "claim:iran-cracks:20260501:cf1debe4",
+      "rel": "supports",
+      "strength": "high",
+      "rationale": "Actual overnight pressure reduction substantiates the broader Tehran water-crisis and unaffordable-transfer-cost frame.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_basic_food_prices",
+      "to_id": "claim:iran-cracks:20260501:f81a7115",
+      "rel": "context_for",
+      "strength": "medium",
+      "rationale": "Staple food prices show how rial depreciation and war disruption are landing on ordinary households.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_healthcare_ordinary_illness",
+      "to_id": "claim:iran-cracks:20260501:8c651fb1",
+      "rel": "supports",
+      "strength": "high",
+      "rationale": "Citizen-level medical cost examples instantiate the broader drug-price spike claim.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_workers_hrana_annual",
+      "to_id": "claim:iran-cracks:20260501:d3ac0ad6",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "The annual HRANA labor counts show that resumed labor protests sit on top of a deeper year-long labor/repression pattern.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_kurd_concrete_arrests",
+      "to_id": "claim:iran-cracks:20260501:edd4fea9",
+      "rel": "supports",
+      "strength": "medium",
+      "rationale": "The two named arrests are concrete instances of the broader late-April Kurdish arrest wave.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+
+    {
+      "op": "add",
+      "as": "q_bread_policy_unrest",
+      "row": {
+        "kind": "question",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["bread", "open"]},
+        "question": {
+          "text": "Can the regime keep bread politically quiet without either explicit price reform, wider rationing, or visible bakery-line unrest?",
+          "status": "open",
+          "priority": "high",
+          "resolution_criteria": "Next two weeks of bakery-line videos/reports, subsidy announcements, flour-quota enforcement, and official bread-price messaging."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "q_tehran_water_daytime",
+      "row": {
+        "kind": "question",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Tehran"], "tags": ["water", "open"]},
+        "question": {
+          "text": "Do Tehran's overnight pressure reductions turn into daytime rationing or hard cutoffs as summer approaches?",
+          "status": "open",
+          "priority": "high",
+          "resolution_criteria": "Official schedules, citizen outage reports, reservoir statistics, and announcements about 'stricter' limitations."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "q_food_medicine_mortality",
+      "row": {
+        "kind": "question",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["food", "healthcare", "open"]},
+        "question": {
+          "text": "Does the combined food and medicine squeeze become measurable as malnutrition, treatment abandonment, or excess mortality?",
+          "status": "open",
+          "priority": "high",
+          "resolution_criteria": "Hospital and pharmacy reports, charity/aid demand, cancer/dialysis/insulin shortage cases, and nutrition indicators."
+        }
+      }
+    },
+
+    {
+      "op": "add",
+      "as": "synth_v3_cracks",
+      "row": {
+        "kind": "synthesis",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["overview", "synthesis", "v3"]},
+        "synthesis": {
+          "title": "Cracks in the Islamic Republic, v3 — everyday scarcity, water rationing, memory repression",
+          "summary": "The newer Persian-source layer shifts the crack map from elite and security stress into ordinary daily life. Bread is no longer just inflation: citizen reports describe flour shortages, long bakery lines, and bread prices far above official rates, while an MP admits neither citizens nor bakers are satisfied with bread management despite a 504-hemmat subsidy. Tehran is already under de facto nightly water restriction, with overnight pressure reductions across neighborhoods to preserve reservoirs. Staple foods are pricing out households: eggs doubled over three weeks, macaroni jumped 31%, chicken is above start-of-year levels, and lamb is around 1.9-2.2 million toman/kg. Healthcare pressure is now visible at the level of a simple cold costing roughly 2 million toman, while cancer drug cycles can reach hundreds of millions. Repression is also moving into memory control: protest-dead graves in Rasht and Tehran are reportedly being cemented over, broken, or forced to remove dissident wording. HRANA's May Day report shows labor action has not disappeared under wartime pressure: hundreds of labor/guild gatherings and strikes continued over the previous year alongside arrests, lashes, prison sentences, fines, and exile terms. Kurdish detention pressure continues with named arrests in Naqadeh and Sardasht. The synthesis is therefore no longer just command vacuum plus currency collapse; it is command vacuum, currency collapse, labor unrest, water stress, medicine stress, bread/food stress, and memory-policing all arriving together.",
+          "basis": {
+            "claim_ids": [
+              "$claim_bread_shortage",
+              "$claim_bread_management_dissatisfaction",
+              "$claim_tehran_night_water_pressure",
+              "$claim_basic_food_prices",
+              "$claim_healthcare_ordinary_illness",
+              "$claim_protest_graves_defaced",
+              "$claim_workers_hrana_annual",
+              "$claim_kurd_concrete_arrests",
+              "claim:iran-cracks:20260501:f2ddb054",
+              "claim:iran-cracks:20260501:1d1c9f5c",
+              "claim:iran-cracks:20260501:f897f060",
+              "claim:iran-cracks:20260501:d3ac0ad6",
+              "claim:iran-cracks:20260501:5ef05252",
+              "claim:iran-cracks:20260501:2989de1b",
+              "claim:iran-cracks:20260501:8c651fb1",
+              "claim:iran-cracks:20260501:edd4fea9"
+            ],
+            "question_ids": ["$q_bread_policy_unrest", "$q_tehran_water_daytime", "$q_food_medicine_mortality"]
+          },
+          "limitations": "This pass favors Persian media and near-ground reports from the last two weeks; several high-value claims are still single-outlet or citizen-report based. xPool searches for current Farsi X terms returned no useful current items in this pass, likely a data-access/search-window limitation rather than absence of ground chatter.",
+          "status": "active"
+        }
+      }
+    },
+    {
+      "op": "supersede",
+      "target_ids": ["synth:iran-cracks:20260501:d66ce7da"],
+      "replacement_id": "$synth_v3_cracks",
+      "reason": "v3 adds everyday scarcity, Tehran water pressure reductions, household medical costs, grave/memory repression, and sharper labor/Kurdish evidence.",
+      "scope": {"collections": ["iran-cracks"]}
+    }
+  ]
+}

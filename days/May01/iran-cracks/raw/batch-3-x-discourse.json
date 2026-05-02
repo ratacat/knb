@@ -1,0 +1,249 @@
+{
+  "atomic": true,
+  "operations": [
+    {
+      "op": "add",
+      "as": "src_xpool_search_jobs",
+      "row": {
+        "kind": "source",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran", "X discourse"], "tags": ["x", "social-media", "fa"], "language": "fa" },
+        "source": {
+          "type": "social_post",
+          "title": "xpool SearchTimeline query: 'اعتراض ایران اردیبهشت' (job 274d3bf2-517d-4e01-b536-ba1cfa0d18a0, 30 latest tweets, Apr 28 - May 1)",
+          "uri": "xpool://query-jobs/274d3bf2-517d-4e01-b536-ba1cfa0d18a0",
+          "publisher": "xpool (X.com data plane)",
+          "published_at": "2026-05-01",
+          "language": "fa"
+        },
+        "provenance": { "acquisition": { "method": "xpool query SearchTimeline", "retrieved_at": "2026-05-01" } }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_rasanknews_azadvar",
+      "row": {
+        "kind": "source",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran", "Sasan Azadvar"], "tags": ["execution", "fa"], "language": "fa" },
+        "source": {
+          "type": "social_post",
+          "title": "@rasanknews — ساسان آزادوار، از بازداشت‌شدگان اعتراضات دی ماه در اصفهان اعدام شد",
+          "uri": "https://twitter.com/rasanknews/status/2049894875890344201",
+          "publisher": "Rasanak News (X)",
+          "published_at": "2026-04-30",
+          "language": "fa"
+        },
+        "provenance": { "acquisition": { "method": "xpool", "retrieved_at": "2026-05-01" } }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_kurdpa_azadvar_10th",
+      "row": {
+        "kind": "source",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran", "Sasan Azadvar"], "tags": ["execution", "fa"], "language": "fa" },
+        "source": {
+          "type": "social_post",
+          "title": "@kurdpa_farsi / @qadrichiya — ساسان آزادوار، کاراته‌کای ۲۱ ساله و از معترضان دی‌ماه اعدام شد، او ۱۰مین معترض اعدام‌شده است",
+          "uri": "https://twitter.com/kurdpa_farsi/status/2049883163300630621",
+          "publisher": "Kurdpa Farsi (X) / Qadrichiya (X)",
+          "published_at": "2026-04-30",
+          "language": "fa"
+        },
+        "provenance": { "acquisition": { "method": "xpool", "retrieved_at": "2026-05-01" } }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_arenapersian_azadvar_court",
+      "row": {
+        "kind": "source",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran", "Sasan Azadvar"], "tags": ["execution", "judiciary", "fa"], "language": "fa" },
+        "source": {
+          "type": "social_post",
+          "title": "@arenapersian — Mizan: حکم آزادوار از سوی شعبه ۱ دادگاه انقلاب اصفهان به ریاست قاضی براتی صادر",
+          "uri": "https://twitter.com/arenapersian/status/2049871844497309843",
+          "publisher": "Arena Persian (X) citing Mizan",
+          "published_at": "2026-04-30",
+          "language": "fa"
+        },
+        "provenance": { "acquisition": { "method": "xpool", "retrieved_at": "2026-05-01" } }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_ihrights_azadvar",
+      "row": {
+        "kind": "source",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran", "Sasan Azadvar"], "tags": ["execution", "ihr", "fa"], "language": "fa" },
+        "source": {
+          "type": "social_post",
+          "title": "@IHRights — هشدار فوری: ساسان آزادوار قهرمان ۲۱ ساله کاراته در خطر اعدام (and confirmed execution)",
+          "uri": "https://twitter.com/IHRights/status/2049838619179819498",
+          "publisher": "Iran Human Rights (X)",
+          "published_at": "2026-04-30",
+          "language": "fa"
+        },
+        "provenance": { "acquisition": { "method": "xpool", "retrieved_at": "2026-05-01" } }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_aberavan_shiraz_4_death",
+      "row": {
+        "kind": "source",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran", "Shiraz death sentences"], "tags": ["execution", "fa"], "language": "fa" },
+        "source": {
+          "type": "social_post",
+          "title": "@aberavan961 — صدور حکم اعدام برای سعید زارعی کردشولی، حمیدرضا فتحی، عبدالرضا فتحی و حمیدرضا ثابت رای، از بازداشت‌شدگان اعتراضات دی‌ماه در شیراز",
+          "uri": "https://twitter.com/aberavan961/status/2049846130008105301",
+          "publisher": "@aberavan961 (X)",
+          "published_at": "2026-04-30",
+          "language": "fa"
+        },
+        "provenance": { "acquisition": { "method": "xpool", "retrieved_at": "2026-05-01" } }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_aberavan_dolatabadi",
+      "row": {
+        "kind": "source",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran", "Ebrahim Dolatabadi"], "tags": ["execution", "fa"], "language": "fa" },
+        "source": {
+          "type": "social_post",
+          "title": "@aberavan961 — ابراهیم دولت‌آبادی در خطر اجرای حکم اعدام؛ صدور حکم مرگ برای بازداشت‌شده اعتراضات ۱۴۰۴ در مشهد",
+          "uri": "https://twitter.com/aberavan961/status/2049840260511588456",
+          "publisher": "@aberavan961 (X) / Nafs dar Qafas",
+          "published_at": "2026-04-30",
+          "language": "fa"
+        },
+        "provenance": { "acquisition": { "method": "xpool", "retrieved_at": "2026-05-01" } }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_aberavan_tabari",
+      "row": {
+        "kind": "source",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran", "Mohammad-Reza Tabari"], "tags": ["execution", "fa"], "language": "fa" },
+        "source": {
+          "type": "social_post",
+          "title": "@aberavan961 — محکومیت به اعدام محمدرضا طبری؛ صدور حکم مرگ برای بازداشت‌شده اعتراضات سراسری ۱۴۰۴ (Branch 26 Tehran Revolutionary Court)",
+          "uri": "https://twitter.com/aberavan961/status/2050180773072793998",
+          "publisher": "@aberavan961 (X) / Nafs dar Qafas",
+          "published_at": "2026-05-01",
+          "language": "fa"
+        },
+        "provenance": { "acquisition": { "method": "xpool", "retrieved_at": "2026-05-01" } }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_iranazadi_volker_mai",
+      "row": {
+        "kind": "source",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran", "UN HRC condemnation"], "tags": ["un", "execution", "fa"], "language": "fa" },
+        "source": {
+          "type": "social_post",
+          "title": "@iranazadi1395 / @JBaheri7441 / @elikayusuf592 — درخواست فولکر تورک و مای ساتو برای توقف اعدام و سرکوب در ایران (UN OHCHR statement 9 Ord 1405 / Apr 29)",
+          "uri": "https://twitter.com/iranazadi1395/status/2049839869015261689",
+          "publisher": "Multiple X accounts citing UN OHCHR",
+          "published_at": "2026-04-30",
+          "language": "fa"
+        },
+        "provenance": { "acquisition": { "method": "xpool", "retrieved_at": "2026-05-01" } }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_iranintl_psychology_day",
+      "row": {
+        "kind": "source",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran", "Dey 1404 dead"], "tags": ["repression", "fa"], "language": "fa" },
+        "source": {
+          "type": "social_post",
+          "title": "@IranIntl — ۹ اردیبهشت روز روانشناس؛ معین بصیری ۲۱ ساله، دانشجوی روانشناسی شهر قدس، در میان کشته‌شدگان اعتراضات دی‌ماه ۱۴۰۴",
+          "uri": "https://twitter.com/IranIntl/status/2049956987740254492",
+          "publisher": "Iran International (X)",
+          "published_at": "2026-04-30",
+          "language": "fa"
+        },
+        "provenance": { "acquisition": { "method": "xpool", "retrieved_at": "2026-05-01" } }
+      }
+    },
+    {
+      "op": "add",
+      "row": {
+        "kind": "claim",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran", "Sasan Azadvar"], "tags": ["execution"] },
+        "identity": { "claim_key": "iran|execution|sasan_azadvar_executed_2026-04-30" },
+        "claim": {
+          "statement": "On the dawn of 30 April 2026 (10 Ordibehesht 1405), the Islamic Republic executed Sasan Azadvar Junaqani, a 21-year-old karateka from Esfahan and detainee of the Dey 1404 (Dec 2025–Jan 2026) nationwide protests. The death sentence was issued by Branch 1 of Esfahan Revolutionary Court (presided over by Judge Barati) on 31 Farvardin 1405 (~20 April 2026), upheld by the Supreme Court, and his family was summoned for a last visit on 6 Ordibehesht (26 April). His charge was 'moharebeh' (waging war on God). Per Kurdpa and Qadrichiya, he is the 10th Dey 1404 protester executed.",
+          "atomic": true,
+          "type": "event",
+          "subject": "Sasan Azadvar Junaqani",
+          "predicate": "executed_by",
+          "object": "Islamic Republic of Iran"
+        },
+        "time": { "occurred_at": "2026-04-30", "precision": "day", "timezone": "Asia/Tehran" },
+        "provenance": {
+          "evidence": [
+            { "source_id": "$src_rasanknews_azadvar", "role": "supports", "summary": "Rasanak News reports Iran Judiciary announced execution on 10 Ord 1405." },
+            { "source_id": "$src_arenapersian_azadvar_court", "role": "supports", "summary": "Arena Persian citing Mizan (Judiciary): sentence issued by Branch 1 Esfahan Revolutionary Court, judge Barati." },
+            { "source_id": "$src_ihrights_azadvar", "role": "supports", "summary": "Iran Human Rights: family called for last visit on 6 Ord (26 April)." },
+            { "source_id": "$src_kurdpa_azadvar_10th", "role": "supports", "summary": "Kurdpa Farsi & Qadrichiya: Azadvar is 'the 10th protester executed' from Dey 1404 wave." }
+          ]
+        },
+        "assessment": { "confidence": "high", "source_reliability": "high", "contested": false }
+      }
+    },
+    {
+      "op": "add",
+      "row": {
+        "kind": "claim",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran", "Death sentence wave"], "tags": ["execution"] },
+        "identity": { "claim_key": "iran|death_sentence_wave|tehran_shiraz_mashhad_late_apr2026" },
+        "claim": {
+          "statement": "Between 28 April and 1 May 2026, Iranian Revolutionary Courts issued or confirmed multiple death sentences against detainees of the Dey 1404 protest wave: Mohammad-Reza Tabari (Tehran, Branch 26 Revolutionary Court, charge 'moharebeh'); Saeed Zarei-Kordsholi, Hamidreza Fathi, Abdolreza Fathi, and Hamidreza Sabet-Rai (Shiraz); and Ebrahim Dolatabadi (Mashhad Revolutionary Court, charge 'moharebeh'). With Sasan Azadvar's execution on 30 April, this brings the post-protest execution count to at least 10 with several more in the immediate execution risk zone.",
+          "atomic": true,
+          "type": "state",
+          "subject": "Iranian Revolutionary Courts",
+          "predicate": "issued_death_sentences",
+          "object": "Dey 1404 detainees"
+        },
+        "time": { "valid_from": "2026-04-28", "valid_until": "2026-05-01", "precision": "range", "timezone": "Asia/Tehran" },
+        "provenance": {
+          "evidence": [
+            { "source_id": "$src_aberavan_tabari", "role": "supports", "summary": "Tabari: Branch 26 Tehran Revolutionary Court for 'moharebeh' (Apr 30)." },
+            { "source_id": "$src_aberavan_shiraz_4_death", "role": "supports", "summary": "Four Shiraz detainees sentenced to death on 10 Ord 1405." },
+            { "source_id": "$src_aberavan_dolatabadi", "role": "supports", "summary": "Dolatabadi: Mashhad Revolutionary Court, 'moharebeh' charge." }
+          ]
+        },
+        "assessment": { "confidence": "medium", "source_reliability": "medium", "contested": false, "uncertainty": "Most reports flow through @aberavan961 / Nafs dar Qafas (League of Human Rights of Iranian Prisoners). Cross-referenced by IHR Iran for Azadvar specifically. Total count of '10 executed' from Kurdpa/Qadrichiya, single primary source." }
+      }
+    },
+    {
+      "op": "add",
+      "row": {
+        "kind": "claim",
+        "scope": { "collections": ["iran-cracks"], "subjects": ["Iran", "UN HRC condemnation"], "tags": ["un", "execution"] },
+        "identity": { "claim_key": "iran|un_ohchr|volker_turk_mai_sato_joint_statement_apr29_2026" },
+        "claim": {
+          "statement": "On 29 April 2026 (9 Ordibehesht 1405), UN High Commissioner for Human Rights Volker Türk and UN Special Rapporteur on Iran Mai Sato issued a joint statement condemning the wave of repression of protests, mass human-rights violations, and the surge in executions in Iran, calling Iran's use of capital punishment in the context of political protests and social unrest a 'clear violation' of Iran's international obligations and demanding it be 'immediately stopped.'",
+          "atomic": true,
+          "type": "event",
+          "subject": "UN OHCHR + Special Rapporteur",
+          "predicate": "publicly_condemned",
+          "object": "Iranian execution wave"
+        },
+        "time": { "occurred_at": "2026-04-29", "precision": "day", "timezone": "UTC" },
+        "provenance": {
+          "evidence": [
+            { "source_id": "$src_iranazadi_volker_mai", "role": "supports", "summary": "Multiple Iranian dissident X accounts citing OHCHR statement; @volker_turk and @drmaisato tagged in Persian-language summaries." }
+          ]
+        },
+        "assessment": { "confidence": "medium", "source_reliability": "medium", "contested": false, "uncertainty": "Statement attribution clear from multiple X relays; have not retrieved primary OHCHR press release directly." }
+      }
+    }
+  ]
+}

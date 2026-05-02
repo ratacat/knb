@@ -1,0 +1,665 @@
+
+## From War to Sovereignty: The Normalization of Tiered Internet in Iran
+https://ioda.inetintel.cc.gatech.edu/reports/from-war-to-sovereignty-the-normalization-of-tiered-internet-in-iran/
+Published: 2026-04-27T14:04:05.000Z
+
+Iran is in it's 59th day of an ongoing shutdown to the global Internet. On February 28th, 2026, the United States and Israel launched airstrikes against Iran, and the Iranian regime once again reached for the Internet "kill switch." Similar to the January 2026 shutdown amid protests, Internet measurement data reveals a continued evolution in how the Islamic Republic (IR) controls the information environment.
+[...]
+To understand the current state of Iran's network, we must look back at the previous two shutdowns. Triggered by nationwide protests, the January event was characterized by a near-total drop of Iranian connectivity to the global Internet. As documented in our previous comparative report, IODA measurements showed Active Probing responsiveness dropping to a mere 3%. During those ten days, even the National Information Network (NIN), which serves as the Iranian domestic, fire-walled Internet was disrupted in a rushed, "blunt force" reaction. In total, the global Internet shutdown lasted nearly 20 days. In contrast, the February 28th shutdown shows a regime that is moving towards a new normal in terms of digital borders and information control. February represents a shift toward what Doug Madory from Kentik calls "Digital Apartheid." The roots of this tactical shift were first visible in the June 2025 Israel-Iran War. During that 4-day conflict, IODA observed that BGP routing announcements remained largely intact, but IODA's Active Probing and Telescope signals showed a near-total Internet blackout. After less than 24-hours, Iran began restoring whitelisted Internet access. The February 28th event mimics this stealth blackout and represents a long-term expansion of this wartime protocol.
+[...]
+According to an investigative report by Filterwatch, the Iranian Regime is institutionalizing this "Internet Sovereignty" model through Tiered Access. Access is no longer a right, but a "government-granted privilege" calibrated by loyalty and economic status. On April 14th, the Iranian government officially unveiled the implementation of "Internet Pro." This system allows selective, unfiltered access for a "chosen minority" (state actors and authorized businesses) while the general public remains restricted to the NIN.
+[...]
+are three distinct
+[...]
+in the IODA data:
+[...]
+1. Access to the global Internet is still largely shutdown, as visible in IODA's Active Probing signal
+[...]
+Active Probing drops down to ~3% on February 28th and has not recovered since.
+[...]
+1. There is evidence of the "Internet Pro" in the Google Product data that we know to still be whitelisted but show slight signs of recovery, namely: Google Maps. Additionally, IODA's telescope signal shows a slight increase in Internet pollution emanating from Iran, with it's usual diurnal pattern. Looking at the network level, we see a small increase in Telescope traffic on IranCell(AS44244) which is a mobile operator in Iran participating in the Internet Pro access. What is visible in IODA has been verified through traffic data from David Belson at Cloudflare Radar and Doug Madory at Kentik.
+[...]
+Google Maps is not accessible via the NIN, but a slight increase in usage is indicative of access through the Internet Pro. Similarly, some increase in Telescope traffic is likely related to the Internet Pro access.
+[...]
+The shutdown starting with the US and Israeli attacks on Iran on February 28th appears to have triggered the rollout of a permanent new Internet reality in Iran. By moving from "Internet for all" to a discriminatory tiered system, the Iranian regime is attempting to build a wall that is transparent to the state but opaque to Iranian Internet users. IODA will continue to monitor these signals to ensure that even when the regime attempts to hide its actions behind "sovereignty," the reality of this digital isolation remains visible.
+
+## Shutdown - Iran (Islamic Republic of) - Internet Society Pulse
+https://pulse.internetsociety.org/en/shutdowns/blackout-in-iran/
+
+Timeline: * 8 January 2026 — Nationwide shutdown begins: Iran imposes a near-total internet blackout on the 12th day of nationwide protests. Many local websites also became unreachable, including those of the main local news agencies.
+[...]
+* 28 January 2026 — Partial, uneven restoration: Authorities relax some restrictions, but connectivity returns only in a patchwork and heavily filtered form.
+[...]
+* Mid-February 2026 — Degraded and unstable connectivity: National internet traffic recovers only to ~50–60% of normal levels; VPN services remain erratic and unreliable.
+[...]
+* 28 February 2026 — New shutdown during hostilities: Following U.S.–Israel airstrikes, Cloudflare Radar confirms traffic in Iran drops to nearly zero, indicating a fresh, state-enforced blackout.
+[...]
+Iran has experienced one of its most extensive and prolonged internet shutdowns since 8 January 2026, coinciding with nationwide protests. Disruptions affected both international connectivity and—unusually at times—the domestic National Information Network (NIN), reflecting an escalatory approach to digital isolation. [theguardian.com], [securityaffairs.com]
+[...]
+While authorities appeared to ease some restrictions around 28 January, the restoration was fragmentary and highly controlled. Analysts documented a shift toward a whitelist‑style model and increased reliance on state‑sanctioned platforms, rather than a full return to open connectivity. [techcrunch.com], [blog.cloudflare.com] As of 13:00 UTC 18 January, access to Google web search appears to have been restored, while traffic to other Google services and traffic monitored by Cloudflare and IODA appear to be at levels similar to those during the full blackout.
+[...]
+By late January and through mid‑February, connectivity remained degraded and unstable. Measurements from Cloudflare/Kentik cited by major media showed national traffic recovering only to ~50–60% of normal levels, with jagged peaks indicating ongoing throttling and filtering. Users reported that even when the network was “on,” VPNs worked unpredictably and inconsistently across cities, neighborhoods, and devices. [techcrunch.com], [techradar.com]
+[...]
+While authorities acknowledged the impacts and announced plans to restore access, connectivity was
+[...]
+‑enabled unevenly, with selective access provided to certain sectors and organizations. Independent network measurement organizations observed sharp declines in traffic and connectivity, followed by partial and asymmetric restoration rather than a full return to baseline conditions.
+[...]
+By late January and through mid‑February, connectivity remained degraded and unstable. Measurements cited by major media showed national traffic recovering only to ~50–60% of normal levels, with jagged peaks consistent with throttling and ongoing filtering during an uneven restoration. Users reported that even when the network was “on,” VPNs worked unpredictably and inconsistently across cities, neighborhoods, and devices. [filter.watch], [techcrunch.com]
+[...]
+- Routing‑level withdrawal (BGP). On 8 January, Cloudflare observed a 98.5% drop in announced IPv6 address space from Iranian networks, effectively removing large portions of the country from the global routing table; several hours later, overall traffic declined rapidly as full shutdown conditions took hold. [cybersixt.com]
+[...]
+Data from Cloudflare Radar and IODA indicated traffic drops from 8 January at 16:30UTC, following a short drop in IPv6 earlier in the day, while data from Google Transparency Report indicate similar pattern, but with traffic returning to pre-shutdowns levels as of 18 January.
+[...]
+IODA signals showed that national‑level Internet activity recovered only gradually and remained below baseline levels for an extended period. This pattern suggested that while some networks or user groups regained connectivity, large segments of the population continued to experience reduced or no access (source).
+[...]
+Cloudflare’s traffic data similarly reflected partial recovery, with some Internet services and application categories showing improvement while overall request volumes from Iran remained suppressed compared to normal levels. This implied that access was not uniformly restored across platforms or users (source).
+[...]
+OONI measurements further documented continued anomalies in reachability and application access following the initial restoration announcements. In some cases, users were able to reach domestic services or specific international endpoints, while access to a wider range of global services remained impaired, pointing to ongoing filtering and traffic management (source).
+[...]
+A graph from Cloudflare Radar indicating a shutdown in Iran with a small drop between 15:00 and 15:30UTC on January 8, followed by starting around 16:00 and reaching near zero traffic around 16:45UTC. The graph also shows with partial and unstable traffic uptake on the 21, and then from the 25th January. A graph from IODA showing a drop in Active Probing measurement in Iran starting around 16:30UTC on January 8, while the BGP measurement remained as usual. The graph also shows with partial and unstable traffic uptake on the 21, and then from the 25th January. A graph from Google Transparency report showing a drop in traffic to web search service from Iran starting around 16:30UTC on January 8 ending on 18 January
+[...]
+IODA and other researchers and news agencies started reporting on the instability of the Internet connectivity in the country in the days prior to the shutdown.
+[...]
+Iranians have experienced significant instability and disruption in Internet access since nation-wide protests started Dec 29. IODA's view of the Internet interference is most visible in Active Probing. Our Active Probing signal has shown abnormal drops Jan […] [Original post on mastodon.social] [image or embed]
+[...]
+As of 18:45 UTC (10:15 PM local), traffic to Iran has stopped as the country has completely severed itself from the global internet. https://t.co/iPzTpRcODL pic.twitter.com/9TXqbl4lt1
+
+> — Doug Madory (also on Bluesky) (@DougMadory) January 8, 2026
+
+## Iran's unprecedented internet shutdown is crushing businesses | AP News
+https://apnews.com/article/iran-us-war-internet-business-economy-online-9e1cc7c871cfea25978e3e518065cc26
+Published: 2026-05-01T05:09:13.000Z
+
+Iran's unprecedented internet shutdown is crushing businesses | AP News
+[...]
+# Iran’s monthslong internet shutdown is crushing businesses in an already battered economy
+[...]
+Iran’s 90 million people have been cut off from the internet for most of 2026, one of the world’s longest and strictest national shutdowns. That is devastating an online economy that had long defied government restrictions and international sanctions. From fashion to fitness, to advertising and retailers, many have seen their incomes evaporate.
+[...]
+Khademi hasn’t made a sale in months. “The internet outage in the past four months has completely destroyed not only my business, but many online businesses,” she said.
+[...]
+Despite an uneasy truce with the U.S. and Israel, Iran’s rulers have refused to reverse the shutdown they have depicted as a wartime necessity. But they are facing an outcry as it adds to mass job losses from strikes on key industries and an ongoing U.S. blockade.
+[...]
+Before January, Iranians could access the internet, but authorities blocked a large amount of content. Now all access to the global web has been shut down. Some workarounds exist, but they have become enormously expensive, out of reach for most Iranians.
+[...]
+The internet cutoff costs the economy an estimated $30-40 million daily, with indirect losses likely twice that much, a member of Iran’s Chamber of Commerce, Afshin Kolahi, told a local newspaper. About 10 million people have jobs that depend on internet connectivity, according to the communications minister, Sattar Hashemi.
+[...]
+Iranian authorities first shut down the internet in January during mass anti-government protests. That cutoff was just starting to ease when the government imposed a complete internet blackout on Feb. 28 as the U.S. and Israel launched the war.
+[...]
+“What makes Iran’s shutdown unprecedented is the combination of scale and severity: an entire country of 90 million people with a developed digital economy deliberately reverted to a controlled national intranet,” said Alimardani, an associate director for technology threats and opportunities at the rights group Witness.
+[...]
+A flagship company of Iran’s digital economy, online retailer DigiKala, recently said it was laying off 200 people, about 3% of its workforce. The pain extends to “production, foreign trade and even traditional business,” Reza Olfatnasab, head of a national group representing digital businesses, said in comments published in Iranian media.
+[...]
+For years, authorities in Iran have enforced filters and policed content on platforms like YouTube and Instagram. But before the war, Iranians could bypass restrictions with cheap virtual private networks, known as VPNs, and other easy workarounds.
+[...]
+Now, the shutdown has stoked high prices for black-market VPNs. Iranian state media routinely report arrests of people for using illegal VPNs or the American satellite system Starlink, which was banned last year.
+[...]
+Senior government officials are awarded “white” SIM cards granting them access to the global internet. Under pressure to alleviate the economic harm, the government is now allowing less-restricted internet access to a small number of professions, business and media.
+[...]
+An e-commerce trade group in Tehran condemned the tiered system in Iranian media on Wednesday, calling it “an abuse of an obvious need of every citizen.” It said the outage threatens “the destruction of the country’s infrastructure at the hands of our own decision-makers.”
+[...]
+The vast majority of people have no choice but Iran’s national net.
+[...]
+Isfahan — also
+[...]
+— said Iran’s domestic net “is terrible” — slow, insecure and full of bugs.
+[...]
+income from sponsors
+[...]
+The shutdown has piled new pressures on Iran’s once large and educated middle class, already struggling in the face of a prewar currency crash.
+[...]
+Economic decline in Iran has spurred waves of anti-government protests, most recently in December. Now, more Iranians are thinking of emigrating, a software developer said.
+[...]
+The developer — likewise speaking on condition of anonymity out of safety fears — said the internet shutdown has wiped out remote work. He lost his own job when his former company laid off almost all its employees in recent weeks, he said.
+[...]
+The consequences are visible in the rising numbers of street peddlers in Tehran. Reza Amiri, a 32-year-old former employee of an internet provider, now sells hats and umbrellas by a metro stop. He lost his job after the war started and has not received his last month’s salary, he said.
+[...]
+Monireh Pishgahi sells ornaments and accessories on the capital’s famed Vali Asr Street. She said her tailoring business used to supply three online shops. As business dried up, she shut down and laid off her five employees.
+
+## What we know about Iran's Internet shutdown - The Cloudflare Blog
+https://blog.cloudflare.com/iran-protests-internet-shutdown/
+Published: 2026-01-13T00:00:00.000Z
+
+# What we know about Iran’s Internet shutdown
+
+2026-01-13
+
+- 
+David Belson
+
+5 min read
+
+In late December 2025, wide-scale protests erupted across multiple cities in Iran. While these protests were initially fueled by frustration over inflation, food prices, and currency depreciation, they have grown into demonstrations demanding a change in the country’s leadership regime.
+
+In the last few days, Internet traffic from Iran has effectively dropped to zero. This is evident in the data available in Cloudflare Radar, as we’ll describe in this post.
+
+## Background
+
+ 
+
+The Iranian government has a history of cutting off Internet connectivity when such protests take place. In November 2019, protests erupted following the announcement of a significant increase in fuel prices. In response, the Iranian government implemented an Internet shutdown for more than five days. In September 2022, protests and demonstrations erupted across Iran in response to the death in police custody of Mahsa/Zhina Amini, a 22-year-old woman from the Kurdistan Province of Iran. Internet services were disrupted across multiple network providers in the following days.
+
+Amid the current protests, lower traffic volumes were already observed at the start of the year, indicating potential connectivity issues leading into the more dramatic shutdown that has followed.
+
+## Internet connectivity in Iran plummeted on January 8
+
+ 
+
+Some traffic anomalies were seen in the first few days of 2026 (described in further detail below), though peak traffic levels recovered by January 5, and exceeded expected levels during the following days.
+
+However, this strong recovery proved to be short-lived. IPv6-related shifts observed on January 8 provided the first indication of the changes to come. At 11:50 UTC (15:20 local time), the amount of IPv6 address space announced by Iranian networks dropped by 98.5%, falling from over 48 million /48s (blocks of 2^80 IPv6 addresses) to just over 737,000 /48s. A drop in announced IP address space (whether IPv6 or IPv4) means that the announcing networks are no longer telling the world how to reach those addresses. A major drop like this one can signal an intentional disruption to Internet connectivity, as there is no longer a path to the clients or servers using those IP addresses.
+
+This drop in announced IPv6 address space served to reduce IPv6’s share of human-generated traffic from around 12% to around 2%.
+
+As seen in the graph below, this drop in IPv6 traffic stayed at a relatively consistent level for approximately 100 minutes, before falling further just before 13:30 UTC (17:00 local time). This second drop resulted in IPv6 traffic from Iran all but disappearing.
+
+Several hours later, we observed overall traffic levels from the country begin to decline rapidly. Between 16:30 - 17:00 UTC (20:00 - 20:30 local time), traffic volumes fell nearly 90%, fueled by a loss of traffic from the major Iranian network providers, including MCCI (AS197207), IranCell (AS44244), and TCI (AS58224).
+
+Around 18:45 UTC, Internet traffic from Iran dropped to effectively zero, signaling a complete shutdown in the country and disconnection from the global Internet.
+
+## Brief windows of connectivity on January 9 — but they don’t last
+
+ 
+
+After the shutdown took hold the previous day, internal traffic data showed an extremely low volume of traffic from Iran, amounting to less than 0.01% of pre-shutdown peaks, starting around 10:00 UTC (13:30 local time) on January 9. It appears that access to Cloudflare’s public DNS resolver, 1.1.1.1, also became available again around 10:00 UTC (13:30 local time), leading request traffic to briefly spike well above the expected range. However, after spiking, only a small amount of request traffic to 1.1.1.1 remained visible.
+
+Several Iranian universities also saw connectivity briefly restored, starting around 11:30 UTC (15:00 local time). These included University of Tehran Informatics Center (AS29068), Sharif University of Technology (AS12660), Tehran University of Medical Science (AS43965), and Tarbita Modares University (AS57745). It is unclear whether this restoration was intentional, but traffic from these networks was once again non-existent after 15:00 UTC (18:30 local time).
+
+## Changes in HTTP traffic preceded the Internet shutdown
+
+ 
+
+Alongside the lower traffic levels observed at the start of the year, as discussed above, a clear shift in HTTP version usage from human-generated traffic was also observed across leading network providers, as seen in the graphs below. Prior to that point, as much as 40% of HTTP requests on IranCell (AS44244) used HTTP/3, but that figure fell to just 5% at 20:00 UTC (23:30 local time) on December 31, and continued to decline over the following days. Usage of QUIC from the network followed a similar pattern, as it relies on HTTP/3.
+
+On TCI (AS58224), HTTP/3 also accounted for as much as 40% of requests at peak, but gradually declined starting on January 1 before falling below 5% starting around 07:00 UTC (10:30 local time) on January 3. QUIC usage on this network followed a similar pattern as well. MahsaNet, an organization that fights against Internet censorship in Iran, suggested that these shifts could indicate that “Severe filtering and layered, upgraded whitelisting are clearly evident and being implemented” (translation via X).
+
+## The shutdown continues
+
+ 
+
+As we noted in social media posts (X, Mastodon, Bluesky), no significant changes have been observed in Iran’s Internet traffic since January 10. The country remains almost entirely cut off from the global Internet, with internal data showing traffic volumes remaining at a fraction of a percent of previous levels.
+
+We will continue to monitor the state of Internet connectivity in Iran, and will continue to post updates on our social media accounts. Use Cloudflare Radar’s Traffic and Routing pages for Iran and the top networks within the country for near-real time insights into these metrics.
+
+Cloudflare's connectivity cloud protects entire corporate networks, helps customers build Internet-scale applications efficiently, accelerates any website or Internet application, wards off DDoS attacks, keeps hackers at bay, and can help you on your journey to Zero Trust.
+
+Visit 1.1.1.1 from any device to get started with our free app that makes your Internet faster and safer.
+
+To learn more about our mission to help build a better Internet, start here. If you're looking for a new career direction, check out our open positions.
+
+Internet Shutdown Radar Internet Traffic 1.1.1.1
+
+Follow on X
+
+David Belson| @dbelson
+
+Cloudflare| @cloudflare
+
+Related posts
+
+April 28, 2026
+
+Shutdowns, power outages, and conflict: a review of Q1 2026 Internet disruptions
+
+The first quarter of 2026 saw a surge in Internet disruptions, from nationwide shutdowns in Uganda and Iran to unprecedented drone strikes on cloud infrastructure. We explore the data behind these events using Cloudflare Radar....
+
+By
+
+- David Belson
+
+Radar, Internet Shutdown, Internet Traffic, Outage, Internet Trends, AWS, BGP, IPv6
+
+April 17, 2026
+
+Introducing the Agent Readiness score. Is your site agent-ready?
+
+The Agent Readiness score can help site owners understand how well their websites support AI agents. Here we explore new standards, share Radar data, and detail how we made Cloudflare’s docs the most agent-friendly on the web....
+
+By
+
+- André Jesus,
+- Vance Morrison
+
+Agents Week, Radar, Developer Documentation, AI, Agents, Agent Readiness
+
+April 17, 2026
+
+Redirects for AI Training enforces canonical content
+
+Soft directives don’t stop crawlers from ingesting deprecated content. Redirects for AI Training allows anybody on Cloudflare to redirect verified crawlers to canonical pages with one toggle and no origin changes....
+
+By
+
+- Cam Whiteside,
+- David Belson,
+- André Cruz
+
+Agents Week, Agents, AI, Radar, Bot Management, Developer Platform, Developers
+
+April 01, 2026
+
+Our ongoing commitment to privacy for the 1.1.1.1 public DNS resolver
+
+Eight years ago, we launched 1.1.1.1 to build a faster, more private Internet. Today, we’re sharing the results of our latest independent examination. The result: our privacy protections are working exactly as promised....
+
+By
+
+- Rory Malone,
+- Hannes Gerhart,
+- Leah Romm
+
+1.1.1.1, DNS, Privacy, Consumer Services, Transparency
+
+## Day 37 — Iran Internet Blackout | Voidly
+https://voidly.ai/iran
+
+Day 37 — Iran Internet Blackout | Voidly
+[...]
+# Iran Internet Blackout
+[...]
+Near-total internet shutdown since February 28, 2026
+[...]
+OONI Measurements
+[...]
+Based on OONI and CensoredPlanet measurements. All major platforms have been inaccessible since February 28, 2026.
+[...]
+US-Israel strikes — internet traffic collapses 98% within hours
+[...]
+Mar 6
+[...]
+Connectivity measured at ~1% of normal. Human Rights Watch condemns shutdown.
+[...]
+Longest sustained internet blackout
+[...]
+— record set
+[...]
+## Documented Incidents
+[...]
+13 verified incidents with measurement evidence and citable IDs.
+[...]
+### Internet censorship detected in Iran
+[...]
+15026f55b93fcritical1 measurements1 % anomalyMar 11, 2026
+[...]
+### HTTP blocking in IR: bbc.com, facebook.com, signal.org, youtube.com
+[...]
+### DNS blocking in IR: bbc.com, facebook.com, google.com, instagram.com, medium.com +13 more
+[...]
+### HTTP blocking in IR:
+[...]
+, signal.org +5 more
+[...]
+### Network disruption detected in IR
+[...]
+f37605e1d248critical89 measurements35 % anomalyJan 7, 2026
+[...]
+```
+@misc{voidly_iran_2026,
+  title     = {Internet Censorship Incidents in Iran},
+  author    = {Voidly Research},
+  year      = {2026},
+  url       = {https://voidly.ai/iran},
+  note      = {Based on 13 documented incidents,
+               313,043 OONI measurements. CC BY 4.0.}
+}
+```
+[...]
+Data sourced from OONI, CensoredPlanet, and IODA. Compiled by Voidly.
+
+## The Longest Internet Shutdown in Human History
+https://www.themiddleeastuncovered.com/p/the-longest-internet-shutdown-in
+Published: 2026-04-30T15:20:55.000Z
+
+### Since January, repeated and sustained disruptions have reduced Iran’s connectivity to a fraction of normal levels, leaving millions technically online but unable to communicate beyond national borders
+[...]
+Apr 30, 2026
+[...]
+It is nearing the end of April 2026, and Iran has experienced more than twelve weeks of severe internet disruption since the beginning of this year.
+[...]
+What is happening in Iran is often described as an “internet shutdown.” That sounds like a switch being flipped on and off. But what’s really happening is something more precise. Iran’s National Information Network(NIN), also known as Iran’s intranet system, is designed to ensure the country remains digitally connected, even if cut off from the world.
+[...]
+What Iranians are left with is a network that appears to be online but is not connected to anything beyond Iran’s borders. Rather than serving as public infrastructure, the internet in Iran is wielded as a tool of control.
+[...]
+The first shutdown phase began on January 8, during widespread anti-regime protests in which thousands of innocent civilians were massacred. Around twenty days of severe internet disruption followed.
+[...]
+At the end of February, after regional escalation, connectivity was cut again—this time to near-zero levels. In some places, traffic fell to 1 or 2% of normal usage. Fifty days followed. By April, the shutdown had continued for twelve weeks of continuous or repeated blackout conditions.
+[...]
+This is the longest nationwide internet shutdown ever recorded. But even this description is slightly misleading.
+[...]
+What is taking shape in Iran is not exactly a closed system like North Korea, but something more adaptive. The internet still exists, but access is switched on or off depending on political need.
+[...]
+This extends beyond periodic shutdowns. War, economic strain, and digital restrictions now reinforce each other, tightening control and further isolating Iranian society from the outside world.
+[...]
+Within this system, satellite internet has taken on a different role. It is no longer a convenience or upgrade, but one of the few remaining ways to bypass state-controlled infrastructure. At scale, it offers a rare form of independent access.
+[...]
+That access, however,
+[...]
+can be arrested
+[...]
+. Equipment is costly and often obtained through informal channels. Businesses that provide access are shut down, and users can be tracked through signals, devices, and digital activity.
+[...]
+Satellite internet is a technical and political solution. It bypasses state control, restores communication, and enables people to organize, document, and speak.
+[...]
+You cannot ask people to change their country while denying them the ability to communicate. If there is serious intent to support the Iranian people, expanding independent internet access should already be underway at scale. In the meantime, Iranians will continue to measure time in missed calls, cut connections, and messages that never go through.
+[...]
+The longest internet shutdown in human history must end. The future of the Iranian people depends on it.
+
+## Iran: Internet shutdown from 7 UTC 28 February 2026 · Issue #586 · net4people/bbs
+https://github.com/net4people/bbs/issues/586
+Published: 2026-02-28T14:32:35.000Z
+
+## Iran: Internet shutdown from 7 UTC 28 February 2026
+[...]
+2026-02-
+[...]
+From Cloudflare Radar: "Internet connectivity in Iran is now in a near-complete shutdown, down about 98% vs the previous week. The disruption began around 07:00 UTC, following reports of military strikes — and in past incidents the government has responded with nationwide Internet shutdowns.
+[...]
+Internet traffic in Iran is close to zero across all major regions. There’s a near-complete shutdown in Tehran, Fars, Isfahan, Alborz Province, and Razavi Khorasan, among others."
+[...]
+IODA: https://ioda.inetintel.cc.gatech.edu/country/IR?from=1772202427&until=1772288827&view=view1
+[...]
+> The IODA chart shows the "Google Search" series at near zero, so I suppose google.com (216.239.38.120) is not currently reachable. What about api.github.com (140.82.121.6)? I suppose it is not as well, otherwise there would likely be more comments here.
+> 
+> https://noc.social/@cloudflareradar/116148176211551991 says some BGP routes have been withdrawn:
+> 
+> > Starting around 07:00 UTC, Iranian networks began withdrawing portions of their BGP routes. By 10:30 UTC, the amount of IPv4 space announced globally had fallen even further, a pattern consistent with a nationwide Internet shutdown (as seen in January 2026).
+> 
+> The Data Explorer shows it's a small fraction of /24s:
+> 
+> [Image: Announced IP address space time series for Iran. The x-axis goes from Wed, Feb 25, 00:00 UTC to Feb 28, 2026, 22:45 UTC. The y-axis is /24 count. The data series is up above 45K for most of the range. Starting about Feb 28 07:00 it drops to about 43K, with some variation. | https://github.com/user-attachments/assets/3facce95-8d9b-426a-b130-4890abd0ae24]
+[...]
+> > The IODA chart shows the "Google Search" series at near zero, so I suppose google.com (216.239.38.120) is not currently reachable. What about api.github.com (140.82.121.6)? I suppose it is not as well, otherwise there would likely be more comments here.
+> 
+> Tested with the paqet ping function, and nothing reaches outside (two different ISPs).
+> Right now i'm connected with slipstream / dnstt which requires finding a working resolver with Internet access.
+> Apparently few providers are still connected, have no way to confirm tho.
+[...]
+> ## Using AI for traffic analysis
+> 
+> The Cloudflare Radar MCP server is a very helpful for asking questions about the network conditions in Iran, as it plugs into the Radar APIs.
+> 
+> [Image: Image | https://github.com/user-attachments/assets/60eecba9-7321-4298-b099-6d1b6b05c36c]
+> 
+> ## TIC seems to be the only way out
+> 
+> It actually helped me uncover that TIC has about 25-30% of its normal peak levels
+> 
+> [Image: Image | https://github.com/user-attachments/assets/1ee43ce6-c170-404f-ab7e-e54841e066ef]
+> 
+> [Image: Image | https://github.com/user-attachments/assets/ae4fe990-503c-4316-ac7f-a5640795613c]
+> 
+> Traffic from TIC
+> 
+> ## Getting out via TIC
+> 
+> The MCP server is aware of the BGP connections, and helped me investigate the networks connected to TIC:
+> 
+> [Image: Image | https://github.com/user-attachments/assets/6ae33a0e-5b78-4d0a-8427-62f6057da778]
+> 
+> Among them, Hostiran seems to have the most bandwidth that is potentially usable:
+> 
+> [Image: Image | https://github.com/user-attachments/assets/d77aa19d-1cb3-4687-a192-6d20bc02f79c]
+> 
+> Traffic from Hostiran
+> 
+> People may want to explore deploying servers there.
+[...]
+> @gusgustavo
+> 
+> Special thanks to you, mate, really appreciate your help
+[...]
+this.
+> Some people were able
+[...]
+connect using your robot, mostly
+[...]
+Mokhaberat and MobinNet ISPs
+> We also tried connecting with MCI and Irancell, but unfortunately it didn’t work, especially here in Tehran.
+> Thanks again for all
+[...]
+into this.
+[...]
+> There are a few DNS servers reachable on both sides. They primarily do not support DoT or Do
+[...]
+but dnstt over
+[...]
+(53) establishes a
+[...]
+with no traffic passing through when the
+[...]
+. I suspect the direction of the
+[...]
+will have an effect on
+[...]
+. I'm attempting a few tests and will update this thread with follow ups.
+> 
+> I managed to pass semi-stable traffic over UDP,
+[...]
+I had to
+[...]
+it with shadowsocks so that deep packet inspection
+[...]
+drop the handshake
+[...]
+with massive latency
+[...]
+main lesson is that
+[...]
+>
+[...]
+> @dotvhs
+> 
+> A few tools can still help people in Iran stay connected, but none of them are very stable at the moment.
+> 
+> Things like `DNSTT` and `Splitstream / Slipnet` sometimes work on certain ISPs, but the reliability is pretty inconsistent.
+> The domains used by these tools tend to get detected and blocked fairly quickly, sometimes within a short time. On top of that, latency is usually quite high, which makes the connection unstable and not very practical for tasks like uploading large files or videos.
+> 
+> Telegram proxies are also widely used and can be very helpful for basic communication. Many people rely on them to stay connected to news and channels. However, they run into similar issues, latency can be high and speeds often fluctuate. Sometimes the connection becomes so slow that even loading simple messages can take a while.
+> 
+> Another big challenge is DNS. Finding clean, usable DNS servers has become very difficult. Many public DNS addresses are either blocked or heavily interfered with. Because of this, people often have to scan large IP ranges to discover working DNS servers, and that process can be quite slow and time-consuming.
+> 
+> So while these methods can help temporarily, keeping them working requires constant effort, new domains, new proxy servers, and continuous testing because blocks tend to happen quickly once something starts getting widely used.
+[...]
+`DNSTT` and `Splitstream / Slip
+[...]
+` sometimes work on certain
+[...]
+, but the reliability is pretty inconsistent
+[...]
+> > The domains used by these tools tend to get detected and
+[...]
+, sometimes within a
+[...]
+https://github
+[...]
+com/net4people
+[...]
+bbs/issues/561#issuecomment-
+[...]
+796369483
+[...]
+set up so that it can be accessed by any
+[...]
+anyone can set up
+[...]
+running a server themselves
+[...]
+>
+[...]
+> > how
+[...]
+zners web hosting to set up a dns server for a friend?
+[...]
+> I doubt that anyone in Iran is able to get through now, so I'll just repeat what I've read here and elsewhere.
+> 
+> Popular VPS providers like Hetzner and DigitalOcean almost certainly have their IP address ranges blocked in their entirety. You would be more likely to succeed with a less well-known provider.
+> 
+> BUT -- I've heard that even sophisticated methods such as VLESS, DNS tunnel, or ICMP tunnel will only work for a few minutes before they are detected. It looks like the censors are using traffic metrics as well as protocol detection. Someone said you **_might_** be able to remain undetected if you only transmit text files or small photos.
+> 
+> Starlink is really the only viable censorship circumvention technology, but that is banned, and the authorities are searching out Starlink users to prosecute them. The Iranian police arrested 6 people in Yazd the other day for selling or re-selling Starlink services.
+[...]
+> Follow @cmptrnb’s last comment. The information below gives a clearer picture of the connectivity situation in Iran after 31 days of near total blackout.
+> 
+> A recent leak linked to the group “Void Verge” claims to reveal internal directives from Iran’s Ministry of Communications focused on detecting and shutting down unauthorized satellite internet access.
+> 
+> According to the documents, authorities are using advanced monitoring methods like deep packet inspection and real time traffic analysis to identify Starlink connections. Once identified, field teams are reportedly sent to locate and confiscate the equipment. The leak also points to wider actions targeting VPN providers, proxy networks, and independent communication channels. This suggests a broader effort to maintain control over digital infrastructure and limit access to uncensored internet. Despite all of this, the documents indicate the system is not fully effective, and some users are still finding ways to get around restrictions.
+[...]
+> 
+> The authenticity and full context of the leak are still unclear, but it highlights the
+[...]
+tension between centralized control and open access technologies.
+[...]
+> 
+> ---
+[...]
+com/user
+[...]
+8b6-51ff-4
+[...]
+bd-b43b-b2005b71d8f3]
+> [Image: Image | https://github
+[...]
+com/user-attachments/assets/264ccbda-10b9-4afe-924e-51f3baea0
+[...]
+> > From Cloudflare Radar: "Internet connectivity in Iran is now in a near-complete shutdown, down about 98% vs the previous week. The disruption began around 07:00 UTC, following reports of military strikes — and in past incidents the government has responded with nationwide Internet shutdowns. Internet traffic in Iran is close to zero across all major regions. There’s a near-complete shutdown in Tehran, Fars, Isfahan, Alborz Province, and Razavi Khorasan, among others."
+> > 
+> > [Image: Image | https://private-user-images.githubusercontent.com/15200517/556387845-9ced2e47-09fc-4294-9715-079767651fac.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NzcwNjYwNjAsIm5iZiI6MTc3NzA2NTc2MCwicGF0aCI6Ii8xNTIwMDUxNy81NTYzODc4NDUtOWNlZDJlNDctMDlmYy00Mjk0LTk3MTUtMDc5NzY3NjUxZmFjLnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNjA0MjQlMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjYwNDI0VDIxMjI0MFomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPTc3NDIxZDEyZjZhZjhmOGY0YmFhMzk0NmE5NzlkOGY3OTgxY2I4Yzc5MjBiZDRhODk1Mjg1OGM1MGIwMTFlNzYmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0JnJlc3BvbnNlLWNvbnRlbnQtdHlwZT1pbWFnZSUyRnBuZyJ9.Fw-ibW1rF9SttfPbXn2toY6g33Pj-8Pzstdc3OlDrg0] Thread: https://noc.social/@cloudflareradar/116148155514554262
+[...]
+6438
+
+## Understanding Iran's Internet Blackout: A Public Report
+https://curifem.github.io/iran-internet-blackout/
+
+Understanding Iran's Internet Blackout: A Public Report 
+
+Ongoing Event Iran's internet has been offline since January 8, 2026
+
+ 
+
+ 
+
+January 2026 Crisis
+[...]
+87 million people are cut off from
+[...]
+Last updated January 16
+[...]
+2026
+[...]
+Since January 8, 2026, internet traffic from Iran has dropped to near-zero. This is a "stealth outage": IPv4 routes appear UP on monitoring tools, but traffic is blocked at the network level. IPv6 was fully withdrawn. Only whitelisted services pass through.
+[...]
+On January 8, 2026, Iran's internet traffic dropped sharply over a period of hours. By evening, it had fallen to effectively zero. The country had been disconnected from the global internet.
+[...]
+BGP (Border Gateway Protocol) is how networks announce their existence to the world. The January 2026 shutdown reveals a more sophisticated approach: IPv6 routes were withdrawn, but IPv4 routes remain UP while traffic is blocked, a "stealth outage."
+
+ 
+
+### BGP Route Visibility: Stealth Outage
+[...]
+IPv6 withdrawn,
+[...]
+blocked, January 7–16, 2
+[...]
+100% 75% 50% 25% 0% Jan 7 Jan 8 Jan 10 Jan
+[...]
+12 Jan
+[...]
+14 Jan 16 Jan 8: 433→43 prefixes (-90%) IPv6: -94% IPv4: UP* (blocked) IPv6: 433→
+[...]
+A dual-protocol approach: IPv6 erased from routing tables, IPv4 kept visible but silenced. Monitoring tools show "normal" while actual connectivity is near-zero.
+
+ 
+
+Part 2
+[...]
+This system is called BGP (Border Gateway Protocol). In past shutdowns, Iran withdrew its routes, making the country invisible to global routers. The January 2026 shutdown is different and more sophisticated.
+[...]
+Iran created a "stealth outage." BGP monitoring shows IPv4 as functional, but traffic analysis reveals the block. You need both data sources to see the full picture. The infrastructure works on a selected list of servers and IPs that the government filtered (whitelisted).
+
+ 
+
+Part 3
+[...]
+These organizations monitor internet connectivity in real-time. Check them for ongoing updates.
+[...]
+NetBlocksReal-time network monitoring and outage verification.Live Monitoring
+[...]
+IODAGeorgia Tech's Internet Outage Detection and Analysis project.Academic Research
+[...]
+OONIOpen Observatory of Network Interference. Censorship measurement data.Censorship Data
+[...]
+RIPE RISBGP routing information service. Shows route announcements and withdrawals.BGP Data
+[...]
+Cloudflare RadarLive internet traffic and trends dashboard for Iran.Live Dashboard
+[...]
+CAIDACenter for Applied Internet Data Analysis. Internet topology and routing research.Research Institution
+[...]
+Since January 8, 2026, Iran's internet has been at near-zero. 87 million people are cut off from information, from communication, from each other.
+[...]
+### Documentation matters
+
+Organizations like Cloudflare, OONI, IODA, and NetBlocks are recording this in real-time. This data is crucial for understanding and accountability.
+
+## A Comparative Look at Internet Shutdowns in Iran: 2019, 2022, 2025 ...
+https://ioda.inetintel.cc.gatech.edu/reports/a-comparative-look-at-internet-shutdowns-in-iran-2019-2022-2026-and-2026/
+Published: 2026-01-21T19:28:40.000Z
+
+A Comparative Look at Internet Shutdowns in Iran: 2019, 2022, 2025, and 2026
+
+On January 8th, 2026, the Iranian regime implemented an Internet shutdown amidst national protests. This shutdown is the most sophisticated and most severe in Iran’s history. IODA's longitudinal view of global Internet connectivity provides insight into the Iranian regime’s developing sophistication in controlling information and shutting down the Internet in Iran.
+
+To understand how the regime shuts down the Internet and how this has changed over time, it is important to understand how IODA measures Internet connectivity. It is also important to note that IODA measures global connectivity, or in this case, Iranians’ connectivity to the global Internet, as opposed to Iranians’ connectivity to their domestic internet, the National Information Network (NIN). To measure this requires running measurements inside the country, which could be highly risky for any individual involved, as this would be seen as a seditious act.
+
+IODA measures Internet connectivity through signals related to Internet infrastructure. It currently makes use of three measurements: Border Gateway Protocol (BGP), Active Probing, and Telescope.
+
+- Routers are responsible for directing traffic to and from networks through BGP or routing announcements. If routers stop making these announcements, a network will disappear from the global Internet. Every 5 minutes IODA compares updated Internet routing data from public data collection projects.
+- IODA actively measures the responsiveness of networks through Active Probing. To create the Active Probing signal, IODA continuously pings devices in tens of thousands of networks around the globe. Most devices are designed to automatically respond to these pings by echoing them back to the sender. IODA collects these responses and labels networks as connected/active. We probe ~4.2M /24 blocks at least once every 10 minutes.
+- Telescope captures a sort of Internet background noise traffic generated by millions of Internet hosts worldwide. We analyze and filter raw traffic data from the Merit Network Telescope and then compute the number of unique source IPs per minute.
+
+### Bloody November 2019 Shutdown
+
+The first nation-wide shutdown that IODA observed in Iran was during Bloody November in 2019. During this shutdown, the primary method of implementation was through the withdrawal of routing announcements. This is considered a “blunt force” tool that is less sophisticated because the Internet essentially goes dark; no connectivity is possible for networks implicated. As documented by Amnesty International, this darkness created a “web of impunity” allowing for violation of international human rights law without any transparency.
+
+From the evening of November 16, 2019 to the morning of the 21st, Iranians experienced a near complete Internet shutdown. Differences in signal-drop-patterns among the three IODA data sources demonstrate the regime’s adoption of diverse disconnection mechanisms and large differences in the timing of their execution by various Iranian Internet Service Providers (ISPs).
+
+Censorship measurement groups reported that during the 2019 blackout, most Iranians still had access to the NIN. OONI measurements(which require Internet connectivity) were collected from multiple networks inside Iran between November 16-23, 2019, indicating that the Internet blackout was not total.
+
+IODA signals from the Bloody November Shutdown 2019.
+
+### Women, Life, Freedom Movement 2022 Shutdown
+
+In September 2022, The Women, Life, Freedom protests erupted after the killing of Zhina (Mahsa) Amini in state custody. To suppress the nation-wide mobilization without exacting a high cost, the regime implemented nightly shutdowns affecting mobile networks only. These nightly shutdown curfews were visible in IODA's Routing Announcements and Active Probing signals. Keeping fixed-line Internet connections online limited the impact of these shutdowns to mitigate economic, political, and social cost of an Internet shutdown. These nightly Internet curfews lasted around two weeks and culminated in around 100 hours of mobile shutdowns. During this time the regime implemented other forms of censorship, specifically, blocking applications and various Internet protocols to further control the information environment and to prevent access to circumvention technology.
+
+IODA signals from the Women, Life, Freedom 2022.
+
+### Israel-Iran War 2025 Shutdown
+
+In June 2025, the Israel-Iran War began and IODA observed initial degradation in Internet connectivity which is often present during times of conflict when Internet and power infrastructure is impacted by missile attacks. The Iranian regime shutdown the Internet over 4 days and cited national security as the motivation. This time, BGP or Routing Announcements were not used to implement the shutdown. IODA measurement data shows that BGP was largely un-impacted. Instead, the government used various techniques to shut off Iran’s connectivity with the global Internet, while allowing specific, sanctioned access via the NIN in a policy called whitelisting. Organizations that support digital human rights in Iran report that Iranians were able to circumvent the shutdown using various VPNs and censorship resilient technologies built for autocratic, closed environment contexts.
+
+IODA signals from the Israel-Iran War 2025 Shutdown.
+
+### January 2026 Shutdown
+
+On December 30th, 2025, the IODA team received reports of Internet disruption amidst the start of nation-wide protests largely motivated by the rise in cost of living. On January 8th at 8:00 PM local time (Iran Standard Time), the Iranian regime shut down the Internet. IODA measurements show a nominal amount of responsiveness to our active probing (~3%), which could be an artifact of our measurements or lingering connectivity for whitelisted access provisioned to specific users (e.g. Iranian government actors and services or part of the infrastructural "border" of Iran's Internet controlled by the government). Outside of very limited whitelisted connectivity, digital human rights groups report severely limited access to the Internet both internationally and domestically. This includes limited, intermittent ability to make phone calls via landlines. This shutdown evokes the Bloody November Shutdown of 2019 in that it has been ordered during a time of protest with mass civilian casualties.
+
+However, unlike Bloody November, routing announcements are not the primary form of implementation, again showing an increased sophistication in how the Iranian regime implements shutdowns and controls the information environment. Project Ainita reported that the the shutdown appeared rushed in its implementation since it took down the NIN and whitelisted SIM cards, which remained up in the 2025 shutdown during the Israel-Iran war.
+
+IODA signals during the shutdown starting January 8th, 2026.
+
+On January 18th, several measurement groups (IODA, Cloudflare Radar, Kentik) reported observing signs of restoration of Internet connectivity in Iran. While the initial recovery in connectivity was short-lived, the recovery of access to whitelisted services via the NIN appears to have recovered, as visible in the recovery of Google Search (purple line visible in the IODA graph above) and Google Images (pink line visible in the IODA graph above). Since January 18th, it appears the Iranian regime is turning back on whitelisted access via the NIN.
+
+On January 24th, 2026, IODA began seeing initial signs of Iran's return to connectivity to the global Internet via the Telescope signal. A sustained increase in the telescope signal indicates that Iranian devices are connected to the global Internet because they are producing unsolicited Internet traffic captured by the Telescope.
+
+Later, on January 27th, IODA's Active Probing signal showed a sharp recovery. Meaning, devices on Iranian Internet networks began responding to IODA's ping, indicating their connectivity to the global Internet.
+
+However, google product usage data shows varied return to Internet usage in Iran. Meaning, while Internet infrastructure in Iran may be connected to the global Internet, Iranian Internet users are not experiencing a return to the Internet they experenced prior to January 8th. This is most visible in lower levels of usage of Google's YouTube, Gmail, and Maps.
+
+## [2603.28753v1] Iran's January 2026 Internet Shutdown: Public Data, Censorship Methods, and Circumvention Techniques
+https://arxiv.org/abs/2603.28753v1
+Published: 2026-03-30T02:02:16.000Z
+
+[2603.28753v1] Iran's January 2026 Internet Shutdown: Public Data, Censorship Methods, and Circumvention Techniques
+[...]
+# Title:Iran's January 2026 Internet Shutdown: Public Data, Censorship Methods, and Circumvention Techniques
+[...]
+> Abstract:This paper analyzes the Internet shutdown that occurred in Iran in January 2026 in the context of protests, focusing on its impact on the country's digital communication infrastructure and on information access and control dynamics. The scale, complexity, and nation-state nature of the event motivate a comprehensive investigation that goes beyond isolated reports, aiming to provide a unified and systematic understanding of what happened and how it was observed. The study is guided by a set of research questions addressing: the characterization of the shutdown via the timeline of the disruption events and post-event "new normal"; the detectability of the event, encompassing monitoring initiatives, measurement techniques, and precursory signals; and the interplay between censorship and circumvention, assessing both the imposed restrictions and the effectiveness of tools designed to bypass them. To answer these questions, we adopt a multi-source, multi-perspective methodology that integrates heterogeneous public data, primarily from grey literature produced by network measurement and monitoring initiatives, complemented by additional private measurements. This approach enables a holistic view of the event and allows us to reconcile and compare partial observations from different sources.

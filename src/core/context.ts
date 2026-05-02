@@ -1,0 +1,661 @@
+import type {
+  ClaimRow,
+  KnbRow,
+  QuestionRow,
+  SourceRow,
+  SynthesisRow,
+} from "./contract";
+import type { EffectiveRow, EffectiveState, StateWarning } from "./state";
+
+export type ContextRequest = {
+  collection?: string;
+  subject?: string;
+  tag?: string;
+  max_tokens?: number;
+  include_warnings?: boolean;
+  tokenEstimator?: (text: string) => number;
+};
+
+export type ContextSource = {
+  id: string;
+  title: string;
+  publisher?: string;
+  uri?: string;
+};
+
+export type ContextClaim = {
+  id: string;
+  statement: string;
+  confidence?: string;
+  importance?: string;
+  contested?: boolean;
+  source_ids: string[];
+  time?: string;
+};
+
+export type ContextSynthesis = {
+  id: string;
+  title: string;
+  summary: string;
+  limitations?: string;
+  basis: { claim_ids?: string[]; question_ids?: string[]; source_ids?: string[] };
+};
+
+export type ContextQuestion = {
+  id: string;
+  text: string;
+  priority?: string;
+  why_it_matters?: string;
+};
+
+export type ContextWarning = {
+  code: string;
+  message: string;
+};
+
+export type ContextResult = {
+  summary: string;
+  syntheses: ContextSynthesis[];
+  key_claims: ContextClaim[];
+  open_questions: ContextQuestion[];
+  sources: ContextSource[];
+  warnings: ContextWarning[];
+  token_estimate: number;
+  truncated: boolean;
+  meta: {
+    collection?: string;
+    subject?: string;
+    tag?: string;
+    counts: {
+      syntheses: number;
+      claims: number;
+      questions: number;
+      sources: number;
+    };
+  };
+};
+
+const DEFAULT_MAX_TOKENS = 3000;
+const THIN_EVIDENCE_THRESHOLD = 2;
+
+const IMPORTANCE_RANK: Record<string, number> = { high: 3, medium: 2, low: 1, unknown: 0 };
+const CONFIDENCE_RANK: Record<string, number> = { high: 3, medium: 2, low: 1, unknown: 0 };
+const INFO_DEPTH_RANK: Record<string, number> = {
+  complete: 4,
+  strong: 3,
+  partial: 2,
+  thin: 1,
+  unknown: 0,
+};
+const PRIORITY_RANK: Record<string, number> = { high: 3, medium: 2, low: 1 };
+
+export type ContextScoringWeights = {
+  importance: Readonly<Record<string, number>>;
+  confidence: Readonly<Record<string, number>>;
+  informationDepth: Readonly<Record<string, number>>;
+  priority: Readonly<Record<string, number>>;
+};
+
+export type ContextScoringProfile = {
+  weights: ContextScoringWeights;
+  thinEvidenceThreshold: number;
+};
+
+export type ContextSynthesisScore = {
+  importance: number;
+  createdAt: string;
+  basisDepth: number;
+  id: string;
+};
+
+export type ContextClaimScore = {
+  importance: number;
+  confidence: number;
+  informationDepth: number;
+  evidenceCount: number;
+  contested: number;
+  createdAt: string;
+  id: string;
+};
+
+export type ContextQuestionScore = {
+  priority: number;
+  importance: number;
+  createdAt: string;
+  id: string;
+};
+
+export const DEFAULT_CONTEXT_SCORING_PROFILE: ContextScoringProfile = {
+  weights: {
+    importance: IMPORTANCE_RANK,
+    confidence: CONFIDENCE_RANK,
+    informationDepth: INFO_DEPTH_RANK,
+    priority: PRIORITY_RANK,
+  },
+  thinEvidenceThreshold: THIN_EVIDENCE_THRESHOLD,
+};
+
+function defaultEstimator(text: string): number {
+  return Math.ceil(text.length / 4);
+}
+
+function importanceOf(row: KnbRow): string {
+  const assessment = (row as { assessment?: { importance?: string } }).assessment;
+  return assessment?.importance ?? "unknown";
+}
+
+function confidenceOf(row: ClaimRow): string {
+  return row.assessment?.confidence ?? "unknown";
+}
+
+function informationDepthOf(row: ClaimRow): string {
+  return row.assessment?.information_depth?.level ?? "unknown";
+}
+
+function evidenceCountOf(row: ClaimRow): number {
+  return row.provenance?.evidence?.length ?? 0;
+}
+
+function contestedOf(row: ClaimRow): boolean {
+  return row.assessment?.contested === true;
+}
+
+function priorityOf(row: QuestionRow): string {
+  return row.question.priority ?? "low";
+}
+
+function basisDepthOf(row: SynthesisRow): number {
+  const basis = row.synthesis.basis;
+  const claims = basis.claim_ids?.length ?? 0;
+  const questions = basis.question_ids?.length ?? 0;
+  const sources = basis.source_ids?.length ?? 0;
+  return claims + questions + sources;
+}
+
+export function scoreContextSynthesis(
+  row: SynthesisRow,
+  profile: ContextScoringProfile = DEFAULT_CONTEXT_SCORING_PROFILE,
+): ContextSynthesisScore {
+  return {
+    importance: profile.weights.importance[importanceOf(row)] ?? 0,
+    createdAt: row.created_at,
+    basisDepth: basisDepthOf(row),
+    id: row.id,
+  };
+}
+
+export function scoreContextClaim(
+  row: ClaimRow,
+  profile: ContextScoringProfile = DEFAULT_CONTEXT_SCORING_PROFILE,
+): ContextClaimScore {
+  return {
+    importance: profile.weights.importance[importanceOf(row)] ?? 0,
+    confidence: profile.weights.confidence[confidenceOf(row)] ?? 0,
+    informationDepth: profile.weights.informationDepth[informationDepthOf(row)] ?? 0,
+    evidenceCount: evidenceCountOf(row),
+    contested: contestedOf(row) ? 1 : 0,
+    createdAt: row.created_at,
+    id: row.id,
+  };
+}
+
+export function scoreContextQuestion(
+  row: QuestionRow,
+  profile: ContextScoringProfile = DEFAULT_CONTEXT_SCORING_PROFILE,
+): ContextQuestionScore {
+  return {
+    priority: profile.weights.priority[priorityOf(row)] ?? 0,
+    importance: profile.weights.importance[importanceOf(row)] ?? 0,
+    createdAt: row.created_at,
+    id: row.id,
+  };
+}
+
+function timeOf(row: ClaimRow): string | undefined {
+  const t = row.time;
+  return t.valid_at ?? t.occurred_at ?? t.valid_from ?? t.reported_at ?? undefined;
+}
+
+function rankSyntheses(rows: SynthesisRow[]): SynthesisRow[] {
+  return [...rows].sort((a, b) => {
+    const scoreA = scoreContextSynthesis(a);
+    const scoreB = scoreContextSynthesis(b);
+    if (scoreA.importance !== scoreB.importance) return scoreB.importance - scoreA.importance;
+    if (a.created_at !== b.created_at) return a.created_at < b.created_at ? 1 : -1;
+    if (scoreA.basisDepth !== scoreB.basisDepth) return scoreB.basisDepth - scoreA.basisDepth;
+    return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
+  });
+}
+
+function rankClaims(rows: ClaimRow[]): ClaimRow[] {
+  return [...rows].sort((a, b) => {
+    const scoreA = scoreContextClaim(a);
+    const scoreB = scoreContextClaim(b);
+    if (scoreA.importance !== scoreB.importance) return scoreB.importance - scoreA.importance;
+    if (scoreA.confidence !== scoreB.confidence) return scoreB.confidence - scoreA.confidence;
+    if (scoreA.informationDepth !== scoreB.informationDepth) return scoreB.informationDepth - scoreA.informationDepth;
+    if (scoreA.evidenceCount !== scoreB.evidenceCount) return scoreB.evidenceCount - scoreA.evidenceCount;
+    if (scoreA.contested !== scoreB.contested) return scoreB.contested - scoreA.contested;
+    if (a.created_at !== b.created_at) return a.created_at < b.created_at ? 1 : -1;
+    return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
+  });
+}
+
+function rankQuestions(rows: QuestionRow[]): QuestionRow[] {
+  return [...rows].sort((a, b) => {
+    const scoreA = scoreContextQuestion(a);
+    const scoreB = scoreContextQuestion(b);
+    if (scoreA.priority !== scoreB.priority) return scoreB.priority - scoreA.priority;
+    if (scoreA.importance !== scoreB.importance) return scoreB.importance - scoreA.importance;
+    if (a.created_at !== b.created_at) return a.created_at < b.created_at ? 1 : -1;
+    return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
+  });
+}
+
+function matchesScope(row: KnbRow, request: ContextRequest): boolean {
+  if (request.collection && !row.scope.collections?.includes(request.collection)) return false;
+  if (request.subject && !row.scope.subjects?.includes(request.subject)) return false;
+  if (request.tag && !row.scope.tags?.includes(request.tag)) return false;
+  return true;
+}
+
+function canonicalSourceIds(ids: Iterable<string | undefined>, state: EffectiveState): string[] {
+  const out = new Set<string>();
+  for (const id of ids) {
+    if (typeof id !== "string" || id.length === 0) continue;
+    out.add(state.canonicalIdOf(id));
+  }
+  return [...out];
+}
+
+function toContextSynthesis(row: SynthesisRow, state: EffectiveState): ContextSynthesis {
+  const basis: ContextSynthesis["basis"] = { ...row.synthesis.basis };
+  if (row.synthesis.basis.source_ids !== undefined) {
+    basis.source_ids = canonicalSourceIds(row.synthesis.basis.source_ids, state);
+  }
+  const out: ContextSynthesis = {
+    id: row.id,
+    title: row.synthesis.title,
+    summary: row.synthesis.summary,
+    basis,
+  };
+  if (row.synthesis.limitations) out.limitations = row.synthesis.limitations;
+  return out;
+}
+
+function toContextClaim(row: ClaimRow, state: EffectiveState): ContextClaim {
+  const sourceIds = canonicalSourceIds(
+    [
+      ...(row.provenance.source_ids ?? []),
+      ...(row.provenance.evidence ?? []).map((evidence) => evidence.source_id),
+    ],
+    state,
+  );
+  const out: ContextClaim = {
+    id: row.id,
+    statement: row.claim.statement,
+    source_ids: sourceIds,
+  };
+  const conf = row.assessment?.confidence;
+  if (conf) out.confidence = conf;
+  const imp = row.assessment?.importance;
+  if (imp) out.importance = imp;
+  if (row.assessment?.contested === true) out.contested = true;
+  const t = timeOf(row);
+  if (t) out.time = t;
+  return out;
+}
+
+function toContextQuestion(row: QuestionRow): ContextQuestion {
+  const out: ContextQuestion = { id: row.id, text: row.question.text };
+  if (row.question.priority) out.priority = row.question.priority;
+  if (row.question.why_it_matters) out.why_it_matters = row.question.why_it_matters;
+  return out;
+}
+
+function toContextSource(row: SourceRow): ContextSource {
+  const out: ContextSource = { id: row.id, title: row.source.title };
+  if (row.source.publisher) out.publisher = row.source.publisher;
+  if (row.source.uri) out.uri = row.source.uri;
+  return out;
+}
+
+function toMinimalSource(source: ContextSource): ContextSource {
+  return { id: source.id, title: source.title };
+}
+
+function renderSynthesis(s: ContextSynthesis): string {
+  return [s.title, s.summary, s.limitations ?? ""].join(" ");
+}
+
+function renderClaim(c: ContextClaim): string {
+  return [c.statement, c.confidence ?? "", c.time ?? ""].join(" ");
+}
+
+function renderQuestion(q: ContextQuestion): string {
+  return [q.text, q.why_it_matters ?? ""].join(" ");
+}
+
+function renderSource(s: ContextSource): string {
+  return [s.title, s.publisher ?? ""].join(" ");
+}
+
+function estimatePacket(
+  summary: string,
+  syntheses: ContextSynthesis[],
+  claims: ContextClaim[],
+  questions: ContextQuestion[],
+  sources: ContextSource[],
+  warnings: ContextWarning[],
+  estimator: (text: string) => number,
+): number {
+  let total = estimator(summary);
+  for (const s of syntheses) total += estimator(renderSynthesis(s));
+  for (const c of claims) total += estimator(renderClaim(c));
+  for (const q of questions) total += estimator(renderQuestion(q));
+  for (const s of sources) total += estimator(renderSource(s));
+  for (const w of warnings) total += estimator(`${w.code} ${w.message}`);
+  return total;
+}
+
+function buildSummary(
+  scopeLabel: string,
+  syntheses: ContextSynthesis[],
+  claims: ContextClaim[],
+  questions: ContextQuestion[],
+  warningsCount: number,
+  includeWarnings: boolean,
+  empty: boolean,
+): string {
+  if (empty) return "Empty workspace.";
+  const parts = [
+    `${scopeLabel}: ${syntheses.length} syntheses, ${claims.length} claims, ${questions.length} open questions.`,
+  ];
+  if (includeWarnings && warningsCount > 0) {
+    parts.push(`${warningsCount} warning${warningsCount === 1 ? "" : "s"}.`);
+  }
+  return parts.join(" ");
+}
+
+function selectedSourceIds(
+  claims: ContextClaim[],
+  syntheses: ContextSynthesis[],
+): Set<string> {
+  const ids = new Set<string>();
+  for (const c of claims) for (const id of c.source_ids) ids.add(id);
+  for (const s of syntheses) for (const id of s.basis.source_ids ?? []) ids.add(id);
+  return ids;
+}
+
+function backingImportanceForSource(
+  sourceId: string,
+  claims: ContextClaim[],
+  syntheses: ContextSynthesis[],
+  rankedSynthesisOrder: Map<string, number>,
+): { importance: number; synthRank: number } {
+  let importance = -1;
+  let synthRank = Number.POSITIVE_INFINITY;
+  for (const c of claims) {
+    if (c.source_ids.includes(sourceId)) {
+      const r = DEFAULT_CONTEXT_SCORING_PROFILE.weights.importance[c.importance ?? "unknown"] ?? 0;
+      if (r > importance) importance = r;
+    }
+  }
+  for (const s of syntheses) {
+    if (s.basis.source_ids?.includes(sourceId)) {
+      const rank = rankedSynthesisOrder.get(s.id) ?? Number.POSITIVE_INFINITY;
+      if (rank < synthRank) synthRank = rank;
+      if (importance < 0) importance = 0;
+    }
+  }
+  return { importance, synthRank };
+}
+
+function buildWarnings(
+  state: EffectiveState,
+  selectedClaims: ContextClaim[],
+  selectedClaimRows: ClaimRow[],
+  scopedActiveCounts: { syntheses: number; claims: number },
+  includeWarnings: boolean,
+): ContextWarning[] {
+  if (!includeWarnings) return [];
+  const warnings: ContextWarning[] = [];
+  for (const w of state.warnings) warnings.push(stateWarningToContext(w));
+  if (scopedActiveCounts.syntheses === 0) {
+    warnings.push({
+      code: "info_gap_no_active_synthesis",
+      message: "No active syntheses in scope. Consider drafting one to orient further work.",
+    });
+  }
+  if (scopedActiveCounts.claims === 0) {
+    warnings.push({
+      code: "info_gap_no_active_claims",
+      message: "No active claims in scope.",
+    });
+  }
+  const thinEvidenceThreshold = DEFAULT_CONTEXT_SCORING_PROFILE.thinEvidenceThreshold;
+  const thin = selectedClaimRows.filter((c) => evidenceCountOf(c) < thinEvidenceThreshold).length;
+  if (thin > 0) {
+    warnings.push({
+      code: "info_gap_thin_evidence",
+      message: `${thin} selected claim${thin === 1 ? " has" : "s have"} fewer than ${thinEvidenceThreshold} evidence entries.`,
+    });
+  }
+  const contested = selectedClaims.filter((c) => c.contested === true).length;
+  if (contested > 0) {
+    warnings.push({
+      code: "contested_claims_present",
+      message: `${contested} selected claim${contested === 1 ? " is" : "s are"} contested.`,
+    });
+  }
+  return warnings;
+}
+
+function stateWarningToContext(w: StateWarning): ContextWarning {
+  return { code: `state_${w.code}`, message: w.message };
+}
+
+export function buildContext(state: EffectiveState, request: ContextRequest = {}): ContextResult {
+  const estimator = request.tokenEstimator ?? defaultEstimator;
+  const maxTokens = request.max_tokens ?? DEFAULT_MAX_TOKENS;
+  const includeWarnings = request.include_warnings !== false;
+
+  const allActive: EffectiveRow[] = state.rows();
+  const inScope = allActive.filter((r) => matchesScope(r.row, request));
+
+  const synthesisRows: SynthesisRow[] = [];
+  const claimRows: ClaimRow[] = [];
+  const questionRows: QuestionRow[] = [];
+  const sourceRows = new Map<string, SourceRow>();
+  for (const r of inScope) {
+    if (r.row.kind === "synthesis") {
+      const s = r.row as SynthesisRow;
+      if (s.synthesis.status === "active") synthesisRows.push(s);
+    } else if (r.row.kind === "claim") {
+      claimRows.push(r.row as ClaimRow);
+    } else if (r.row.kind === "question") {
+      const q = r.row as QuestionRow;
+      if (q.question.status === "open") questionRows.push(q);
+    } else if (r.row.kind === "source") {
+      sourceRows.set(r.row.id, r.row as SourceRow);
+    }
+  }
+
+  const rankedSyntheses = rankSyntheses(synthesisRows);
+  const rankedClaims = rankClaims(claimRows);
+  const rankedQuestions = rankQuestions(questionRows);
+  const scopedActiveCounts = { syntheses: synthesisRows.length, claims: claimRows.length };
+
+  let syntheses = rankedSyntheses.map((row) => toContextSynthesis(row, state));
+  let claims = rankedClaims.map((row) => toContextClaim(row, state));
+  let questions = rankedQuestions.map(toContextQuestion);
+  let claimRowsBySelection = [...rankedClaims];
+
+  const sourceIdsCited = selectedSourceIds(claims, syntheses);
+  const candidateSources: ContextSource[] = [];
+  for (const r of inScope) {
+    if (r.row.kind !== "source") continue;
+    if (sourceIdsCited.has(r.row.id)) {
+      const sourceRow = sourceRows.get(r.row.id);
+      if (sourceRow) candidateSources.push(toContextSource(sourceRow));
+    }
+  }
+  let sources = candidateSources;
+
+  const empty =
+    syntheses.length === 0 &&
+    claims.length === 0 &&
+    questions.length === 0 &&
+    sources.length === 0;
+
+  const scopeLabel = request.collection
+    ? `Collection ${request.collection}`
+    : request.subject
+      ? `Subject ${request.subject}`
+      : request.tag
+        ? `Tag ${request.tag}`
+        : "Workspace";
+
+  let warnings = buildWarnings(state, claims, claimRowsBySelection, scopedActiveCounts, includeWarnings);
+  let summary = buildSummary(
+    scopeLabel,
+    syntheses,
+    claims,
+    questions,
+    warnings.length,
+    includeWarnings,
+    empty,
+  );
+
+  let estimate = estimatePacket(summary, syntheses, claims, questions, sources, warnings, estimator);
+  let truncated = false;
+
+  const recompute = () => {
+    warnings = buildWarnings(state, claims, claimRowsBySelection, scopedActiveCounts, includeWarnings);
+    summary = buildSummary(
+      scopeLabel,
+      syntheses,
+      claims,
+      questions,
+      warnings.length,
+      includeWarnings,
+      syntheses.length === 0 &&
+        claims.length === 0 &&
+        questions.length === 0 &&
+        sources.length === 0,
+    );
+    estimate = estimatePacket(summary, syntheses, claims, questions, sources, warnings, estimator);
+  };
+
+  if (estimate > maxTokens) {
+    const synthRankIndex = new Map<string, number>();
+    rankedSyntheses.forEach((s, i) => synthRankIndex.set(s.id, i));
+
+    const sortedSourcesForDrop = [...sources].sort((a, b) => {
+      const ba = backingImportanceForSource(a.id, claims, syntheses, synthRankIndex);
+      const bb = backingImportanceForSource(b.id, claims, syntheses, synthRankIndex);
+      if (ba.importance !== bb.importance) return ba.importance - bb.importance;
+      if (ba.synthRank !== bb.synthRank) return bb.synthRank - ba.synthRank;
+      return a.id < b.id ? -1 : 1;
+    });
+
+    for (const s of sortedSourcesForDrop) {
+      if (estimate <= maxTokens) break;
+      if (s.publisher === undefined && s.uri === undefined) continue;
+      const idx = sources.findIndex((x) => x.id === s.id);
+      if (idx >= 0) {
+        sources[idx] = toMinimalSource(sources[idx]!);
+        truncated = true;
+        recompute();
+      }
+    }
+
+    while (estimate > maxTokens && claims.length > 0) {
+      const lowFirst = [...claims].sort((a, b) => {
+        const ai = DEFAULT_CONTEXT_SCORING_PROFILE.weights.importance[a.importance ?? "unknown"] ?? 0;
+        const bi = DEFAULT_CONTEXT_SCORING_PROFILE.weights.importance[b.importance ?? "unknown"] ?? 0;
+        return ai - bi;
+      });
+      const lowest = lowFirst[0];
+      if (!lowest) break;
+      const lowestRank = DEFAULT_CONTEXT_SCORING_PROFILE.weights.importance[lowest.importance ?? "unknown"] ?? 0;
+      if (lowestRank > DEFAULT_CONTEXT_SCORING_PROFILE.weights.importance.medium!) break;
+      claims = claims.filter((c) => c.id !== lowest.id);
+      claimRowsBySelection = claimRowsBySelection.filter((c) => c.id !== lowest.id);
+      truncated = true;
+      const stillCited = selectedSourceIds(claims, syntheses);
+      sources = sources.filter((s) => stillCited.has(s.id));
+      recompute();
+    }
+
+    while (estimate > maxTokens && questions.length > 0) {
+      const lowFirst = [...questions].sort((a, b) => {
+        const ai = DEFAULT_CONTEXT_SCORING_PROFILE.weights.priority[a.priority ?? "low"] ?? 0;
+        const bi = DEFAULT_CONTEXT_SCORING_PROFILE.weights.priority[b.priority ?? "low"] ?? 0;
+        return ai - bi;
+      });
+      const lowest = lowFirst[0];
+      if (!lowest) break;
+      const lowestRank = DEFAULT_CONTEXT_SCORING_PROFILE.weights.priority[lowest.priority ?? "low"] ?? 0;
+      if (lowestRank > DEFAULT_CONTEXT_SCORING_PROFILE.weights.priority.low!) break;
+      questions = questions.filter((q) => q.id !== lowest.id);
+      truncated = true;
+      recompute();
+    }
+
+    while (estimate > maxTokens && syntheses.length > 1) {
+      syntheses = syntheses.slice(0, -1);
+      truncated = true;
+      const stillCited = selectedSourceIds(claims, syntheses);
+      sources = sources.filter((s) => stillCited.has(s.id));
+      recompute();
+    }
+
+    while (estimate > maxTokens && claims.length > 0) {
+      const lastId = claims[claims.length - 1]!.id;
+      claims = claims.slice(0, -1);
+      claimRowsBySelection = claimRowsBySelection.filter((c) => c.id !== lastId);
+      const stillCited = selectedSourceIds(claims, syntheses);
+      sources = sources.filter((s) => stillCited.has(s.id));
+      truncated = true;
+      recompute();
+    }
+
+    while (estimate > maxTokens && questions.length > 0) {
+      questions = questions.slice(0, -1);
+      truncated = true;
+      recompute();
+    }
+
+    while (estimate > maxTokens && syntheses.length > 0) {
+      syntheses = syntheses.slice(0, -1);
+      truncated = true;
+      const stillCited = selectedSourceIds(claims, syntheses);
+      sources = sources.filter((s) => stillCited.has(s.id));
+      recompute();
+    }
+  }
+
+  const result: ContextResult = {
+    summary,
+    syntheses,
+    key_claims: claims,
+    open_questions: questions,
+    sources,
+    warnings,
+    token_estimate: estimate,
+    truncated,
+    meta: {
+      counts: {
+        syntheses: syntheses.length,
+        claims: claims.length,
+        questions: questions.length,
+        sources: sources.length,
+      },
+    },
+  };
+  if (request.collection) result.meta.collection = request.collection;
+  if (request.subject) result.meta.subject = request.subject;
+  if (request.tag) result.meta.tag = request.tag;
+  return result;
+}

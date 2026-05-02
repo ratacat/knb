@@ -1,0 +1,26 @@
+[2m2026-05-02T03:42:13.458Z[0m [32mINFO [0m [xpool-cli] [cli.command.started] CLI command started [2m{"commandId":"query","commandPath":"query"}[0m
+[2m2026-05-02T03:42:13.485Z[0m [32mINFO [0m [xpool-cli] [cli.command.completed] CLI command completed [2m{"commandId":"query","commandPath":"query","duration_ms":28}[0m
+created: true
+idempotency:
+  key: iran-market-bazaar-v34
+  replayed: false
+job:
+  cancelRequestedAt: -
+  completedAt: -
+  id: 9c026702-1831-4428-b34f-94366c3aee9b
+  idempotencyKey: iran-market-bazaar-v34
+  resultState: none
+  startedAt: -
+  state: queued
+  stopReason: -
+  submittedAt: 1777693333467
+links:
+  cancelPath: /query-jobs/9c026702-1831-4428-b34f-94366c3aee9b/cancel
+  eventsPath: /query-jobs/9c026702-1831-4428-b34f-94366c3aee9b/events
+  resultPath: /query-jobs/9c026702-1831-4428-b34f-94366c3aee9b/result
+  statusPath: /query-jobs/9c026702-1831-4428-b34f-94366c3aee9b
+ok: true
+query:
+  budget: [3 fields]
+  endpoint: SearchTimeline
+  params: [2 fields]

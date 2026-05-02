@@ -1,0 +1,28 @@
+{
+  "requestId": "83d781954bb0f63dd679b23c9b48840d",
+  "results": [
+    {
+      "id": "https://netblocks.org/tag/internet-shutdown/",
+      "title": "internet shutdown Archives - NetBlocks",
+      "url": "https://netblocks.org/tag/internet-shutdown/",
+      "author": null,
+      "text": "internet shutdown Archives - NetBlocks\n\nReports· September 14, 2022\n\nNetwork data confirm the restriction of social media platform TikTok on multiple internet providers in Azerbaijan and Armenia amid deadly clashes between the two countries as tensions rise over the …\n\nReports· September 2, 2021\n\nNetwork data from NetBlocks confirm a significant disruption to internet service in Kashmir with high impact to Srinagar from the early morning of Thursday 2 September 2021 local time. The …\n\nReports· July 21, 2021\n\nNetwork data from NetBlocks confirm a significant regional disruption to mobile internet service in Iran beginning Thursday 15 July 2021, ongoing almost a week later as of Wednesday 21 July …\n\nReports· July 12, 2021\n\nNetwork data from NetBlocks confirm partial disruption to social media and messaging platforms in Cuba from 12 July 2021. The targeted restrictions are likely to limit the flow of information …\n\nReports· March 21, 2021\n\nNetBlocks metrics confirm an internet blackout in the Republic of Congo on the day of presidential elections, Sunday 21 March 2021. The incident has a recorded duration of three days. …\n\nReports· February 28, 2021\n\nNetwork data from the NetBlocks internet observatory confirm that internet connectivity has been severely disrupted in Chad since the morning of Sunday 28 February 2021 amid reports of a deadly …\n\nReports· January 31, 2021\n\nNetwork data from the NetBlocks Internet Observatory indicate the onset of widespread internet disruptions in Myanmar on Sunday 31 January 2021 (UTC) amid reports of a military uprising and the …\n\nReports· January 12, 2021\n\nNetwork data from the NetBlocks Internet Observatory confirm Uganda is in the midst of an internet blackout continuing from 13 January 2021 up until the 18th, following prior social media …\n\nReports· November 30, 2020\n\nNetwork data from the NetBlocks Internet Observatory confirm partial disruption to social media and streaming platforms in Cuba between Friday 27 November 2020 and Monday 30 November 2020. The disruptions …\n\nReports· November 16, 2020\n\nNetwork data from the NetBlocks Internet Observatory confirm a partial disruption to internet service in Iran between 7:30 p.m. and 10:30 p.m. local time (4 p.m. to 7 p.m. UTC) …\n\nReports· November 4, 2020\n\nNetwork data from the NetBlocks internet observatory confirm that internet has been cut regionally in Ethiopia from 1 a.m. Wednesday 4 November 2020 local time. Metrics corroborate widespread reports of …\n\nReports· October 27, 2020\n\nNetwork data from the NetBlocks Internet Observatory confirm widespread disruption to social media and online communication platforms via multiple internet providers in Tanzania as of Tuesday 27 October 2020. The …\n\nReports· October 23, 2020\n\nNetwork data from the NetBlocks internet observatory confirm that internet has been disrupted in Guinea as of 7:30 a.m. UTC Friday 23 October 2020 as the West African country prepares …\n\nReports· October 8, 2020\n\nNetwork data from the NetBlocks Internet Observatory confirm disruptions to internet service in Tehran from 7:00 p.m. local time (3:30 p.m. UTC) on Thursday 8 October 2020. Metrics show an …\n\nReports· October 5, 2020\n\nNetwork data from the Internet Observatory confirm the disruption of internet connectivity in Kyrgyzstan on the evening of Monday 5 October 2020 after protest broke out in capital city Bishkek …\n\nReports· September 27, 2020\n\nNetwork data from the Internet Observatory confirm widespread social media restrictions across Azerbaijan following deadly clashes with Armenia on Sunday 27 September 2020 over the Nagorno-Karabakh region. Real-time NetBlocks metrics …\n\nReports· September 13, 2020\n\nNetwork data from the NetBlocks internet observatory confirm that internet connectivity has been significantly disrupted in Algeria, sending much of the country offline for one hour shortly after social media …\n\nReports· August 9, 2020\n\nNetwork telemetry from the NetBlocks internet observatory confirm that internet connectivity in Belarus has been significantly disrupted as of Sunday 9 August 2020 amid tense presidential elections. Outages increased in …\n\nReports· July 31, 2020\n\nNetwork data from the NetBlocks internet observatory confirm that internet access has been disrupted in Zimbabwe on Friday 31 July 2020 for a second consecutive day, following a lesser disruption …\n\nReports· July 29, 2020\n\nNetwork data from the NetBlocks internet observatory confirm that Facebook Live video streaming features have been restricted in Jordan on multiple providers on Wednesday 29 July 2020. Real-time metrics show …",
+      "image": "https://netblocks.org/wp-content/uploads/sites/8/2018/01/netblocks-card.jpg",
+      "favicon": "https://netblocks.org/wp-content/uploads/sites/8/2018/06/cropped-netblocks-square-tiny-icon-transparent-32x32.png"
+    }
+  ],
+  "statuses": [
+    {
+      "id": "https://netblocks.org/tag/internet-shutdown/",
+      "status": "success",
+      "source": "crawled"
+    }
+  ],
+  "costDollars": {
+    "total": 0.001,
+    "contents": {
+      "text": 0.001
+    }
+  },
+  "searchTime": 1892.5467599998228
+}

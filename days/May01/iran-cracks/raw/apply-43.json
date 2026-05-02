@@ -1,0 +1,401 @@
+{
+  "atomic": true,
+  "dedupe": true,
+  "operations": [
+    {
+      "op": "add",
+      "as": "src_source_notes_v38",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "bread", "food inflation", "kalabarg", "subsidies"],
+          "tags": ["research-notes", "bread", "food", "kalabarg", "source-hygiene", "v38"]
+        },
+        "source": {
+          "type": "raw_note",
+          "title": "v38 source notes - bread, food inflation, and subsidy-credit containment",
+          "raw_path": "raw/apply-43-source-notes.md",
+          "language": "en"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "agent synthesis of exa-cli search/crawl, existing KNB rows, and xPool SearchTimeline results",
+            "observed_at": "2026-05-02T04:22:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_xpool_bread_food_v38b",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "bread", "food prices", "inflation", "livelihood"],
+          "tags": ["xpool", "social", "bread", "food", "inflation", "negative-evidence", "persian", "v38"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "dataset",
+          "title": "xPool Persian latest query for bread, food, and livelihood stress after May 2",
+          "raw_path": "raw/xpool-bread-food-v38b-result.json",
+          "publisher": "xPool / X SearchTimeline",
+          "language": "fa",
+          "published_at": "2026-05-02T04:16:59Z"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "xpool query",
+            "observed_at": "2026-05-02T04:16:59Z",
+            "job_id": "8cc9cf35-e1d9-48ff-8853-9fd26689fb87",
+            "query": "(نان OR کالابرگ OR \"کالاهای اساسی\" OR گوشت OR مرغ OR برنج OR روغن OR شکر OR گرانی OR تورم OR معیشت) since:2026-05-02 lang:fa",
+            "target_items": 160,
+            "max_pages": 10,
+            "items_emitted": 117,
+            "stop_reason": "MAX_PAGES_REACHED"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_taadol_food_inflation_farvardin_v38",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "food inflation", "basic goods", "Center of Statistics"],
+          "tags": ["food", "inflation", "bread", "basic-goods", "measurement", "persian", "v38"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "تورم خوراکی‌ها در فروردین ۱۴۰۵ اعلام شد؛ روغن صدرنشین افزایش قیمت‌ها",
+          "uri": "https://www.taadolnewspaper.ir/fa/news/385343/%D8%AA%D9%88%D8%B1%D9%85-%D8%AE%D9%88%D8%B1%D8%A7%DA%A9%DB%8C%E2%80%8C%D9%87%D8%A7-%D8%AF%D8%B1-%D9%81%D8%B1%D9%88%D8%B1%D8%AF%DB%8C%D9%86-%DB%B1%DB%B4%DB%B0%DB%B5-%D8%A7%D8%B9%D9%84%D8%A7%D9%85-%D8%B4%D8%AF-%D8%B1%D9%88%D8%BA%D9%86-%D8%B5%D8%AF%D8%B1%D9%86%D8%B4%DB%8C%D9%86-%D8%A7%D9%81%D8%B2%D8%A7%DB%8C%D8%B4-%D9%82%DB%8C%D9%85%D8%AA%E2%80%8C%D9%87%D8%A7",
+          "publisher": "Taadol / Tejarat News",
+          "language": "fa",
+          "published_at": "2026-05-01T11:50:20Z",
+          "raw_path": "raw/crawl16-taadol-food-inflation-farvardin-1405.txt"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search and crawl",
+            "observed_at": "2026-05-02T04:22:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_khabaronline_yaraneh_credit_v38",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "cash subsidy", "Tara credit", "kalabarg", "household support"],
+          "tags": ["subsidy", "cash-transfer", "credit", "food", "welfare", "persian", "v38"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "زمان واریز یارانه نقدی اردیبهشت ۱۴۰۵ / حساب این دهک‌ها زودتر شارژ می‌شود",
+          "uri": "https://www.khabaronline.ir/news/2210803/%D8%B2%D9%85%D8%A7%D9%86-%D9%88%D8%A7%D8%B1%DB%8C%D8%B2-%DB%8C%D8%A7%D8%B1%D8%A7%D9%86%D9%87-%D9%86%D9%82%D8%AF%DB%8C-%D8%A7%D8%B1%D8%AF%DB%8C%D8%A8%D9%87%D8%B4%D8%AA-%DB%B1%DB%B4%DB%B0%DB%B5-%D8%AD%D8%B3%D8%A7%D8%A8-%D8%A7%DB%8C%D9%86-%D8%AF%D9%87%DA%A9-%D9%87%D8%A7-%D8%B2%D9%88%D8%AF%D8%AA%D8%B1",
+          "publisher": "KhabarOnline / EghtesadOnline",
+          "language": "fa",
+          "published_at": "2026-04-26T16:10:00Z",
+          "raw_path": "raw/crawl16-khabaronline-yaraneh-credit-ordibehesht.txt"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search and crawl",
+            "observed_at": "2026-05-02T04:22:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_food_inflation_farvardin_center_stats_v38",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "food inflation", "bread", "basic goods"],
+          "tags": ["food", "inflation", "bread", "basic-goods", "measurement", "v38"]
+        },
+        "identity": {
+          "claim_key": "iran-cracks|food-inflation|farvardin-1405-food-above-total-basic-goods-triple-digit|2026-05-01",
+          "novelty": "update"
+        },
+        "claim": {
+          "statement": "On 1 May 2026, Taadol/TradeNews reported Farvardin 1405 Center of Statistics data showing that food inflation remained centered on basic goods: total point-to-point inflation was 73.5%, food/beverages were 115.4%, oils/fats 233.6%, red and white meat 140.9%, bread/cereals 138.9%, and dairy 127.3%; annual food/beverage inflation was 74.9% versus total annual inflation of 53.7%, with bread/cereals annual inflation at 106.7%.",
+          "atomic": true,
+          "type": "measurement",
+          "subject": "Iran Farvardin 1405 food inflation",
+          "predicate": "showed",
+          "object": "basic-goods inflation far above total inflation"
+        },
+        "time": {
+          "occurred_at": "2026-05-01",
+          "precision": "day",
+          "timezone": "Asia/Tehran"
+        },
+        "provenance": {
+          "source_ids": ["$src_taadol_food_inflation_farvardin_v38"],
+          "evidence": [
+            {
+              "source_id": "$src_taadol_food_inflation_farvardin_v38",
+              "role": "supports",
+              "summary": "Taadol/TradeNews summarized Farvardin 1405 Center of Statistics food inflation by category, including total, food/beverage, oils/fats, meat, bread/cereals, dairy, monthly, and annual readings."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "strong",
+            "rationale": "The article gives specific Center-of-Statistics figures across point-to-point, monthly, and annual categories."
+          },
+          "importance": "high",
+          "uncertainty": "The row relies on media reporting of official statistics rather than a direct SCI table; retrieve the original statistical bulletin if it becomes available."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_yaraneh_tara_credit_bridge_v38",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "cash subsidy", "Tara credit", "household food support"],
+          "tags": ["subsidy", "cash-transfer", "credit", "food", "welfare-policy", "v38"]
+        },
+        "identity": {
+          "claim_key": "iran-cracks|subsidy-credit|ordibehesht-yaraneh-tara-credit-bridge|2026-04-26",
+          "novelty": "new"
+        },
+        "claim": {
+          "statement": "By 26 April 2026, Iranian support messaging had moved toward a staged cash-and-credit bridge: KhabarOnline/EghtesadOnline said support-institution pensions would be paid on 20 Ordibehesht, deciles 1-3 would receive 400,000 toman per person on 25 Ordibehesht, deciles 4-9 would receive 300,000 toman per person on 31 Ordibehesht, and household heads could activate Tara credit up to twice their monthly subsidy for 12 goods categories at 17,000 online/offline stores, with repayment beginning 30 days after purchase and unpaid debt deducted from the next subsidy.",
+          "atomic": true,
+          "type": "welfare_policy_response",
+          "subject": "Iran Ordibehesht 1405 household support system",
+          "predicate": "shifted_toward",
+          "object": "staged cash payments plus subsidy-backed consumer credit"
+        },
+        "time": {
+          "occurred_at": "2026-04-26",
+          "precision": "day",
+          "timezone": "Asia/Tehran"
+        },
+        "provenance": {
+          "source_ids": ["$src_khabaronline_yaraneh_credit_v38"],
+          "evidence": [
+            {
+              "source_id": "$src_khabaronline_yaraneh_credit_v38",
+              "role": "supports",
+              "summary": "KhabarOnline/EghtesadOnline listed payment dates and amounts for support pensions and subsidy deciles, plus Tara credit rules, store network, categories, repayment start, and next-subsidy deduction."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "strong",
+            "rationale": "The source provides dates, amounts, eligibility bands, credit ceiling, repayment rule, and deduction mechanism."
+          },
+          "importance": "high",
+          "uncertainty": "The article describes the policy offer, not redemption rates, store failures, debt stress, or household outcomes."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_xpool_bread_food_no_clean_action_cluster_v38",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "bread", "food prices", "Persian X"],
+          "tags": ["xpool", "bread", "food", "inflation", "negative-evidence", "social", "v38"]
+        },
+        "identity": {
+          "claim_key": "iran-cracks|xpool|may2-bread-food-livelihood-chatter-no-clean-action-cluster|2026-05-02",
+          "novelty": "update"
+        },
+        "claim": {
+          "statement": "The v38 broader May 2 Persian xPool food/bread query emitted 117 items with 115 usable texts; manual coding found 22 bread-coded, 0 kalabarg-coded, 62 food-coded, 42 inflation/livelihood-coded, 8 queue/shortage-coded, and 5 protest-term texts, while manual reading found general inflation anger, household food-stress examples, bread-price chatter, anti-regime discourse, Dey 1404 worker-death memory, and one weak Ahvaz control-inflation slogan post, but no clean source-near bakery-line riot, bread protest, or kalabarg coordination cluster.",
+          "atomic": true,
+          "type": "social_signal",
+          "subject": "Persian X food and bread discourse on May 2",
+          "predicate": "showed",
+          "object": "food stress and inflation anger without a clean bread or kalabarg action cluster"
+        },
+        "time": {
+          "first_observed_at": "2026-05-02T04:16:59Z",
+          "precision": "instant",
+          "timezone": "UTC"
+        },
+        "provenance": {
+          "source_ids": ["$src_xpool_bread_food_v38b", "$src_source_notes_v38"],
+          "evidence": [
+            {
+              "source_id": "$src_xpool_bread_food_v38b",
+              "role": "supports",
+              "summary": "The saved xPool result completed 10 pages, emitted 117 items, and stopped at MAX_PAGES_REACHED for a broad May 2 Persian bread/food/inflation query."
+            },
+            {
+              "source_id": "$src_source_notes_v38",
+              "role": "supports",
+              "summary": "The notes record manual coding of 115 usable texts and manual inspection showing broad food/inflation anger but no clean bread riot, bread protest, or kalabarg coordination cluster."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "medium",
+          "source_reliability": "low",
+          "information_depth": {
+            "level": "partial",
+            "rationale": "The sample is useful for visible social discourse and bounded negative evidence, but xPool is not representative and may miss suppressed local action."
+          },
+          "importance": "medium",
+          "uncertainty": "Local bakery videos, provincial bread notices, store-level kalabarg failures, or later payment-date complaints could quickly change this read."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "synth_v38_food_inflation_bread_contained",
+      "row": {
+        "kind": "synthesis",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran"],
+          "tags": ["overview", "synthesis", "v38", "bread", "food", "kalabarg"]
+        },
+        "synthesis": {
+          "title": "Cracks in the Islamic Republic, v38 - food inflation hardens, bread stays politically contained",
+          "status": "active",
+          "summary": "The thirty-eighth pass returns to the bread and food-subsidy question and does not find a clean bread-riot or kalabarg coordination cluster. That is containment, not relief. Existing v18 rows still hold: official bread messaging says no new price policy and treats increases as violations, while guild and citizen evidence says sangak/barbari prices are not matching official rates and bakery management satisfies neither customers nor bakers. The new hard update is Farvardin 1405 food inflation: Taadol/TradeNews reports Center-of-Statistics figures with total point inflation at 73.5%, food/beverages at 115.4%, oils/fats at 233.6%, meat at 140.9%, bread/cereals at 138.9%, and annual bread/cereal inflation at 106.7%. The policy response is also clearer: Ordibehesht support is staged through cash payments and Tara consumer credit, including credit up to twice the monthly subsidy and next-subsidy deduction for unpaid debt. The broader May 2 xPool sample shows food and inflation anger, household stress, and bread chatter, but no source-near bread action cluster. Net: bread is still politically quiet in visible evidence, but quiet is being bought with enforcement, subsidy scheduling, deferred decisions, and credit rather than restored affordability.",
+          "basis": {
+            "claim_ids": [
+              "claim:iran-cracks:20260502:34cba12e",
+              "claim:iran-cracks:20260502:fae7f246",
+              "claim:iran-cracks:20260501:39500a81",
+              "claim:iran-cracks:20260501:d2f876d2",
+              "claim:iran-cracks:20260501:f3462b41",
+              "claim:iran-cracks:20260501:ba56878f",
+              "claim:iran-cracks:20260502:691a3b9a",
+              "$claim_food_inflation_farvardin_center_stats_v38",
+              "$claim_yaraneh_tara_credit_bridge_v38",
+              "$claim_xpool_bread_food_no_clean_action_cluster_v38"
+            ],
+            "question_ids": [
+              "q:iran-cracks:20260501:1db9d9d4",
+              "q:iran-cracks:20260502:b68d45c3",
+              "q:iran-cracks:20260502:574794c0",
+              "q:iran-cracks:20260501:83c23f68",
+              "q:iran-cracks:20260501:17058533",
+              "q:iran-cracks:20260502:d83e9ab9"
+            ],
+            "source_ids": [
+              "$src_source_notes_v38",
+              "$src_xpool_bread_food_v38b",
+              "$src_taadol_food_inflation_farvardin_v38",
+              "$src_khabaronline_yaraneh_credit_v38",
+              "src:iran-cracks:20260502:4e8f4a01",
+              "src:iran-cracks:20260502:0d45dc30",
+              "src:iran-cracks:20260502:ee955dfd",
+              "src:iran-cracks:20260502:7498d724",
+              "src:iran-cracks:20260501:86419da2",
+              "src:iran-cracks:20260501:e94c1d7a"
+            ]
+          },
+          "limitations": "The absence of a clean bread-action cluster is bounded by xPool and Exa visibility, blackout conditions, and source-near reporting constraints. The Tara/yaranah article describes policy design rather than uptake, store failures, debt deductions, or household outcomes. Follow 15, 20, 25, and 31 Ordibehesht for payment-date complaints, kalabarg redemption failures, provincial bread enforcement, and whether food pressure becomes explicit in worker, retiree, or bazaar action."
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "strong",
+            "rationale": "The synthesis combines fresh official-statistic reporting, a current subsidy-credit article, a completed xPool sample, and existing canonical bread/food rows."
+          },
+          "importance": "high"
+        }
+      }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_food_inflation_farvardin_center_stats_v38",
+      "to_id": "q:iran-cracks:20260502:574794c0",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "Farvardin food inflation above 115% raises the test for whether kalabarg or cash support can blunt food-pressure anger.",
+      "scope": { "collections": ["iran-cracks"] }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_food_inflation_farvardin_center_stats_v38",
+      "to_id": "q:iran-cracks:20260501:83c23f68",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "Triple-digit food-category inflation is a direct pathway from household squeeze to nutrition and health-access risk.",
+      "scope": { "collections": ["iran-cracks"] }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_yaraneh_tara_credit_bridge_v38",
+      "to_id": "q:iran-cracks:20260502:574794c0",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "The support schedule and Tara credit mechanism are the concrete policy response to watch around the kalabarg and food-pressure question.",
+      "scope": { "collections": ["iran-cracks"] }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_yaraneh_tara_credit_bridge_v38",
+      "to_id": "q:iran-cracks:20260502:516a1945",
+      "rel": "context_for",
+      "strength": "medium",
+      "rationale": "Subsidy-backed credit can delay household pressure but may also intensify later labor and retiree anger if deductions or store failures appear.",
+      "scope": { "collections": ["iran-cracks"] }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_xpool_bread_food_no_clean_action_cluster_v38",
+      "to_id": "q:iran-cracks:20260501:1db9d9d4",
+      "rel": "context_for",
+      "strength": "medium",
+      "rationale": "The May 2 social sample still shows bread and food pressure without clean visible bakery-line unrest.",
+      "scope": { "collections": ["iran-cracks"] }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_xpool_bread_food_no_clean_action_cluster_v38",
+      "to_id": "q:iran-cracks:20260502:b68d45c3",
+      "rel": "context_for",
+      "strength": "medium",
+      "rationale": "The sample bounds current visible bread unrest while keeping the end-Khordad price-reform watch active.",
+      "scope": { "collections": ["iran-cracks"] }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_xpool_bread_food_no_clean_action_cluster_v38",
+      "to_id": "q:iran-cracks:20260501:17058533",
+      "rel": "context_for",
+      "strength": "low",
+      "rationale": "The sample shows food and bread stress but not yet the bread-riot path implied by the rial-collapse question.",
+      "scope": { "collections": ["iran-cracks"] }
+    },
+    {
+      "op": "supersede",
+      "target_ids": ["synth:iran-cracks:20260502:1fc97588"],
+      "replacement_id": "$synth_v38_food_inflation_bread_contained",
+      "reason": "v38 returns from the May Day / Teacher Day lane to the bread, food inflation, kalabarg, and subsidy-credit containment question and updates the active read with Farvardin food inflation and May 2 social negative evidence."
+    }
+  ]
+}

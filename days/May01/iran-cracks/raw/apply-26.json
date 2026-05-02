@@ -1,0 +1,678 @@
+{
+  "atomic": true,
+  "dedupe": true,
+  "operations": [
+    {
+      "op": "add",
+      "as": "src_source_notes_v22",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Starlink", "Internet Pro"],
+          "tags": ["research-notes", "starlink", "internet", "security", "v22"]
+        },
+        "source": {
+          "type": "raw_note",
+          "title": "v22 source notes - Starlink / Internet Pro enforcement",
+          "raw_path": "raw/apply-26-source-notes.md",
+          "language": "en"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "agent synthesis of exa-cli and xPool results",
+            "observed_at": "2026-05-02T02:20:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_xpool_starlink_internet_v22",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Starlink", "Internet Pro", "Hossam Aladdin"],
+          "tags": ["xpool", "social", "starlink", "internet-pro", "persian"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "dataset",
+          "title": "xPool Persian latest query for Starlink / Internet Pro enforcement after April 18",
+          "raw_path": "raw/xpool-starlink-internet-v22.json",
+          "publisher": "xPool / X SearchTimeline",
+          "language": "fa",
+          "published_at": "2026-05-02T01:57:52Z"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "xpool query",
+            "observed_at": "2026-05-02T01:57:52Z",
+            "job_id": "827181c0-59e0-4b62-b9c9-77c9e0641c5d",
+            "query": "(استارلینک OR \"اینترنت ماهواره‌ای\" OR \"اینترنت پرو\") (بازداشت OR پلمب OR کشف OR قطعی OR حساب OR جاسوسی OR معاند) since:2026-04-18 lang:fa",
+            "target_items": 100,
+            "max_pages": 10,
+            "items_emitted": 100
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_ana_judiciary_sms_starlink",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Starlink", "Tehran judiciary"],
+          "tags": ["law", "judiciary", "starlink", "security", "persian"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "هرگونه مشارکت در توزیع و استفاده از اینترنت ماهواره‌ای استارلینک جرم است",
+          "uri": "https://ana.ir/fa/news/1046350/%D9%87%D8%B1%DA%AF%D9%88%D9%86%D9%87-%D9%85%D8%B4%D8%A7%D8%B1%DA%A9%D8%AA-%D8%AF%D8%B1-%D8%AA%D9%88%D8%B2%DB%8C%D8%B9-%D9%88-%D8%A7%D8%B3%D8%AA%D9%81%D8%A7%D8%AF%D9%87-%D8%A7%D8%B2-%D8%A7%DB%8C%D9%86%D8%AA%D8%B1%D9%86%D8%AA-%D9%85%D8%A7%D9%87%D9%88%D8%A7%D8%B1%D9%87-%D8%A7%DB%8C-%D8%A7%D8%B3%D8%AA%D8%A7%D8%B1%D9%84%DB%8C%D9%86%DA%A9-%D8%AC%D8%B1%D9%85-%D8%A7%D8%B3%D8%AA",
+          "publisher": "ANA",
+          "language": "fa",
+          "published_at": "2026-04-07T13:44:04Z"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search",
+            "observed_at": "2026-05-02T02:15:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_tabnak_shemiranat_starlink",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Starlink", "Shemiranat", "Lavasanat", "Rudbar Qasran"],
+          "tags": ["starlink", "basij", "supply-chain", "security", "persian"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "کشف ماهواره استارلینک در ویلاهای شمال شهر تهران",
+          "uri": "https://www.tabnak.ir/fa/news/1368390/%DA%A9%D8%B4%D9%81-%D9%85%D8%A7%D9%87%D9%88%D8%A7%D8%B1%D9%87-%D8%A7%D8%B3%D8%AA%D8%A7%D8%B1%D9%84%DB%8C%D9%86%DA%A9-%D8%AF%D8%B1-%D9%88%DB%8C%D9%84%D8%A7%D9%87%D8%A7%DB%8C-%D8%B4%D9%85%D8%A7%D9%84-%D8%B4%D9%87%D8%B1-%D8%AA%D9%87%D8%B1%D8%A7%D9%86",
+          "publisher": "Tabnak / Mehr",
+          "language": "fa",
+          "published_at": "2026-04-21T14:46:17Z"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search",
+            "observed_at": "2026-05-02T02:10:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_mehr_sirik_starlink",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Starlink", "Sirik", "Hormozgan"],
+          "tags": ["starlink", "judiciary", "arrest", "security", "persian"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "کشف محموله استارلینک در شهرستان سیریک",
+          "uri": "https://www.mehrnews.com/news/6806661/%DA%A9%D8%B4%D9%81-%D9%85%D8%AD%D9%85%D9%88%D9%84%D9%87-%D8%A7%D8%B3%D8%AA%D8%A7%D8%B1%D9%84%DB%8C%D9%86%DA%A9-%D8%AF%D8%B1-%D8%B4%D9%87%D8%B1%D8%B3%D8%AA%D8%A7%D9%86-%D8%B3%DB%8C%D8%B1%DB%8C%DA%A9",
+          "publisher": "Mehr News",
+          "language": "fa",
+          "published_at": "2026-04-20T21:50:25Z"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search",
+            "observed_at": "2026-05-02T02:10:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_ilna_fereshteh_starlink",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Starlink", "Tehran", "Fereshteh"],
+          "tags": ["starlink", "police", "business", "security", "persian"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "برخورد قاطع با استفاده غیرمجاز از استارلینک در تهران/دستگیری یک متهم در محله فرشته",
+          "uri": "https://www.ilna.ir/%D8%A8%D8%AE%D8%B4-%D8%A7%D8%AC%D8%AA%D9%85%D8%A7%D8%B9%DB%8C-5/1776345-%D8%A8%D8%B1%D8%AE%D9%88%D8%B1%D8%AF-%D9%82%D8%A7%D8%B7%D8%B9-%D8%A8%D8%A7-%D8%A7%D8%B3%D8%AA%D9%81%D8%A7%D8%AF%D9%87-%D8%BA%DB%8C%D8%B1%D9%85%D8%AC%D8%A7%D8%B2-%D8%A7%D8%B2-%D8%A7%D8%B3%D8%AA%D8%A7%D8%B1%D9%84%DB%8C%D9%86%DA%A9-%D8%AF%D8%B1-%D8%AA%D9%87%D8%B1%D8%A7%D9%86-%D8%AF%D8%B3%D8%AA%DA%AF%DB%8C%D8%B1%DB%8C-%DB%8C%DA%A9-%D9%85%D8%AA%D9%87%D9%85-%D8%AF%D8%B1-%D9%85%D8%AD%D9%84%D9%87-%D9%81%D8%B1%D8%B4%D8%AA%D9%87",
+          "publisher": "ILNA",
+          "language": "fa",
+          "published_at": "2026-04-21T20:42:00Z"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search",
+            "observed_at": "2026-05-02T02:15:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_khabaronline_three_units_starlink",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Starlink", "Tehran", "commercial complex"],
+          "tags": ["starlink", "police", "business", "guilds", "security", "persian"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "ماجرای استارلینک در یک مجتمع تجاری تهران؛ پای پلیس به ماجرا باز شد",
+          "uri": "https://www.khabaronline.ir/news/2210558/%D9%85%D8%A7%D8%AC%D8%B1%D8%A7%DB%8C-%D8%A7%D8%B3%D8%AA%D8%A7%D8%B1%D9%84%DB%8C%D9%86%DA%A9-%D8%AF%D8%B1-%DB%8C%DA%A9-%D9%85%D8%AC%D8%AA%D9%85%D8%B9-%D8%AA%D8%AC%D8%A7%D8%B1%DB%8C-%D8%AA%D9%87%D8%B1%D8%A7%D9%86-%D9%BE%D8%A7%DB%8C-%D9%BE%D9%84%DB%8C%D8%B3-%D8%A8%D9%87-%D9%85%D8%A7%D8%AC%D8%B1%D8%A7-%D8%A8%D8%A7%D8%B2",
+          "publisher": "KhabarOnline / ISNA",
+          "language": "fa",
+          "published_at": "2026-04-26T20:01:00Z"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search",
+            "observed_at": "2026-05-02T02:15:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_jamejam_yusefabad_starlink",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Starlink", "Tehran", "Yusefabad"],
+          "tags": ["starlink", "police", "residential", "security", "persian"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "کشف یک مرکز جاسوسی مجهز به استارلینک در یوسف‌آباد تهران",
+          "uri": "https://jamejamonline.ir/fa/news/1550143/%DA%A9%D8%B4%D9%81-%DB%8C%DA%A9-%D9%85%D8%B1%DA%A9%D8%B2-%D8%AC%D8%A7%D8%B3%D9%88%D8%B3%DB%8C-%D9%85%D8%AC%D9%87%D8%B2-%D8%A8%D9%87-%D8%A7%D8%B3%D8%AA%D8%A7%D8%B1%D9%84%DB%8C%D9%86%DA%A9-%D8%AF%D8%B1-%DB%8C%D9%88%D8%B3%D9%81%E2%80%8C%D8%A2%D8%A8%D8%A7%D8%AF-%D8%AA%D9%87%D8%B1%D8%A7%D9%86",
+          "publisher": "Jamejam Online",
+          "language": "fa",
+          "published_at": "2026-04-28T11:46:02Z"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search",
+            "observed_at": "2026-05-02T02:15:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_vista_yazd_bank_accounts_starlink",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Starlink", "Yazd"],
+          "tags": ["starlink", "bank-accounts", "police", "security", "persian"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "web_page",
+          "title": "آخرین اخبار - حساب بانکی مسدود",
+          "uri": "https://vista.ir/t/1/%D8%AD%D8%B3%D8%A7%D8%A8+%D8%A8%D8%A7%D9%86%DA%A9%DB%8C+%D9%85%D8%B3%D8%AF%D9%88%D8%AF",
+          "publisher": "Vista aggregator",
+          "language": "fa",
+          "published_at": "2026-04-29T14:51:53Z"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search",
+            "observed_at": "2026-05-02T02:15:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_citna_digital_blackout_62_days",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "internet blackout", "Internet Pro"],
+          "tags": ["internet", "blackout", "business", "education", "livelihood", "persian"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "۶۲ روز در خاموشی دیجیتال؛ وقتی قطع اینترنت، اقتصاد و امید را هم خاموش می‌کند",
+          "uri": "https://vista.ir/n/citna/ejbqn",
+          "publisher": "CITNA via Vista",
+          "language": "fa",
+          "published_at": "2026-05-01T12:13:19Z"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search",
+            "observed_at": "2026-05-02T02:10:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_starlink_criminalized_full_chain",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Starlink"],
+          "tags": ["starlink", "law", "security", "supply-chain", "v22"]
+        },
+        "identity": {
+          "claim_key": "iran-cracks|starlink|full-chain-criminalization|2026-04"
+        },
+        "claim": {
+          "statement": "By April 2026, Iranian legal and security messaging had criminalized the full Starlink chain, from import, supply, sale, storage, installation, operation, and use to alleged dealer/support networks.",
+          "atomic": true,
+          "type": "pattern",
+          "subject": "Iranian Starlink enforcement",
+          "predicate": "criminalized",
+          "object": "the full access/supply/use chain"
+        },
+        "time": {
+          "valid_from": "2026-04-07",
+          "valid_until": "2026-04-21",
+          "precision": "range",
+          "timezone": "Asia/Tehran"
+        },
+        "provenance": {
+          "source_ids": ["$src_ana_judiciary_sms_starlink", "$src_tabnak_shemiranat_starlink", "$src_mehr_sirik_starlink"],
+          "evidence": [
+            {
+              "source_id": "$src_ana_judiciary_sms_starlink",
+              "role": "supports",
+              "summary": "ANA reported a Tehran judiciary-prevention SMS warning that importing, producing, supplying, distributing, carrying, storing, buying, selling, installing, running, and using satellite internet tools including Starlink are forbidden and punishable."
+            },
+            {
+              "source_id": "$src_tabnak_shemiranat_starlink",
+              "role": "supports",
+              "summary": "Tabnak/Mehr reported 10 Starlink devices seized in Lavasanat/Rudbar Qasran villas and said dealers, support networks, distribution, and networked use would be pursued by intelligence/security bodies."
+            },
+            {
+              "source_id": "$src_mehr_sirik_starlink",
+              "role": "supports",
+              "summary": "Mehr quoted the Sirik judiciary chief saying Starlink equipment is classified as anti-security goods and that two suspects were arrested and sent to prison after a shipment seizure."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "strong",
+            "rationale": "Multiple state-aligned Persian sources converge on official enforcement framing across law, seizure, arrest, and supply-chain language."
+          },
+          "importance": "high"
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_tehran_starlink_business_residential_crackdown",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Tehran", "Starlink", "businesses", "residential units"],
+          "tags": ["starlink", "tehran", "business", "residential", "security", "v22"]
+        },
+        "identity": {
+          "claim_key": "iran-cracks|starlink|tehran-business-residential-crackdown|2026-04"
+        },
+        "claim": {
+          "statement": "Between 21 and 28 April 2026, Tehran police-linked reports described Starlink enforcement in both commercial and residential settings: one Fereshteh commercial case with an arrest, three northwest Tehran guild units sealed, and a Yusefabad apartment described as a Starlink-equipped spy base.",
+          "atomic": true,
+          "type": "event_cluster",
+          "subject": "Tehran Starlink enforcement",
+          "predicate": "expanded_across",
+          "object": "commercial and residential spaces"
+        },
+        "time": {
+          "valid_from": "2026-04-21",
+          "valid_until": "2026-04-28",
+          "precision": "range",
+          "timezone": "Asia/Tehran"
+        },
+        "provenance": {
+          "source_ids": ["$src_ilna_fereshteh_starlink", "$src_khabaronline_three_units_starlink", "$src_jamejam_yusefabad_starlink"],
+          "evidence": [
+            {
+              "source_id": "$src_ilna_fereshteh_starlink",
+              "role": "supports",
+              "summary": "ILNA carried the Tehran police statement saying Starlink receivers were found on a Fereshteh commercial rooftop and one suspect was arrested for alleged foreign/enemy-network communications."
+            },
+            {
+              "source_id": "$src_khabaronline_three_units_starlink",
+              "role": "supports",
+              "summary": "KhabarOnline/ISNA reported three northwest Tehran guild units sealed for Starlink use, with police alleging enemy-network communications and 19 contacts by one unit."
+            },
+            {
+              "source_id": "$src_jamejam_yusefabad_starlink",
+              "role": "supports",
+              "summary": "Jamejam reported Tehran police claims that a rented Yusefabad apartment with Starlink was being used to send information and news to foreign intelligence and hostile networks."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "strong",
+            "rationale": "The claim only asserts that the police-linked reports described these enforcement actions and allegations; it does not independently validate the espionage allegations."
+          },
+          "importance": "high",
+          "contested": true,
+          "uncertainty": "Underlying espionage allegations are state claims and need court records, defense access, or independent corroboration."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_starlink_financial_and_provincial_pressure",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Starlink", "Sirik", "Yazd"],
+          "tags": ["starlink", "bank-accounts", "arrests", "province", "security", "v22"]
+        },
+        "identity": {
+          "claim_key": "iran-cracks|starlink|financial-provincial-pressure|2026-04"
+        },
+        "claim": {
+          "statement": "April 2026 Persian reporting shows Starlink enforcement reaching provincial and financial-control layers: Sirik authorities reported two arrests and imprisonment after a shipment seizure, while a Vista-aggregated Yazd police item said 6 devices were seized and 61 suspect-linked bank accounts were frozen.",
+          "atomic": true,
+          "type": "event_cluster",
+          "subject": "Starlink enforcement outside central Tehran",
+          "predicate": "included",
+          "object": "arrests, imprisonment, device seizures, and account freezes"
+        },
+        "time": {
+          "valid_from": "2026-04-20",
+          "valid_until": "2026-04-29",
+          "precision": "range",
+          "timezone": "Asia/Tehran"
+        },
+        "provenance": {
+          "source_ids": ["$src_mehr_sirik_starlink", "$src_vista_yazd_bank_accounts_starlink", "$src_source_notes_v22"],
+          "evidence": [
+            {
+              "source_id": "$src_mehr_sirik_starlink",
+              "role": "supports",
+              "summary": "Mehr quoted Sirik judiciary officials saying a Starlink shipment was seized, two suspects were arrested, charged, and sent to prison, and Starlink equipment was anti-security goods."
+            },
+            {
+              "source_id": "$src_vista_yazd_bank_accounts_starlink",
+              "role": "supports",
+              "summary": "Vista aggregated a Yazd police item saying 6 Starlink devices were seized during judicially coordinated searches and 61 bank accounts tied to suspects were blocked."
+            },
+            {
+              "source_id": "$src_source_notes_v22",
+              "role": "context",
+              "summary": "The research notes distinguish strong evidence of official enforcement actions from weaker evidence for the underlying security allegations."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "medium",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "partial",
+            "rationale": "Sirik is directly supported by Mehr; the Yazd bank-account detail is repeated through Vista topic aggregation and should be upgraded with direct Fars/police source if found."
+          },
+          "importance": "medium",
+          "uncertainty": "Yazd account-freeze detail needs direct-source confirmation."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_xpool_starlink_discourse_hossam",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Starlink", "Hossam Aladdin", "Internet Pro"],
+          "tags": ["xpool", "social", "starlink", "hossam-aladdin", "internet-pro", "v22"]
+        },
+        "identity": {
+          "claim_key": "iran-cracks|xpool|starlink-discourse|2026-05-01"
+        },
+        "claim": {
+          "statement": "The v22 xPool sample after May 1 was dominated by Starlink/Hossam Aladdin discourse: 93 of 100 sampled Persian posts contained 'استارلینک', mixing outrage over the reported death, fear of possession, Internet Pro resentment, and pro-regime or skeptical claims that the case involved espionage or internal account-settling.",
+          "atomic": true,
+          "type": "observation",
+          "subject": "v22 xPool Starlink/Internet Pro sample",
+          "predicate": "was_dominated_by",
+          "object": "Starlink/Hossam Aladdin discourse"
+        },
+        "time": {
+          "first_observed_at": "2026-05-02T01:57:52Z",
+          "precision": "instant",
+          "timezone": "UTC"
+        },
+        "provenance": {
+          "source_ids": ["$src_xpool_starlink_internet_v22", "$src_source_notes_v22"],
+          "evidence": [
+            {
+              "source_id": "$src_xpool_starlink_internet_v22",
+              "role": "supports",
+              "summary": "The saved xPool dataset contains 100 emitted items; a jq count found 93 posts with 'استارلینک', 5 with 'اینترنت پرو', and 1 other."
+            },
+            {
+              "source_id": "$src_source_notes_v22",
+              "role": "supports",
+              "summary": "Manual inspection found the discourse split among outrage over Hossam Aladdin, fear around Starlink possession, Internet Pro/white-SIM resentment, and regime/skeptical narratives."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "partial",
+            "rationale": "The sample supports discourse topology, not event verification or representativeness of all Iranian users."
+          },
+          "importance": "medium"
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_blackout_demand_for_workaround",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "internet blackout", "Starlink", "Internet Pro"],
+          "tags": ["internet", "blackout", "starlink", "internet-pro", "livelihood", "v22"]
+        },
+        "identity": {
+          "claim_key": "iran-cracks|internet-blackout|workaround-pressure|2026-05-01"
+        },
+        "claim": {
+          "statement": "By May 1, Persian reporting and social discourse tied Starlink demand and Internet Pro resentment to a prolonged internet blackout that had disrupted business, education, communication, trade, and livelihoods for more than two months.",
+          "atomic": true,
+          "type": "pattern",
+          "subject": "Iran's prolonged internet blackout",
+          "predicate": "created_pressure_for",
+          "object": "workarounds and resentment toward tiered access"
+        },
+        "time": {
+          "occurred_at": "2026-05-01",
+          "precision": "day",
+          "timezone": "Asia/Tehran"
+        },
+        "provenance": {
+          "source_ids": ["$src_citna_digital_blackout_62_days", "$src_xpool_starlink_internet_v22"],
+          "evidence": [
+            {
+              "source_id": "$src_citna_digital_blackout_62_days",
+              "role": "supports",
+              "summary": "CITNA/Vista described 62 days of international-internet cutoff as disrupting business, education, communication, trade, and livelihoods."
+            },
+            {
+              "source_id": "$src_xpool_starlink_internet_v22",
+              "role": "supports",
+              "summary": "The xPool sample included posts linking Starlink fear, Internet Pro/white-SIM anger, and the long blackout."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "partial",
+            "rationale": "The economic/social-disruption claim is supported by domestic internet reporting and social evidence, but blackout duration counts differ across sources."
+          },
+          "importance": "high",
+          "uncertainty": "Duration counts vary by outlet; treat the precise day count as source-specific."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "q_starlink_prosecutions_and_bank_freezes",
+      "row": {
+        "kind": "question",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Starlink", "judiciary"],
+          "tags": ["starlink", "court-records", "bank-accounts", "verification", "v22"]
+        },
+        "question": {
+          "text": "Can court records, direct police releases, family reports, or lawyer statements verify the Starlink prosecutions, account freezes, and alleged espionage facts beyond state media wording?",
+          "status": "open",
+          "priority": "high",
+          "resolution_criteria": "Resolve with primary judicial/police documents, named defense/family accounts, direct Fars/police source for Yezd bank-account freezes, or independent rights-monitor follow-up.",
+          "why_it_matters": "The enforcement pattern is clear, but the truth of the espionage allegations determines whether the regime is punishing real operational security breaches or ordinary access to outside communications."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "synth_v22_communications_workaround_criminalized",
+      "row": {
+        "kind": "synthesis",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran"],
+          "tags": ["overview", "synthesis", "v22", "starlink", "internet", "security"]
+        },
+        "synthesis": {
+          "title": "Cracks in the Islamic Republic, v22 - the communications workaround is criminalized",
+          "summary": "The v22 pass shows communications control becoming one of the regime's most concrete pressure points. After more than two months of disrupted international internet, the workaround itself is being turned into a security offense. ANA's report on a Tehran judiciary-prevention SMS says the whole Starlink chain - import, supply, distribution, carrying, storage, sale, installation, operation, and use - is forbidden and punishable. State-aligned reporting then shows that frame in practice: Sirik authorities arrested and jailed two people after a Starlink shipment seizure; Shemiranat/Lavasanat officials reported 10 devices seized in villas and said dealers and support networks would be pursued; Tehran police-linked reports described an arrest at a Fereshteh commercial unit, three northwest Tehran guild units sealed, and a Yusefabad apartment framed as a Starlink-equipped spy base. A Yazd police item, still needing direct-source upgrade, adds financial coercion with 61 suspect-linked bank accounts reportedly frozen. xPool shows the social layer: the May 1 sample is dominated by Starlink/Hossam Aladdin discourse, mixing outrage, fear, Internet Pro resentment, and regime/skeptical narratives. The crack is that the state needs the internet restricted, but households, traders, businesses, and information networks need outside connectivity; the workaround for that need is now being criminalized across the user, business, supply-chain, banking, and residential layers.",
+          "basis": {
+            "claim_ids": [
+              "$claim_starlink_criminalized_full_chain",
+              "$claim_tehran_starlink_business_residential_crackdown",
+              "$claim_starlink_financial_and_provincial_pressure",
+              "$claim_xpool_starlink_discourse_hossam",
+              "$claim_blackout_demand_for_workaround",
+              "claim:iran-cracks:20260502:1466c34a",
+              "claim:iran-cracks:20260502:b5981f2f",
+              "claim:iran-cracks:20260502:8a9c8abb",
+              "claim:iran-cracks:20260501:14fa473e",
+              "claim:iran-cracks:20260502:fc203293",
+              "claim:iran-cracks:20260502:d4b131df"
+            ],
+            "question_ids": [
+              "$q_starlink_prosecutions_and_bank_freezes",
+              "q:iran-cracks:20260501:00218f9b",
+              "q:iran-cracks:20260502:2648e903",
+              "q:iran-cracks:20260502:7bde737a"
+            ],
+            "source_ids": [
+              "$src_source_notes_v22",
+              "$src_xpool_starlink_internet_v22",
+              "$src_ana_judiciary_sms_starlink",
+              "$src_tabnak_shemiranat_starlink",
+              "$src_mehr_sirik_starlink",
+              "$src_ilna_fereshteh_starlink",
+              "$src_khabaronline_three_units_starlink",
+              "$src_jamejam_yusefabad_starlink",
+              "$src_vista_yazd_bank_accounts_starlink",
+              "$src_citna_digital_blackout_62_days"
+            ]
+          },
+          "limitations": "Most enforcement details are state or state-aligned police/judiciary claims; they are strong evidence for the official crackdown and framing, not independent proof of espionage. The Yazd account-freeze item is from Vista aggregation and should be upgraded with direct Fars/police text. xPool provides discourse topology, not representative polling or verification.",
+          "status": "active"
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "strong",
+            "rationale": "The pass combines domestic legal reporting, multiple Persian enforcement reports, a provincial judicial source, internet-blackout reporting, and a bounded xPool discourse sample."
+          },
+          "importance": "high"
+        }
+      }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_starlink_criminalized_full_chain",
+      "to_id": "claim:iran-cracks:20260501:14fa473e",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "Full-chain Starlink criminalization is the coercive mirror image of Internet Pro/tiered-internet privilege and legitimacy backlash.",
+      "scope": {
+        "collections": ["iran-cracks"]
+      }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_xpool_starlink_discourse_hossam",
+      "to_id": "claim:iran-cracks:20260502:1466c34a",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "The xPool discourse sample shows how the contested Hossam Aladdin report circulated and split into outrage, fear, and counter-narratives.",
+      "scope": {
+        "collections": ["iran-cracks"]
+      }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_blackout_demand_for_workaround",
+      "to_id": "$claim_starlink_criminalized_full_chain",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "The prolonged blackout explains why Starlink and privileged access become politically salient workarounds before being criminalized.",
+      "scope": {
+        "collections": ["iran-cracks"]
+      }
+    },
+    {
+      "op": "supersede",
+      "target_ids": ["synth:iran-cracks:20260502:5bcf3fc3"],
+      "replacement_id": "$synth_v22_communications_workaround_criminalized",
+      "reason": "v22 adds the communications-control enforcement layer on top of v21's forced-quiet and market-security analysis."
+    }
+  ]
+}

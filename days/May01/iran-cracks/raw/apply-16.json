@@ -1,0 +1,374 @@
+{
+  "atomic": true,
+  "dedupe": true,
+  "operations": [
+    {
+      "op": "add",
+      "as": "src_asriran_tehran_dams_14pct",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Tehran", "water"], "tags": ["water", "drought", "reservoirs", "tehran", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "کاهش بی سابقه آب سدهای تهران : 14 درصد",
+          "uri": "https://www.asriran.com/fa/news/1157903/%DA%A9%D8%A7%D9%87%D8%B4-%D8%A8%DB%8C-%D8%B3%D8%A7%D8%A8%D9%82%D9%87-%D8%A2%D8%A8-%D8%B3%D8%AF%D9%87%D8%A7%DB%8C-%D8%AA%D9%87%D8%B1%D8%A7%D9%86-14-%D8%AF%D8%B1%D8%B5%D8%AF",
+          "publisher": "AsrIran",
+          "language": "fa",
+          "published_at": "2026-04-23T10:52:02Z",
+          "raw_path": "raw/apply-16-source-notes.md"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-02T00:43:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_ilna_national_dams_red_zones",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "water", "dams"], "tags": ["water", "drought", "reservoirs", "provinces", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "وضعیت کدام سدها همچنان قرمز است؟",
+          "uri": "https://www.ilna.ir/%D8%A8%D8%AE%D8%B4-%D8%A7%D9%82%D8%AA%D8%B5%D8%A7%D8%AF%DB%8C-4/1776848-%D9%88%D8%B6%D8%B9%DB%8C%D8%AA-%DA%A9%D8%AF%D8%A7%D9%85-%D8%B3%D8%AF%D9%87%D8%A7-%D9%87%D9%85%DA%86%D9%86%D8%A7%D9%86-%D9%82%D8%B1%D9%85%D8%B2-%D8%A7%D8%B3%D8%AA",
+          "publisher": "ILNA",
+          "language": "fa",
+          "published_at": "2026-04-23T10:16:00Z",
+          "raw_path": "raw/apply-16-source-notes.md"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-02T00:43:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_snn_ministry_dam_stats",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Ministry of Energy", "water"], "tags": ["water", "drought", "reservoirs", "official-statistics", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "پرشدگی سد‌های کشور به ۶۱ درصد رسید",
+          "uri": "https://snn.ir/fa/news/1398140/%D9%BE%D8%B1%D8%B4%D8%AF%DA%AF%DB%8C-%D8%B3%D8%AF%E2%80%8C%D9%87%D8%A7%DB%8C-%DA%A9%D8%B4%D9%88%D8%B1-%D8%A8%D9%87-%DB%B6%DB%B1-%D8%AF%D8%B1%D8%B5%D8%AF-%D8%B1%D8%B3%DB%8C%D8%AF",
+          "publisher": "SNN",
+          "language": "fa",
+          "published_at": "2026-04-27T05:27:26Z",
+          "raw_path": "raw/apply-16-source-notes.md"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-02T00:43:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_ilna_tehran_water_consumption",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Tehran", "water"], "tags": ["water", "tehran", "demand-management", "official", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "کاهش ۲۵ لیتری مصرف سرانه آب تهران",
+          "uri": "https://www.ilna.ir/%D8%A8%D8%AE%D8%B4-%D8%A7%D9%82%D8%AA%D8%B5%D8%A7%D8%AF%DB%8C-4/1779898-%DA%A9%D8%A7%D9%87%D8%B4-%D9%84%DB%8C%D8%AA%D8%B1%DB%8C-%D9%85%D8%B5%D8%B1%D9%81-%D8%B3%D8%B1%D8%A7%D9%86%D9%87-%D8%A2%D8%A8-%D8%AA%D9%87%D8%B1%D8%A7%D9%86",
+          "publisher": "ILNA",
+          "language": "fa",
+          "published_at": "2026-04-29T18:15:47Z",
+          "raw_path": "raw/apply-16-source-notes.md"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-02T00:43:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_ilna_article90_utility_stability",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Parliament Article 90 Commission", "water", "electricity"], "tags": ["water", "electricity", "energy", "war-damage", "official", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "تدابیر ویژه مجلس برای پایداری آب و برق؛ از نوسازی موتور کولرها تا جریمه هوشمند پرمصرف‌ها",
+          "uri": "https://www.ilna.ir/%D8%A8%D8%AE%D8%B4-%D8%B3%DB%8C%D8%A7%D8%B3%DB%8C-3/1779602-%D8%AA%D8%AF%D8%A7%D8%A8%DB%8C%D8%B1-%D9%88%DB%8C%DA%98%D9%87-%D9%85%D8%AC%D9%84%D8%B3-%D8%A8%D8%B1%D8%A7%DB%8C-%D9%BE%D8%A7%DB%8C%D8%AF%D8%A7%D8%B1%DB%8C-%D8%A2%D8%A8-%D8%A8%D8%B1%D9%82-%D8%A7%D8%B2-%D9%86%D9%88%D8%B3%D8%A7%D8%B2%DB%8C-%D9%85%D9%88%D8%AA%D9%88%D8%B1-%DA%A9%D9%88%D9%84%D8%B1%D9%87%D8%A7-%D8%AA%D8%A7-%D8%AC%D8%B1%DB%8C%D9%85%D9%87-%D9%87%D9%88%D8%B4%D9%85%D9%86%D8%AF-%D9%BE%D8%B1%D9%85%D8%B5%D8%B1%D9%81-%D9%87%D8%A7",
+          "publisher": "ILNA",
+          "language": "fa",
+          "published_at": "2026-04-29T09:57:15Z",
+          "raw_path": "raw/apply-16-source-notes.md"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-02T00:43:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_ilna_tehran_electricity_reconstruction",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Tehran", "electricity"], "tags": ["electricity", "energy", "war-damage", "tehran", "official", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "اعلام جزئیات بازسازی سریع شبکه برق تهران در دوران جنگ اخیر",
+          "uri": "https://www.ilna.ir/%D8%A8%D8%AE%D8%B4-%D8%A7%D9%82%D8%AA%D8%B5%D8%A7%D8%AF%DB%8C-4/1779708-%D8%A7%D8%B9%D9%84%D8%A7%D9%85-%D8%AC%D8%B2%D8%A6%DB%8C%D8%A7%D8%AA-%D8%A8%D8%A7%D8%B2%D8%B3%D8%A7%D8%B2%DB%8C-%D8%B3%D8%B1%DB%8C%D8%B9-%D8%B4%D8%A8%DA%A9%D9%87-%D8%A8%D8%B1%D9%82-%D8%AA%D9%87%D8%B1%D8%A7%D9%86-%D8%AF%D8%B1-%D8%AF%D9%88%D8%B1%D8%A7%D9%86-%D8%AC%D9%86%DA%AF-%D8%A7%D8%AE%DB%8C%D8%B1",
+          "publisher": "ILNA",
+          "language": "fa",
+          "published_at": "2026-04-29T11:48:38Z",
+          "raw_path": "raw/apply-16-source-notes.md"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-02T00:43:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_tehran_dams_historic_low",
+      "row": {
+        "kind": "claim",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Tehran", "water"], "tags": ["water", "drought", "reservoirs", "tehran", "infrastructure"]},
+        "identity": {"claim_key": "iran|tehran_water|five_dams_14pct_lowest_spring_storage|2026-04-23", "novelty": "corroboration"},
+        "claim": {
+          "statement": "On 23 April 2026, Persian reporting based on Tehran water statistics said the five-dam system supplying Tehran, including Taleghan, held about 266 million cubic meters, roughly 14 percent of capacity, the lowest beginning-of-spring storage since the reservoir system began operating; the level was 145 million cubic meters below the same time last year and 369 million below the long-term average, while Tehran province rainfall since the water-year start was 31.6 percent below the long-term norm.",
+          "atomic": true,
+          "type": "infrastructure_metric",
+          "subject": "Tehran five-dam water system",
+          "predicate": "fell_to",
+          "object": "about 14 percent spring storage"
+        },
+        "time": {"occurred_at": "2026-04-23", "precision": "day", "timezone": "Asia/Tehran"},
+        "provenance": {
+          "evidence": [
+            {"source_id": "$src_asriran_tehran_dams_14pct", "role": "supports", "summary": "AsrIran reported the 14 percent, 266 million cubic meter, year-on-year, long-term, and rainfall deficit figures for Tehran."}
+          ]
+        },
+        "assessment": {"confidence": "high", "source_reliability": "medium", "information_depth": {"level": "strong", "rationale": "The source gives concrete storage, comparison, and rainfall figures tied to Tehran's named reservoir system."}, "importance": "high"}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_populated_water_red_zones",
+      "row": {
+        "kind": "claim",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "water", "provinces"], "tags": ["water", "drought", "reservoirs", "population-centers", "infrastructure"]},
+        "identity": {"claim_key": "iran|water|national_average_masks_populated_red_zones|2026-04-23_2026-04-27", "novelty": "new"},
+        "claim": {
+          "statement": "Between 23 and 27 April 2026, Persian reports showed that Iran's improved national dam average masked stress in major population centers: ILNA said 11 provinces with more than 35 million people were below normal rainfall and water supply in Tehran, Karaj, Mashhad, Arak, Qom, Esfahan, and Yazd faced limits, while SNN reported Ministry of Energy figures putting Tehran, Alborz, Qazvin, Arak, and Mashhad below 37 percent storage despite a national dam average near 61 percent.",
+          "atomic": true,
+          "type": "infrastructure_metric_cluster",
+          "subject": "Iranian water supply in major population centers",
+          "predicate": "remained",
+          "object": "in red-zone or limited conditions despite better national averages"
+        },
+        "time": {"valid_from": "2026-04-23", "valid_until": "2026-04-27", "precision": "range", "timezone": "Asia/Tehran"},
+        "provenance": {
+          "evidence": [
+            {"source_id": "$src_ilna_national_dams_red_zones", "role": "supports", "summary": "ILNA reported below-normal rainfall across 11 provinces with more than 35 million people and limitations in several major cities."},
+            {"source_id": "$src_snn_ministry_dam_stats", "role": "supports", "summary": "SNN reported Ministry of Energy dam statistics showing national storage near 61 percent while key populated regions remained below 37 percent."}
+          ]
+        },
+        "assessment": {"confidence": "high", "source_reliability": "medium", "information_depth": {"level": "strong", "rationale": "Two Persian sources separate national averages from named city/province stress points and give population or percentage detail."}, "importance": "high"}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_tehran_water_demand_narrative",
+      "row": {
+        "kind": "claim",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Tehran", "water", "state narrative"], "tags": ["water", "tehran", "demand-management", "propaganda", "public-cooperation"]},
+        "identity": {"claim_key": "iran|tehran_water|consumption_gap_and_day_zero_narrative|2026-04-29", "novelty": "new"},
+        "claim": {
+          "statement": "On 29 April 2026, Tehran Water and Wastewater's spokesman said average household water use in Tehran had fallen from 220 to 195 liters per person per day but still remained 65 liters above the 130-liter target; the same official framed Day Zero warnings as hostile propaganda and credited Taleghan water, public cooperation, mental resilience, and smart demand management with defusing the threat.",
+          "atomic": true,
+          "type": "official_statement",
+          "subject": "Tehran Water and Wastewater Company",
+          "predicate": "framed",
+          "object": "water scarcity as a demand-management and public-resilience problem"
+        },
+        "time": {"occurred_at": "2026-04-29", "precision": "day", "timezone": "Asia/Tehran"},
+        "provenance": {
+          "evidence": [
+            {"source_id": "$src_ilna_tehran_water_consumption", "role": "supports", "summary": "ILNA quoted the Tehran Water and Wastewater spokesman on 220-to-195 liters, the 130-liter target, and the anti-Day-Zero official narrative."}
+          ]
+        },
+        "assessment": {"confidence": "high", "source_reliability": "medium", "information_depth": {"level": "strong", "rationale": "The article quotes a named official role and combines quantified demand data with the state's narrative posture."}, "importance": "high", "uncertainty": "The consumption figures are official claims and are not independently audited here."}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_article90_utility_discipline",
+      "row": {
+        "kind": "claim",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "water", "electricity", "Parliament Article 90 Commission"], "tags": ["water", "electricity", "energy", "war-damage", "rationing", "official"]},
+        "identity": {"claim_key": "iran|article90|water_power_stability_controls_after_war_damage|2026-04-29", "novelty": "new"},
+        "claim": {
+          "statement": "On 29 April 2026, Article 90 Commission head Nasrollah Pejmanfar said uneven rainfall left Tehran, Mashhad, and Qom in water crisis and that recent-war damage to energy infrastructure had reduced gas production and removed about 4,000 MW of industrial petrochemical and steel self-generation from the grid, requiring about 1,000 MW for restart; proposed stability measures included replacing cooler and air-conditioner motors, expanding smart meters for high-consuming users, issuing warnings and possible electricity cutoffs, and considering mazut as a summer contingency.",
+          "atomic": true,
+          "type": "official_statement",
+          "subject": "Parliament Article 90 Commission",
+          "predicate": "advanced",
+          "object": "water and electricity stability controls after drought and war damage"
+        },
+        "time": {"occurred_at": "2026-04-29", "precision": "day", "timezone": "Asia/Tehran"},
+        "provenance": {
+          "evidence": [
+            {"source_id": "$src_ilna_article90_utility_stability", "role": "supports", "summary": "ILNA quoted Pejmanfar on Tehran/Mashhad/Qom water crisis, war damage to gas and industrial self-generation, appliance replacement, smart meters, possible cutoffs, and mazut contingency."}
+          ]
+        },
+        "assessment": {"confidence": "high", "source_reliability": "high", "information_depth": {"level": "strong", "rationale": "A named parliamentary official gives cross-utility mechanisms, quantified power losses, control levers, and contingency measures."}, "importance": "high", "uncertainty": "The 4,000 MW and 1,000 MW figures are official statements and still need independent grid or industrial corroboration."}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_tehran_grid_war_damage_restoration",
+      "row": {
+        "kind": "claim",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Tehran", "electricity"], "tags": ["electricity", "energy", "war-damage", "tehran", "resilience"]},
+        "identity": {"claim_key": "iran|tehran_electricity|network_points_posts_damaged_repaired_recent_war|2026-04-29", "novelty": "new"},
+        "claim": {
+          "statement": "On 29 April 2026, Tehran Province Electricity Distribution said recent-war damage hit 487 network points and 91 aerial or ground posts in Tehran's electricity network, that all damaged areas had been reconstructed by 1,744 operational staff in 250 teams, and that continuity planning included 43-minute average outage resolution, high-capacity mobile generators, and solar panels on 1,200 mosque rooftops for emergency accommodation.",
+          "atomic": true,
+          "type": "official_statement",
+          "subject": "Tehran Province Electricity Distribution",
+          "predicate": "reported",
+          "object": "electricity-network war damage and rapid reconstruction"
+        },
+        "time": {"occurred_at": "2026-04-29", "precision": "day", "timezone": "Asia/Tehran"},
+        "provenance": {
+          "evidence": [
+            {"source_id": "$src_ilna_tehran_electricity_reconstruction", "role": "supports", "summary": "ILNA quoted Tehran electricity officials on damaged network points/posts, reconstruction teams, outage resolution, generators, and mosque-rooftop emergency solar."}
+          ]
+        },
+        "assessment": {"confidence": "high", "source_reliability": "high", "information_depth": {"level": "strong", "rationale": "The report is specific on damaged assets, staffing, repair posture, and emergency continuity measures."}, "importance": "high", "uncertainty": "This is an official reconstruction claim and does not independently verify service quality in every affected neighborhood."}
+      }
+    },
+    {
+      "op": "add",
+      "as": "q_utility_controls_to_household_rationing",
+      "row": {
+        "kind": "question",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "water", "electricity"], "tags": ["water", "electricity", "rationing", "open"]},
+        "question": {
+          "text": "Do Tehran's water pressure controls and Iran's smart-meter/high-consumer electricity controls become scheduled household rationing or hard cutoffs as summer demand rises?",
+          "status": "open",
+          "priority": "high",
+          "resolution_criteria": "Official water or electricity schedules, smart-meter cutoff notices, neighborhood outage reports, dam storage updates, high-consumer penalty records, and any shift from 'management' language to explicit rationing or cutoff orders."
+        }
+      }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_tehran_dams_historic_low",
+      "to_id": "claim:iran-cracks:20260501:3d29837a",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "Historically low spring reservoir storage explains why Tehran's prior nightly pressure reductions are rationing-adjacent rather than a transient operational quirk.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_tehran_dams_historic_low",
+      "to_id": "q:iran-cracks:20260501:a030d060",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "The 14 percent storage figure materially narrows the Day Zero uncertainty for Tehran.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_populated_water_red_zones",
+      "to_id": "$claim_tehran_dams_historic_low",
+      "rel": "supports",
+      "strength": "medium",
+      "rationale": "The broader populated-region red-zone pattern corroborates that Tehran's reservoir stress is part of a multi-city utility constraint.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_tehran_water_demand_narrative",
+      "to_id": "q:iran-cracks:20260501:99119082",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "The official consumption gap and demand-management narrative are central to whether pressure controls become harder rationing.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_article90_utility_discipline",
+      "to_id": "claim:iran-cracks:20260502:3322c2bf",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "The Article 90 account explains the war-damage and summer-demand logic behind electricity-management decisions after 20 Ordibehesht.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_article90_utility_discipline",
+      "to_id": "claim:iran-cracks:20260502:862f65a5",
+      "rel": "context_for",
+      "strength": "medium",
+      "rationale": "The same official control environment helps interpret producer complaints about electricity cutoffs and payment pressure under wartime liquidity stress.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_tehran_grid_war_damage_restoration",
+      "to_id": "$claim_article90_utility_discipline",
+      "rel": "supports",
+      "strength": "high",
+      "rationale": "Tehran electricity's specific damage and reconstruction report supports the Article 90 claim that post-war utility stability requires emergency controls.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_article90_utility_discipline",
+      "to_id": "$q_utility_controls_to_household_rationing",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "Smart meters, warnings, possible cutoffs, and summer fuel contingencies define the household-rationing watch point.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "add",
+      "as": "synth_v15_utility_discipline",
+      "row": {
+        "kind": "synthesis",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["overview", "synthesis", "v15"]},
+        "synthesis": {
+          "title": "Cracks in the Islamic Republic, v15 - utilities become household discipline",
+          "summary": "The fifteenth pass shifts from internet legitimacy to everyday utility governance. Tehran water is no longer just rumor or social complaint: Persian source-near reporting says the five-dam system was around 14 percent at the start of spring, with storage far below both last year and long-term norms, while ILNA and SNN show national averages masking red-zone stress in high-population centers such as Tehran, Karaj, Mashhad, Arak, Qom, Esfahan, and Yazd. The state response is not open collapse; it is discipline. Tehran Water says per-capita use fell from 220 to 195 liters/day but remains above target, and it wraps pressure management in a public-cooperation and anti-enemy-propaganda frame. Article 90 adds a second layer: water crisis in Tehran/Mashhad/Qom, war damage to gas and industrial self-generation, smart meters for high consumers, warnings and possible electricity cutoffs, appliance replacement, and even mazut contingency. Tehran electricity officials separately report hundreds of damaged network points and posts repaired after the recent war. Net: service continuity is being preserved, but through rationing-adjacent controls, household discipline, emergency repair narratives, and a widening summer watch point.",
+          "basis": {
+            "claim_ids": [
+              "$claim_tehran_dams_historic_low",
+              "$claim_populated_water_red_zones",
+              "$claim_tehran_water_demand_narrative",
+              "$claim_article90_utility_discipline",
+              "$claim_tehran_grid_war_damage_restoration",
+              "claim:iran-cracks:20260501:3d29837a",
+              "claim:iran-cracks:20260501:cf1debe4",
+              "claim:iran-cracks:20260502:3322c2bf",
+              "claim:iran-cracks:20260502:862f65a5",
+              "claim:iran-cracks:20260502:8a9c8abb",
+              "claim:iran-cracks:20260502:e43ce4ec",
+              "claim:iran-cracks:20260502:b5981f2f"
+            ],
+            "question_ids": [
+              "$q_utility_controls_to_household_rationing",
+              "q:iran-cracks:20260501:99119082",
+              "q:iran-cracks:20260501:a030d060",
+              "q:iran-cracks:20260502:6c2c5eed",
+              "q:iran-cracks:20260501:7680b246"
+            ],
+            "source_ids": [
+              "$src_asriran_tehran_dams_14pct",
+              "$src_ilna_national_dams_red_zones",
+              "$src_snn_ministry_dam_stats",
+              "$src_ilna_tehran_water_consumption",
+              "$src_ilna_article90_utility_stability",
+              "$src_ilna_tehran_electricity_reconstruction"
+            ]
+          },
+          "limitations": "This pass is stronger on official and source-near Persian utility evidence than on neighborhood-level verification. xPool surfaced a few social complaints but the sample was sparse, so it was not promoted to a main claim. Reservoir, consumption, gas, and megawatt figures are recorded as public reported or official claims, not independently audited measurements.",
+          "status": "active"
+        },
+        "assessment": {"confidence": "high", "source_reliability": "medium", "information_depth": {"level": "strong", "rationale": "The synthesis rests on multiple dated Persian sources with reservoir metrics, demand metrics, official parliamentary statements, and Tehran electricity reconstruction details, while separating official continuity claims from independent verification."}, "importance": "high"}
+      }
+    },
+    {
+      "op": "supersede",
+      "target_ids": ["synth:iran-cracks:20260502:d11c2e60"],
+      "replacement_id": "$synth_v15_utility_discipline",
+      "reason": "v15 adds source-near Persian evidence that water and electricity stress is moving into rationing-adjacent household discipline, smart-meter controls, and post-war utility repair narratives.",
+      "scope": {"collections": ["iran-cracks"]}
+    }
+  ]
+}

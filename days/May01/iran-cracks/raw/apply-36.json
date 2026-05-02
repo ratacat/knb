@@ -1,0 +1,569 @@
+{
+  "atomic": true,
+  "dedupe": true,
+  "operations": [
+    {
+      "op": "add",
+      "as": "src_source_notes_v31",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": [
+            "iran-cracks"
+          ],
+          "subjects": [
+            "Iran",
+            "universities",
+            "students",
+            "campus controls"
+          ],
+          "tags": [
+            "research-notes",
+            "students",
+            "campus",
+            "dorms",
+            "internet",
+            "v31"
+          ]
+        },
+        "source": {
+          "type": "raw_note",
+          "title": "v31 source notes - campus control and restricted reopening",
+          "raw_path": "raw/apply-36-source-notes.md",
+          "language": "en"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "agent synthesis of exa-cli, direct-page checks, and xPool results",
+            "observed_at": "2026-05-02T03:45:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_xpool_student_campus_v31_partial",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": [
+            "iran-cracks"
+          ],
+          "subjects": [
+            "Iran",
+            "students",
+            "universities",
+            "Persian X"
+          ],
+          "tags": [
+            "xpool",
+            "social",
+            "students",
+            "campus",
+            "arrests",
+            "internet",
+            "partial",
+            "persian",
+            "v31"
+          ],
+          "language": "fa"
+        },
+        "source": {
+          "type": "dataset",
+          "title": "xPool Persian latest partial query for student campus controls",
+          "uri": "xpool://query-jobs/de3a8c6a-149a-4ddc-a9e2-c3dcc843cdd1/result",
+          "raw_path": "raw/xpool-student-campus-v31-partial.json",
+          "publisher": "xPool / X SearchTimeline",
+          "language": "fa",
+          "published_at": "2026-05-02T03:10:35Z"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "xpool query",
+            "observed_at": "2026-05-02T03:10:35Z",
+            "notes": "Job failed with NOT_FOUND but preserved partial result: 2 chunks, 40 emitted items."
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_snn_science_minister_calendar_war",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": [
+            "iran-cracks"
+          ],
+          "subjects": [
+            "Iran",
+            "Ministry of Science",
+            "higher education",
+            "university calendar"
+          ],
+          "tags": [
+            "students",
+            "campus",
+            "war-policy",
+            "university-calendar",
+            "persian",
+            "v31"
+          ],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "احتمال تغییر در تقویم آموزشی دانشگاه‌ها/ سیاست‌های آموزشی متناسب با جنگ بازنگری شود",
+          "uri": "https://snn.ir/fa/news/1398895/احتمال-تغییر-در-تقویم-آموزشی-دانشگاه‌ها-سیاست‌های-آموزشی-متناسب-با-جنگ-بازنگری-شود",
+          "publisher": "Student News Network (SNN)",
+          "language": "fa",
+          "published_at": "2026-04-29T08:16:27Z"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search and direct-page check",
+            "observed_at": "2026-05-02T03:39:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_tasnim_shahid_beheshti_damage",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": [
+            "iran-cracks"
+          ],
+          "subjects": [
+            "Iran",
+            "Shahid Beheshti University",
+            "student dormitories",
+            "war damage"
+          ],
+          "tags": [
+            "students",
+            "campus",
+            "dorms",
+            "infrastructure-damage",
+            "persian",
+            "v31"
+          ],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "خسارت 6 هزارمیلیاردی به دانشگاه شهید بهشتی در حمله اخیر",
+          "uri": "https://www.tasnimnews.ir/fa/news/1405/02/01/3571149/%d8%ae%d8%b3%d8%a7%d8%b1%d8%aa-6-%d9%87%d8%b2%d8%a7%d8%b1%d9%85%db%8c%d9%84%db%8c%d8%a7%d8%b1%d8%af%db%8c-%d8%a8%d9%87-%d8%af%d8%a7%d9%86%d8%b4%da%af%d8%a7%d9%87-%d8%b4%d9%87%db%8c%d8%af-%d8%a8%d9%87%d8%b4%d8%aa%db%8c-%d8%af%d8%b1-%d8%ad%d9%85%d9%84%d9%87-%d8%a7%d8%ae%db%8c%d8%b1",
+          "publisher": "Tasnim News",
+          "language": "fa",
+          "published_at": "2026-04-21T11:40:35Z"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search and direct-page check",
+            "observed_at": "2026-05-02T03:40:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_tasnim_alzahra_dorm_belongings",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": [
+            "iran-cracks"
+          ],
+          "subjects": [
+            "Iran",
+            "Alzahra University",
+            "student dormitories"
+          ],
+          "tags": [
+            "students",
+            "campus",
+            "dorms",
+            "restricted-access",
+            "persian",
+            "v31"
+          ],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "دانشگاه الزهرا: دانشجویان از فردا یکشنبه به خوابگاه‌ها مراجعه کنند",
+          "uri": "https://www.tasnimnews.ir/fa/news/1405/02/05/3574810/%d8%af%d8%a7%d9%86%d8%b4%da%af%d8%a7%d9%87-%d8%a7%d9%84%d8%b2%d9%87%d8%b1%d8%a7-%d8%af%d8%a7%d9%86%d8%b4%d8%ac%d9%88%db%8c%d8%a7%d9%86-%d8%a7%d8%b2-%d9%81%d8%b1%d8%af%d8%a7-%db%8c%da%a9%d8%b4%d9%86%d8%a8%d9%87-%d8%a8%d9%87-%d8%ae%d9%88%d8%a7%d8%a8%da%af%d8%a7%d9%87-%d9%87%d8%a7-%d9%85%d8%b1%d8%a7%d8%ac%d8%b9%d9%87-%da%a9%d9%86%d9%86%d8%af",
+          "publisher": "Tasnim News",
+          "language": "fa",
+          "published_at": "2026-04-25T12:17:04Z"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search and direct-page check",
+            "observed_at": "2026-05-02T03:41:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_science_ministry_war_turning_point_v31",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": [
+            "iran-cracks"
+          ],
+          "subjects": [
+            "Iran",
+            "Ministry of Science",
+            "universities",
+            "students"
+          ],
+          "tags": [
+            "students",
+            "campus",
+            "war-policy",
+            "university-calendar",
+            "v31"
+          ]
+        },
+        "identity": {
+          "claim_key": "iran-cracks|ministry-of-science|war-turning-point-for-higher-education-policy-calendar-admissions|2026-04-29",
+          "novelty": "new"
+        },
+        "claim": {
+          "statement": "On 29 April 2026, SNN reported that Iran's science minister framed the war as a turning point for higher education and said it required basic reconsideration of science and technology policy, educational programs, the university calendar, and even student admission capacity.",
+          "atomic": true,
+          "type": "official_policy_signal",
+          "subject": "Iran's Ministry of Science",
+          "predicate": "framed",
+          "object": "war as a reason to revise higher-education policy, calendar, and admissions"
+        },
+        "time": {
+          "occurred_at": "2026-04-29",
+          "precision": "day",
+          "timezone": "Asia/Tehran"
+        },
+        "provenance": {
+          "source_ids": [
+            "$src_snn_science_minister_calendar_war",
+            "$src_source_notes_v31"
+          ],
+          "evidence": [
+            {
+              "source_id": "$src_snn_science_minister_calendar_war",
+              "role": "supports",
+              "summary": "SNN's direct page metadata and article text say the minister called war a turning point and linked it to policy, program, calendar, and admission-capacity revision."
+            },
+            {
+              "source_id": "$src_source_notes_v31",
+              "role": "context",
+              "summary": "The notes place the article beside existing KNB rows on virtual classes, dorm restrictions, and internet-gated campus access."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "strong",
+            "rationale": "The article is a domestic student-news report quoting the responsible ministry and gives specific policy domains affected."
+          },
+          "importance": "high"
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_dorm_infrastructure_restricted_access_v31",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": [
+            "iran-cracks"
+          ],
+          "subjects": [
+            "Iran",
+            "Shahid Beheshti University",
+            "Alzahra University",
+            "student dormitories"
+          ],
+          "tags": [
+            "students",
+            "campus",
+            "dorms",
+            "infrastructure-damage",
+            "restricted-access",
+            "v31"
+          ]
+        },
+        "identity": {
+          "claim_key": "iran-cracks|dormitories|shahid-beheshti-damage-alzahra-belongings-only-access|2026-04-21-2026-04-29",
+          "novelty": "update"
+        },
+        "claim": {
+          "statement": "Between 21 and 29 April 2026, domestic reporting showed that post-war dorm reopening was constrained by both damage and administrative exclusion: Tasnim reported six Shahid Beheshti dorm units, mostly housing about 2,000 women students, were out of service after attacks and the university estimated about 6,500 billion tomans in total damage, while Alzahra University allowed students only a short belongings-collection window and said dorm accommodation was impossible under any circumstances.",
+          "atomic": true,
+          "type": "administrative_report",
+          "subject": "student dorm reopening at Shahid Beheshti and Alzahra universities",
+          "predicate": "was_constrained_by",
+          "object": "war damage, reconstruction needs, and belongings-only access rather than accommodation"
+        },
+        "time": {
+          "valid_from": "2026-04-21",
+          "valid_until": "2026-04-29",
+          "precision": "range",
+          "timezone": "Asia/Tehran"
+        },
+        "provenance": {
+          "source_ids": [
+            "$src_tasnim_shahid_beheshti_damage",
+            "$src_tasnim_alzahra_dorm_belongings",
+            "src:iran-cracks:20260502:cbe0c7a7"
+          ],
+          "evidence": [
+            {
+              "source_id": "$src_tasnim_shahid_beheshti_damage",
+              "role": "supports",
+              "summary": "Tasnim reported six dormitory units out of service, about 2,000 women students affected, severe educational/research damage, and an initial total damage estimate around 6,500 billion tomans."
+            },
+            {
+              "source_id": "$src_tasnim_alzahra_dorm_belongings",
+              "role": "supports",
+              "summary": "Tasnim reported Alzahra students could enter dorms only during a limited daytime window to collect belongings, with no accommodation allowed under any circumstances."
+            },
+            {
+              "source_id": "src:iran-cracks:20260502:cbe0c7a7",
+              "role": "context",
+              "summary": "The existing SNN source in KNB reported April 29 dorm bans or limits across multiple Tehran universities."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "strong",
+            "rationale": "Two direct domestic reports add specific facilities, dates, student impacts, and access rules to the existing multi-university dorm-restriction row."
+          },
+          "importance": "high"
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_xpool_student_arrest_internet_chatter_v31",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": [
+            "iran-cracks"
+          ],
+          "subjects": [
+            "Iran",
+            "students",
+            "Sharif University",
+            "campus internet"
+          ],
+          "tags": [
+            "students",
+            "campus",
+            "arrests",
+            "internet",
+            "xpool",
+            "negative-evidence",
+            "v31"
+          ]
+        },
+        "identity": {
+          "claim_key": "iran-cracks|xpool|student-arrest-internet-chatter-without-broad-protest-cluster|2026-05-01-2026-05-02",
+          "novelty": "update"
+        },
+        "claim": {
+          "statement": "A partial xPool Persian latest query for 1-2 May 2026 kept campus repression visible through repeated posts about Ali Alirezai's reported Sharif arrest, a smaller Fariborz Kohnzad flag-arrest cluster, and scattered university-internet complaints, but it did not surface a broad verified student protest or strike cluster; many emitted dorm-related items were irrelevant social chatter.",
+          "atomic": true,
+          "type": "social_signal",
+          "subject": "Persian X campus-control discourse",
+          "predicate": "showed",
+          "object": "named arrest and internet-access chatter without a broad verified campus mobilization cluster"
+        },
+        "time": {
+          "valid_from": "2026-05-01",
+          "valid_until": "2026-05-02",
+          "precision": "range",
+          "timezone": "UTC"
+        },
+        "provenance": {
+          "source_ids": [
+            "$src_xpool_student_campus_v31_partial",
+            "$src_source_notes_v31"
+          ],
+          "evidence": [
+            {
+              "source_id": "$src_xpool_student_campus_v31_partial",
+              "role": "supports",
+              "summary": "The partial xPool result emitted 40 items before failing; manual read found repeated Ali Alirezai posts, one Fariborz Kohnzad cluster, scattered internet-access complaints, and no broad protest cluster."
+            },
+            {
+              "source_id": "$src_source_notes_v31",
+              "role": "context",
+              "summary": "The notes record the failed job state, query terms, partial-result limits, and manual-read cautions."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "medium",
+          "source_reliability": "low",
+          "information_depth": {
+            "level": "partial",
+            "rationale": "The dataset is useful for visible discourse topology, but the job failed after partial emission and social posts cannot independently verify custody status."
+          },
+          "importance": "medium",
+          "uncertainty": "Needs primary Sharif student-council archive, family/lawyer statements, official notices, or later release/detention reports for named students."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "synth_v31_campus_control_reopening",
+      "row": {
+        "kind": "synthesis",
+        "scope": {
+          "collections": [
+            "iran-cracks"
+          ],
+          "subjects": [
+            "Iran"
+          ],
+          "tags": [
+            "overview",
+            "synthesis",
+            "v31",
+            "students",
+            "campus",
+            "restricted-reopening"
+          ]
+        },
+        "synthesis": {
+          "title": "Cracks in the Islamic Republic, v31 - campus reopening is partial and controlled",
+          "summary": "The thirty-first pass revisits the campus track after the April 29 dorm and internet rows. It does not find a clean broad student protest wave on May 1-2. Instead, it strengthens the restricted-campus-normalization thesis. The science minister is openly framing the war as a turning point that may require changes to science policy, educational programs, university calendars, and admissions. Existing KNB rows already showed wartime virtual classes, dorm bans or limits across Tehran universities, and Sharif PhD return gated by internet restoration and approvals. New direct-page checks add hard constraints: Shahid Beheshti had six dorm units out of service, mainly affecting about 2,000 women students, and estimated about 6,500 billion tomans in total damage, while Alzahra allowed only belongings collection and no accommodation. The partial xPool sample keeps named student-arrest and internet-access chatter visible around Ali Alirezai and Fariborz Kohnzad, but it does not prove a mass campus mobilization. Net: universities are reopening as gated research, doctoral, belongings-only, or approval-based spaces rather than normal student life; the arrest layer remains important but still needs primary confirmation.",
+          "basis": {
+            "claim_ids": [
+              "$claim_science_ministry_war_turning_point_v31",
+              "$claim_dorm_infrastructure_restricted_access_v31",
+              "$claim_xpool_student_arrest_internet_chatter_v31",
+              "claim:iran-cracks:20260502:ea0dbfff",
+              "claim:iran-cracks:20260502:01e5ed8d",
+              "claim:iran-cracks:20260502:30e3df25"
+            ],
+            "question_ids": [
+              "q:iran-cracks:20260502:2df836b3",
+              "q:iran-cracks:20260502:751166cb",
+              "q:iran-cracks:20260502:359b8664",
+              "q:iran-cracks:20260501:00218f9b"
+            ],
+            "source_ids": [
+              "$src_source_notes_v31",
+              "$src_xpool_student_campus_v31_partial",
+              "$src_snn_science_minister_calendar_war",
+              "$src_tasnim_shahid_beheshti_damage",
+              "$src_tasnim_alzahra_dorm_belongings",
+              "src:iran-cracks:20260502:cbe0c7a7",
+              "src:iran-cracks:20260502:abe93e3c",
+              "src:iran-cracks:20260502:a316e103",
+              "src:iran-cracks:20260502:34d01d15"
+            ]
+          },
+          "limitations": "The xPool sample is partial after a failed job and should be treated as social visibility rather than custody verification. Direct Persian searches did not find primary student-council pages for Ali Alirezai or Fariborz Kohnzad in this pass. The key next checks are Sharif's 14 Ordibehesht reopening, dorm access by university, campus internet restoration, student-council archives, and family/lawyer confirmation for named arrests.",
+          "status": "active"
+        },
+        "assessment": {
+          "confidence": "medium",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "strong",
+            "rationale": "The synthesis combines direct domestic university reports, existing KNB dorm/internet rows, and a cautious partial xPool read."
+          },
+          "importance": "high"
+        }
+      }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_science_ministry_war_turning_point_v31",
+      "to_id": "q:iran-cracks:20260502:2df836b3",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "The ministry policy signal directly bears on whether restricted campus operations are becoming normalized after the war.",
+      "scope": {
+        "collections": [
+          "iran-cracks"
+        ]
+      }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_dorm_infrastructure_restricted_access_v31",
+      "to_id": "q:iran-cracks:20260502:2df836b3",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "Dorms out of service and belongings-only access are direct evidence for restricted physical campus return.",
+      "scope": {
+        "collections": [
+          "iran-cracks"
+        ]
+      }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_xpool_student_arrest_internet_chatter_v31",
+      "to_id": "q:iran-cracks:20260502:751166cb",
+      "rel": "context_for",
+      "strength": "medium",
+      "rationale": "The partial xPool sample updates the coordinated-crackdown question but cannot settle it without primary confirmations.",
+      "scope": {
+        "collections": [
+          "iran-cracks"
+        ]
+      }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_xpool_student_arrest_internet_chatter_v31",
+      "to_id": "q:iran-cracks:20260502:359b8664",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "The sample specifically repeats the Ali Alirezai and Fariborz Kohnzad custody questions while preserving the need for primary verification.",
+      "scope": {
+        "collections": [
+          "iran-cracks"
+        ]
+      }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_xpool_student_arrest_internet_chatter_v31",
+      "to_id": "q:iran-cracks:20260502:2df836b3",
+      "rel": "context_for",
+      "strength": "medium",
+      "rationale": "Internet-access complaints in the partial sample are weak but relevant indicators of student-facing campus restrictions.",
+      "scope": {
+        "collections": [
+          "iran-cracks"
+        ]
+      }
+    },
+    {
+      "op": "supersede",
+      "target_ids": [
+        "synth:iran-cracks:20260502:28ca18e8"
+      ],
+      "replacement_id": "$synth_v31_campus_control_reopening",
+      "reason": "v31 updates the active read from market-freeze follow-up to the campus track: no broad verified student protest wave, but official higher-education war-policy revision, dorm/infrastructure constraints, belongings-only access, and named arrest/internet chatter indicate partial controlled reopening."
+    }
+  ]
+}

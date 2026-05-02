@@ -1,0 +1,39 @@
+[2m2026-05-02T04:14:21.146Z[0m [32mINFO [0m [xpool-cli] [cli.command.started] CLI command started [2m{"commandId":"query.status","commandPath":"query status"}[0m
+[2m2026-05-02T04:14:21.158Z[0m [32mINFO [0m [xpool-cli] [cli.command.completed] CLI command completed [2m{"commandId":"query.status","commandPath":"query status","duration_ms":13}[0m
+failure: -
+job:
+  cancelRequestedAt: -
+  completedAt: -
+  id: c6eb51b7-a9bf-4052-bec5-cf3d29f02b35
+  idempotencyKey: iran-bread-food-v38
+  resultState: partial
+  startedAt: 1777695249632
+  state: running
+  stopReason: RUNNING
+  submittedAt: 1777695249136
+links:
+  cancelPath: /query-jobs/c6eb51b7-a9bf-4052-bec5-cf3d29f02b35/cancel
+  eventsPath: /query-jobs/c6eb51b7-a9bf-4052-bec5-cf3d29f02b35/events
+  resultPath: /query-jobs/c6eb51b7-a9bf-4052-bec5-cf3d29f02b35/result
+  statusPath: /query-jobs/c6eb51b7-a9bf-4052-bec5-cf3d29f02b35
+ok: true
+progress:
+  chunksEmitted: 7
+  itemsDeduped: 0
+  itemsEmitted: 4
+  itemsObserved: 4
+  lastHeartbeatAt: 1777695261143
+  latestChunkSequence: 6
+  latestCursor: DAADDAABCgABHHSIHkJaQdkKAAIcdGOhOBYBzQAIAAIAAAACCAADAAAAAAgABAAAAAYKAAUcdJX12UAnEAoABhx0lfXZPu6QAAA
+  pagesCompleted: 7
+  pagesFailed: 0
+  pagesStarted: 7
+query:
+  budget: [3 fields]
+  endpoint: SearchTimeline
+  params: [2 fields]
+result:
+  availability: partial
+  chunkCount: 7
+  itemCount: 4
+  nextSequence: 7

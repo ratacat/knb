@@ -1,0 +1,456 @@
+{
+  "atomic": true,
+  "dedupe": true,
+  "operations": [
+    {
+      "op": "add",
+      "as": "src_source_notes_v40",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Internet Pro", "internet blackout", "digital discrimination"],
+          "tags": ["research-notes", "internet", "internet-pro", "source-hygiene", "v40"]
+        },
+        "source": {
+          "type": "raw_note",
+          "title": "v40 source notes - Internet Pro pressure, operator rents, and no public restoration",
+          "raw_path": "raw/apply-46-source-notes.md",
+          "language": "en"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "agent synthesis of exa-cli search/crawl, existing KNB rows, and xPool SearchTimeline results",
+            "observed_at": "2026-05-02T04:44:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_xpool_internet_pro_v40",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Internet Pro", "internet blackout", "Persian X"],
+          "tags": ["xpool", "social", "internet", "internet-pro", "tiered-internet", "negative-evidence", "persian", "v40"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "dataset",
+          "title": "xPool Persian latest query for Internet Pro rollback, ministry denial, and public restoration",
+          "raw_path": "raw/xpool-internet-pro-v40-result.json",
+          "publisher": "xPool / X SearchTimeline",
+          "language": "fa",
+          "published_at": "2026-05-02T04:39:19Z"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "xpool query",
+            "observed_at": "2026-05-02T04:39:19Z",
+            "job_id": "c86a656a-c60e-4f98-b3b6-cd011873e35a",
+            "query": "(اینترنت پرو OR اینترنت طبقاتی OR \"سیم کارت سفید\" OR \"اینترنت سفید\" OR \"اینترنت بین‌الملل\") (وزارت ارتباطات OR اپراتور OR تعرفه OR پرستاری OR وکلا OR طراحان OR \"تجارت الکترونیک\" OR تبعیض OR قطعی OR بازگشت OR وصل) since:2026-05-01 lang:fa",
+            "target_items": 160,
+            "max_pages": 10,
+            "items_emitted": 62,
+            "stop_reason": "MAX_PAGES_REACHED"
+          },
+          "transformations": [
+            {
+              "method": "jq extraction of tweet text",
+              "raw_path": "raw/xpool-internet-pro-v40-texts.tsv"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_iranintl_ministry_advisor_v40",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Ministry of Communications", "Internet Pro"],
+          "tags": ["internet", "internet-pro", "official-denial", "ministry", "persian", "v40"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "مشاور وزیر ارتباطات: طرح «اینترنت پرو» را دولت ارائه نکرده است",
+          "uri": "https://www.iranintl.com/202604283776",
+          "publisher": "Iran International Persian",
+          "language": "fa",
+          "published_at": "2026-04-28T14:58:22Z",
+          "raw_path": "raw/crawl18-iranintl-ministry-advisor-internet-pro.txt"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search and crawl",
+            "observed_at": "2026-05-02T04:44:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_abandaily_operator_pricing_v40",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Internet Pro", "mobile operators", "internet pricing"],
+          "tags": ["internet", "internet-pro", "pricing", "operators", "rent", "persian", "v40"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "جزئیات اینترنت پرو به روایت پروسازان / فروش بدون محدودیت تعداد کاربر به پولدارها / جهش قیمت بسته ۵۰ گیگ از ۳۸۳هزار به ۳۲ میلیون تومان",
+          "uri": "https://abandaily.ir/technology/204203/",
+          "publisher": "AbanDaily",
+          "language": "fa",
+          "published_at": "2026-04-20T15:27:03Z",
+          "raw_path": "raw/crawl18-abandaily-internet-pro-pricing.txt"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search and crawl",
+            "observed_at": "2026-05-02T04:44:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_farnet_committee_mechanics_v40",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Internet Pro", "Supreme National Security Council", "National Cyberspace Center"],
+          "tags": ["internet", "internet-pro", "security", "committee", "pricing", "persian", "v40"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "اینترنت پرو؛ اجرای طرح اینترنت طبقاتی در پوشش راهکار موقت",
+          "uri": "https://farnet.io/1405/02/413296/internet-pro-implementation-of-the-class-based-internet-plan-under-the-guise-of-a-temporary-solution/",
+          "publisher": "Farnet",
+          "author": "سعید زعفرانی",
+          "language": "fa",
+          "published_at": "2026-04-29T10:30:59Z",
+          "raw_path": "raw/crawl18-farnet-internet-pro-committee.txt"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search and crawl",
+            "observed_at": "2026-05-02T04:44:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_internet_pro_denials_preserve_channel_v40",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Internet Pro", "Ministry of Communications", "Supreme National Security Council"],
+          "tags": ["internet", "internet-pro", "official-denial", "security", "containment", "v40"]
+        },
+        "identity": {
+          "claim_key": "iran|internet_pro|denials_preserve_security_exception_channel|2026-05-02",
+          "novelty": "update"
+        },
+        "claim": {
+          "statement": "As of 2 May 2026, fresh Persian evidence still points to containment rather than public rollback: ministry-linked statements deny that the government or Communications Ministry presented or licensed Internet Pro and blame operator violations, while the active policy architecture remains a security/SNSC-mediated exception channel for business, production, industry, and commerce users under authentication and security conditions.",
+          "atomic": true,
+          "type": "pattern",
+          "subject": "official pressure over Internet Pro",
+          "predicate": "preserves",
+          "object": "a security-mediated selective-access channel while disowning implementation abuse"
+        },
+        "time": {
+          "occurred_at": "2026-05-02",
+          "precision": "day",
+          "timezone": "Asia/Tehran"
+        },
+        "provenance": {
+          "evidence": [
+            {
+              "source_id": "src:iran-cracks:20260502:d14c647a",
+              "role": "supports",
+              "summary": "The re-crawled Bank Eghtesad/Jamaran/KhabarOnline source says international-internet scope and limits sit with security bodies/SNSC, the three operators are obligated to implement Internet Pro, and access is being expanded to authenticated business/production/industry/commerce units."
+            },
+            {
+              "source_id": "$src_iranintl_ministry_advisor_v40",
+              "role": "supports",
+              "summary": "Iran International quotes Mohammad-Hafez Hokmi saying Internet Pro was not presented by the government, some operators implemented it for some businesses, violations occurred, and government policy rejects tiered internet."
+            },
+            {
+              "source_id": "src:iran-cracks:20260502:47d49cdc",
+              "role": "supports",
+              "summary": "The existing EghtesadOnline/ISNA source records the later Ministry-adviser denial that the Ministry issued no Internet Pro license and frames the problem as violations/bad implementation."
+            },
+            {
+              "source_id": "$src_xpool_internet_pro_v40",
+              "role": "context",
+              "summary": "The v40 xPool sample after May 1 contains ordinary-user cutoff/restoration anger and ministry-denial discourse, but no source-near public restoration directive or measurable rollback."
+            },
+            {
+              "source_id": "$src_source_notes_v40",
+              "role": "context",
+              "summary": "The v40 notes compare the official denial layer with SNSC/security and operator implementation evidence."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "strong",
+            "rationale": "The claim is an inference across official/near-official reporting, an independent ministry-denial report, existing KNB rows, and a fresh xPool discourse check."
+          },
+          "importance": "high",
+          "uncertainty": "A formal regulator order canceling packages, an SNSC rollback text, operator notices, or network measurements showing ordinary public restoration would change this assessment."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_internet_pro_operator_rent_mechanics_v40",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Internet Pro", "mobile operators", "internet pricing"],
+          "tags": ["internet", "internet-pro", "pricing", "operators", "rent", "bureaucratic-control", "v40"]
+        },
+        "identity": {
+          "claim_key": "iran|internet_pro|operator_pricing_and_authentication_mechanics|2026-04-20_2026-04-29",
+          "novelty": "update"
+        },
+        "claim": {
+          "statement": "April 2026 reporting makes Internet Pro operationally concrete rather than hypothetical: access is mediated through company letters, user lists, SIM/national-ID data, committee or operator review, and role-specific permissions; reported prices cluster around roughly 1.98m to 2.176m toman plus tax for 50GB/year, with one RighTel example capped at 2GB/day so daily 2GB use would imply about 14 repurchases and roughly 32m toman/year versus 383k toman for an ordinary 50GB package.",
+          "atomic": true,
+          "type": "mechanism",
+          "subject": "Internet Pro implementation",
+          "predicate": "converts",
+          "object": "public access into a priced, authenticated, role-differentiated entitlement"
+        },
+        "time": {
+          "valid_from": "2026-04-20",
+          "valid_until": "2026-04-29",
+          "precision": "range",
+          "timezone": "Asia/Tehran"
+        },
+        "provenance": {
+          "evidence": [
+            {
+              "source_id": "$src_abandaily_operator_pricing_v40",
+              "role": "supports",
+              "summary": "AbanDaily reports RighTel's 2.176m toman pre-tax quote, 50GB/year with 2GB/day cap, no proof that listed users are employees, MCI around 2.04m toman, and the 32m/year implication for daily 2GB use."
+            },
+            {
+              "source_id": "$src_farnet_committee_mechanics_v40",
+              "role": "supports",
+              "summary": "Farnet reports official-letter and Excel-list mechanics, committee review under SNSC direction involving the Communications Ministry and National Cyberspace Center, 1.98m toman plus 10% VAT pricing, regulator non-involvement in tariff-setting, and access that varies by role/service."
+            },
+            {
+              "source_id": "src:iran-cracks:20260502:970a057b",
+              "role": "context",
+              "summary": "The existing Iran International source had already described organizational applications, selected employees, undertakings, higher prices, and partial access rather than public restoration."
+            },
+            {
+              "source_id": "$src_source_notes_v40",
+              "role": "context",
+              "summary": "The v40 notes separate operator-pricing mechanics from the official denial layer."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "strong",
+            "rationale": "The details are specific and cross-source consistent, but still largely media-reported rather than a full regulator tariff file or official operator contract."
+          },
+          "importance": "high",
+          "uncertainty": "Precise package availability and pricing may vary by operator, role, and later enforcement; official tariff files and operator notices are still needed."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_xpool_internet_pro_v40_no_restoration_cluster",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Internet Pro", "Persian X", "internet blackout"],
+          "tags": ["xpool", "social", "internet", "internet-pro", "negative-evidence", "restoration", "v40"]
+        },
+        "identity": {
+          "claim_key": "iran|internet_pro|xpool_no_public_restoration_cluster|2026-05-01_2026-05-02",
+          "novelty": "new"
+        },
+        "claim": {
+          "statement": "The v40 xPool sample after May 1 emitted 62 items (61 usable text rows) and showed continuing public anger rather than a restoration cluster: 40 posts mentioned Internet Pro, 7 tiered internet, 7 white-SIM/white-line language, 10 ministry/adviser denial language, 4 operator language, and 41 cutoff/restoration terms; manual review found 62-63-day cutoff complaints, refusal-to-legitimize discourse, ministry denials, and black-market activation claims, but no source-near public restoration directive.",
+          "atomic": true,
+          "type": "observation",
+          "subject": "v40 xPool Internet Pro sample",
+          "predicate": "showed",
+          "object": "continued blackout/tiered-access anger without a public restoration cluster"
+        },
+        "time": {
+          "first_observed_at": "2026-05-02T04:39:19Z",
+          "precision": "instant",
+          "timezone": "UTC"
+        },
+        "provenance": {
+          "evidence": [
+            {
+              "source_id": "$src_xpool_internet_pro_v40",
+              "role": "supports",
+              "summary": "The saved result has 62 emitted items after 10 pages; jq/manual counts found the term distribution and no source-near rollback or restoration directive."
+            },
+            {
+              "source_id": "$src_source_notes_v40",
+              "role": "supports",
+              "summary": "The source notes record the xPool query, counts, saved raw paths, and manual-read summary."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "partial",
+            "rationale": "The result is a bounded X sample useful for discourse topology and negative evidence, not a representative measurement of all users or network state."
+          },
+          "importance": "medium",
+          "uncertainty": "The sample was latest-search and term-constrained; restoration could be occurring outside the sampled terms or through network changes not discussed on X."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "synth_v40_internet_pro_pressure_denials_not_restoration",
+      "row": {
+        "kind": "synthesis",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Internet Pro", "internet blackout", "digital control"],
+          "tags": ["overview", "synthesis", "v40", "internet", "internet-pro", "digital-control"]
+        },
+        "synthesis": {
+          "title": "Cracks in the Islamic Republic, v40 - Internet Pro pressure forces denials, not restoration",
+          "status": "active",
+          "summary": "The fortieth pass asks whether Internet Pro backlash has produced rollback for ordinary users. The answer is still no. Pressure is real: professional refusals, the Tehran E-Commerce Association, Article 90/Judiciary language, and fresh X discourse make tiered internet politically toxic. But the system response is responsibility-splitting, not public restoration. Security/SNSC bodies remain the authority for international-internet scope; operators implement and monetize access; the Communications Ministry says the label was not its plan and blames implementation violations; Parliament/judiciary language targets discrimination and profiteering. New operator evidence makes the model concrete: company letters, user lists, SIM/national-ID data, committee review, role-differentiated access, 1.98m-2.176m toman plus tax for 50GB/year, and a RighTel path that can imply roughly 32m toman/year for daily 2GB use. The v40 xPool sample reinforces the negative evidence: people are still talking about 62-63 days of cutoff, white SIMs, Internet Pro, black-market activation, and refusal to legitimize tiered access, not a public restoration directive. Net: the crack is legitimacy and administrative blame-shifting inside digital control; ordinary users remain behind filtering/cutoff while exceptions are authenticated, priced, and narrowed as crisis service.",
+          "basis": {
+            "claim_ids": [
+              "claim:iran-cracks:20260502:8a9c8abb",
+              "claim:iran-cracks:20260502:e43ce4ec",
+              "claim:iran-cracks:20260502:b5981f2f",
+              "claim:iran-cracks:20260502:5e709198",
+              "$claim_internet_pro_denials_preserve_channel_v40",
+              "$claim_internet_pro_operator_rent_mechanics_v40",
+              "$claim_xpool_internet_pro_v40_no_restoration_cluster"
+            ],
+            "question_ids": [
+              "q:iran-cracks:20260502:6c2c5eed",
+              "q:iran-cracks:20260501:00218f9b",
+              "q:iran-cracks:20260502:52634e28"
+            ],
+            "source_ids": [
+              "$src_source_notes_v40",
+              "$src_xpool_internet_pro_v40",
+              "$src_iranintl_ministry_advisor_v40",
+              "$src_abandaily_operator_pricing_v40",
+              "$src_farnet_committee_mechanics_v40",
+              "src:iran-cracks:20260502:d14c647a",
+              "src:iran-cracks:20260502:47d49cdc",
+              "src:iran-cracks:20260502:e9dde2ac",
+              "src:iran-cracks:20260502:9e18dfcd"
+            ]
+          },
+          "limitations": "This pass is strong on public-source policy mechanics and discourse topology, but still lacks an official SNSC text, regulator tariff file, operator contract notice, allocation-list disclosure, or direct network measurements. A future formal cancellation/restoration directive or measured public restoration would change the read."
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "strong",
+            "rationale": "The synthesis combines existing KNB Internet Pro rows, fresh direct crawls, a completed xPool sample, and explicit source-hygiene constraints."
+          },
+          "importance": "high"
+        }
+      }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_internet_pro_denials_preserve_channel_v40",
+      "to_id": "q:iran-cracks:20260502:6c2c5eed",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "The claim directly answers the rollback-versus-containment question with fresh official-denial and SNSC/security-channel evidence.",
+      "scope": { "collections": ["iran-cracks"] }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_internet_pro_operator_rent_mechanics_v40",
+      "to_id": "q:iran-cracks:20260502:6c2c5eed",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "The operator pricing and authentication mechanics explain what is being preserved when officials deny or narrow the Internet Pro label.",
+      "scope": { "collections": ["iran-cracks"] }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_internet_pro_operator_rent_mechanics_v40",
+      "to_id": "q:iran-cracks:20260502:52634e28",
+      "rel": "context_for",
+      "strength": "medium",
+      "rationale": "Internet Pro pricing and black-market activation are part of the wider pattern of crisis rents and information-control markets.",
+      "scope": { "collections": ["iran-cracks"] }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_xpool_internet_pro_v40_no_restoration_cluster",
+      "to_id": "q:iran-cracks:20260502:6c2c5eed",
+      "rel": "context_for",
+      "strength": "medium",
+      "rationale": "The social sample supplies negative evidence: backlash and denial discourse persisted, while public restoration did not surface in the sampled stream.",
+      "scope": { "collections": ["iran-cracks"] }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_xpool_internet_pro_v40_no_restoration_cluster",
+      "to_id": "q:iran-cracks:20260501:00218f9b",
+      "rel": "context_for",
+      "strength": "medium",
+      "rationale": "The sample shows the refusal coalition remains visible but did not newly break the tiered-access model in the sampled period.",
+      "scope": { "collections": ["iran-cracks"] }
+    },
+    {
+      "op": "supersede",
+      "target_ids": ["claim:iran-cracks:20260502:39228f0f"],
+      "replacement_id": "$claim_internet_pro_denials_preserve_channel_v40",
+      "reason": "v40 adds direct crawled ministry-denial evidence, a fresh xPool check, and a sharper distinction between public rollback and preserved SNSC/security-mediated exception access."
+    },
+    {
+      "op": "supersede",
+      "target_ids": ["claim:iran-cracks:20260502:fe733fec"],
+      "replacement_id": "$claim_internet_pro_operator_rent_mechanics_v40",
+      "reason": "v40 replaces the earlier medium-confidence operational-gating claim with more specific operator pricing, company-list, daily-cap, and committee-review evidence from AbanDaily/Farnet plus existing KNB context."
+    },
+    {
+      "op": "supersede",
+      "target_ids": ["synth:iran-cracks:20260502:4030de56"],
+      "replacement_id": "$synth_v40_internet_pro_pressure_denials_not_restoration",
+      "reason": "v40 moves from Starlink legal-opacity verification back to the Internet Pro rollback/control question and finds denials plus containment rather than public restoration."
+    }
+  ]
+}

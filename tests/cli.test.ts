@@ -1,0 +1,1420 @@
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { chmod, mkdir, mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { realpath } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
+import { runCli } from "../src/cli";
+import type { CommandResult, OutputOptions, OutputSink } from "../src/core/output";
+
+const CLI_PATH = join(import.meta.dir, "..", "src", "cli.ts");
+
+let workDir: string;
+
+beforeEach(async () => {
+  const raw = await mkdtemp(join(tmpdir(), "knb-cli-"));
+  workDir = await realpath(raw);
+});
+
+afterEach(async () => {
+  try {
+    await chmod(workDir, 0o700);
+  } catch {}
+  await rm(workDir, { recursive: true, force: true });
+});
+
+async function pathExists(path: string): Promise<boolean> {
+  try {
+    await stat(path);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+type SpawnResult = { code: number; stdout: string; stderr: string };
+
+async function runCliBinary(
+  args: string[],
+  options: { stdin?: string; cwd?: string; env?: Record<string, string> } = {},
+): Promise<SpawnResult> {
+  const stdio: ["pipe" | "ignore", "pipe", "pipe"] = [
+    options.stdin === undefined ? "ignore" : "pipe",
+    "pipe",
+    "pipe",
+  ];
+  const proc = Bun.spawn(["bun", "run", CLI_PATH, ...args], {
+    cwd: options.cwd ?? workDir,
+    stdio,
+    env: { ...process.env, KNB_CONFIG: "", ...(options.env ?? {}) },
+  });
+  if (options.stdin !== undefined && proc.stdin) {
+    proc.stdin.write(options.stdin);
+    await proc.stdin.end();
+  }
+  const code = await proc.exited;
+  const stdout = await new Response(proc.stdout).text();
+  const stderr = await new Response(proc.stderr).text();
+  return { code, stdout, stderr };
+}
+
+type Captured = {
+  stdout: string;
+  stderr: string;
+  results: CommandResult[];
+};
+
+function makeCapturingOptions(format: OutputOptions["format"]): {
+  options: OutputOptions;
+  captured: Captured;
+} {
+  const captured: Captured = { stdout: "", stderr: "", results: [] };
+  const stdout: OutputSink = {
+    write(chunk) {
+      captured.stdout += typeof chunk === "string" ? chunk : Buffer.from(chunk).toString("utf8");
+      return true;
+    },
+  };
+  const stderr: OutputSink = {
+    write(chunk) {
+      captured.stderr += typeof chunk === "string" ? chunk : Buffer.from(chunk).toString("utf8");
+      return true;
+    },
+  };
+  const options: OutputOptions = { stdout, stderr, isTty: false };
+  if (format !== undefined) options.format = format;
+  return { options, captured };
+}
+
+async function runCliInProcess(
+  args: string[],
+  format: OutputOptions["format"] = "json",
+  optionsExtra: Partial<OutputOptions> = {},
+): Promise<{ code: number } & Captured> {
+  const { options, captured } = makeCapturingOptions(format);
+  const merged: OutputOptions = { ...options, ...optionsExtra };
+  if (format !== undefined) merged.format = format;
+  const [command, ...rest] = args;
+  const finalArgs =
+    command === undefined ? ["--root", workDir] : [command, "--root", workDir, ...rest];
+  const code = await runCli(finalArgs, merged);
+  return { code, ...captured };
+}
+
+function parseEnvelope(text: string): { envelope: Record<string, unknown>; raw: string } {
+  const trimmed = text.trim();
+  return { envelope: JSON.parse(trimmed) as Record<string, unknown>, raw: trimmed };
+}
+
+async function initWorkspace(): Promise<void> {
+  const initRun = await runCliBinary(["init", "--json"]);
+  if (initRun.code !== 0) throw new Error(`init failed: ${initRun.stderr}`);
+}
+
+describe("cli init (spawned)", () => {
+  test("init on a fresh dir creates expected paths and returns ok envelope", async () => {
+    const result = await runCliBinary(["init", "--json"]);
+    expect(result.code).toBe(0);
+    expect(await pathExists(join(workDir, ".knb", "config.json"))).toBe(true);
+    expect(await pathExists(join(workDir, "knb", "ledger.jsonl"))).toBe(true);
+    expect(await pathExists(join(workDir, "knb", "schema.json"))).toBe(true);
+    expect(await pathExists(join(workDir, "knb", "views"))).toBe(true);
+    expect(await pathExists(join(workDir, "knb", "indexes"))).toBe(true);
+
+    const envelope = JSON.parse(result.stdout.trim()) as {
+      ok: boolean;
+      command: string;
+      data: { created_paths: string[]; ledger_path: string; config_path: string; schema_path: string; workspace_root: string };
+      meta: { workspace_root: string; ledger: string; elapsed_ms: number };
+    };
+    expect(envelope.ok).toBe(true);
+    expect(envelope.command).toBe("init");
+    expect(Array.isArray(envelope.data.created_paths)).toBe(true);
+    expect(envelope.data.created_paths.length).toBeGreaterThan(0);
+    expect(envelope.data.workspace_root).toBe(workDir);
+    expect(envelope.data.ledger_path.endsWith(join("knb", "ledger.jsonl"))).toBe(true);
+    expect(envelope.data.config_path.endsWith(join(".knb", "config.json"))).toBe(true);
+    expect(envelope.data.schema_path.endsWith(join("knb", "schema.json"))).toBe(true);
+    expect(typeof envelope.meta.elapsed_ms).toBe("number");
+    expect(envelope.meta.workspace_root).toBe(workDir);
+    expect(envelope.meta.ledger).toBe(envelope.data.ledger_path);
+  });
+
+  test("status after init returns row_count 0 with elapsed_ms numeric", async () => {
+    const initRun = await runCliBinary(["init", "--json"]);
+    expect(initRun.code).toBe(0);
+
+    const statusRun = await runCliBinary(["status", "--json"]);
+    expect(statusRun.code).toBe(0);
+    const envelope = JSON.parse(statusRun.stdout.trim()) as {
+      ok: boolean;
+      data: { row_count: number; parse_error_count: number };
+      meta: { elapsed_ms?: unknown };
+    };
+    expect(envelope.ok).toBe(true);
+    expect(envelope.data.row_count).toBe(0);
+    expect(envelope.data.parse_error_count).toBe(0);
+    expect(typeof envelope.meta.elapsed_ms).toBe("number");
+  });
+});
+
+describe("cli init (in-process)", () => {
+  test("init followed by schema returns full schema and >=5 row samples", async () => {
+    const initResult = await runCliInProcess(["init"]);
+    expect(initResult.code).toBe(0);
+
+    const schemaResult = await runCliInProcess(["schema"]);
+    expect(schemaResult.code).toBe(0);
+    const { envelope } = parseEnvelope(schemaResult.stdout);
+    expect(envelope.ok).toBe(true);
+    expect(envelope.command).toBe("schema");
+    const data = envelope.data as {
+      schema_version: string;
+      json_schema: object;
+      row_samples: unknown[];
+      operation_samples: unknown[];
+    };
+    expect(data.schema_version).toBe("knb.v1");
+    expect(typeof data.json_schema).toBe("object");
+    expect(data.json_schema).not.toBeNull();
+    expect(data.row_samples.length).toBeGreaterThanOrEqual(5);
+    expect(data.operation_samples.length).toBeGreaterThanOrEqual(6);
+  });
+
+  test("init --force overwrites a mutated schema file", async () => {
+    const first = await runCliInProcess(["init"]);
+    expect(first.code).toBe(0);
+
+    const schemaPath = join(workDir, "knb", "schema.json");
+    await writeFile(schemaPath, "STALE_CONTENT", "utf8");
+    const stale = await readFile(schemaPath, "utf8");
+    expect(stale).toBe("STALE_CONTENT");
+
+    const forced = await runCliInProcess(["init", "--force"]);
+    expect(forced.code).toBe(0);
+    const fresh = await readFile(schemaPath, "utf8");
+    expect(fresh).not.toBe("STALE_CONTENT");
+    expect(fresh.length).toBeGreaterThan(100);
+    const parsed = JSON.parse(fresh) as { $id?: string };
+    expect(parsed.$id).toBe("knb.v1");
+  });
+
+  test("status default human text writes a summary on stdout and nothing on stderr", async () => {
+    const initResult = await runCliInProcess(["init"]);
+    expect(initResult.code).toBe(0);
+
+    const textResult = await runCliInProcess(["status"], "text");
+    expect(textResult.code).toBe(0);
+    expect(textResult.stdout.length).toBeGreaterThan(0);
+    expect(textResult.stderr).toBe("");
+    expect(textResult.stdout).toContain("knb.v1");
+    expect(textResult.stdout.endsWith("\n")).toBe(true);
+  });
+
+  test("status --quiet writes nothing on success and exits 0", async () => {
+    const initResult = await runCliInProcess(["init"]);
+    expect(initResult.code).toBe(0);
+
+    const quiet = await runCliInProcess(["status"], "quiet");
+    expect(quiet.code).toBe(0);
+    expect(quiet.stdout).toBe("");
+    expect(quiet.stderr).toBe("");
+  });
+
+  test("status with no --root falls back to cwd workspace", async () => {
+    const { options, captured } = makeCapturingOptions("json");
+    const initCode = await runCli(["init", "--root", workDir], options);
+    expect(initCode).toBe(0);
+    captured.stdout = "";
+    captured.stderr = "";
+
+    const originalCwd = process.cwd();
+    let statusCode: number;
+    try {
+      process.chdir(workDir);
+      statusCode = await runCli(["status"], options);
+    } finally {
+      process.chdir(originalCwd);
+    }
+    expect(statusCode).toBe(0);
+    const { envelope } = parseEnvelope(captured.stdout);
+    expect(envelope.ok).toBe(true);
+    const data = envelope.data as { workspace_root: string; row_count: number };
+    expect(data.workspace_root).toBe(workDir);
+    expect(data.row_count).toBe(0);
+  });
+
+  test("unknown command returns exit 2 with invalid_arguments error", async () => {
+    const result = await runCliInProcess(["totally-unknown"]);
+    expect(result.code).toBe(2);
+    expect(result.stdout).toBe("");
+    const envelope = JSON.parse(result.stderr.trim()) as {
+      ok: boolean;
+      error: { code: string; message: string };
+      meta: { exit_code: number };
+    };
+    expect(envelope.ok).toBe(false);
+    expect(envelope.error.code).toBe("invalid_arguments");
+    expect(envelope.error.message).toContain("totally-unknown");
+    expect(envelope.meta.exit_code).toBe(2);
+  });
+
+  test("legacy validate command is unknown and exits 2", async () => {
+    const result = await runCliInProcess(["validate"]);
+    expect(result.code).toBe(2);
+    expect(result.stdout).toBe("");
+    const envelope = JSON.parse(result.stderr.trim()) as {
+      ok: boolean;
+      command?: string;
+      error: { code: string };
+    };
+    expect(envelope.ok).toBe(false);
+    expect(envelope.error.code).toBe("invalid_arguments");
+    expect(envelope.command).toBe("validate");
+  });
+
+  test("legacy append command is unknown and exits 2", async () => {
+    const result = await runCliInProcess(["append"]);
+    expect(result.code).toBe(2);
+    expect(result.stdout).toBe("");
+    const envelope = JSON.parse(result.stderr.trim()) as {
+      ok: boolean;
+      command?: string;
+      error: { code: string };
+    };
+    expect(envelope.ok).toBe(false);
+    expect(envelope.error.code).toBe("invalid_arguments");
+    expect(envelope.command).toBe("append");
+  });
+
+  test("status --json includes meta.elapsed_ms numeric field", async () => {
+    const initResult = await runCliInProcess(["init"]);
+    expect(initResult.code).toBe(0);
+
+    const statusResult = await runCliInProcess(["status"]);
+    expect(statusResult.code).toBe(0);
+    const { envelope } = parseEnvelope(statusResult.stdout);
+    const meta = envelope.meta as { elapsed_ms?: unknown };
+    expect(typeof meta.elapsed_ms).toBe("number");
+    expect((meta.elapsed_ms as number) >= 0).toBe(true);
+  });
+});
+
+describe("cli help and entrypoint", () => {
+  test("no command prints help text to stdout and exits 0", async () => {
+    const result = await runCliBinary([]);
+    expect(result.code).toBe(0);
+    expect(result.stdout).toContain("knb");
+    expect(result.stdout).toContain("Usage:");
+    expect(result.stderr).toBe("");
+  });
+
+  test("help command prints help text and exits 0", async () => {
+    const result = await runCliBinary(["help"]);
+    expect(result.code).toBe(0);
+    expect(result.stdout).toContain("Usage:");
+  });
+
+  test("--help long flag prints help and exits 0", async () => {
+    const result = await runCliBinary(["--help"]);
+    expect(result.code).toBe(0);
+    expect(result.stdout).toContain("Usage:");
+  });
+
+  test("-h short flag prints help and exits 0", async () => {
+    const result = await runCliBinary(["-h"]);
+    expect(result.code).toBe(0);
+    expect(result.stdout).toContain("Usage:");
+  });
+
+  test("help text mentions every supported command and no removed commands", async () => {
+    const result = await runCliBinary(["help"]);
+    const text = result.stdout;
+    for (const cmd of [
+      "init",
+      "status",
+      "schema",
+      "apply",
+      "add",
+      "get",
+      "query",
+      "context",
+      "novelty",
+      "render",
+      "check",
+      "index",
+    ]) {
+      expect(text).toContain(`knb ${cmd}`);
+    }
+    expect(text).not.toContain("knb validate");
+    expect(text).not.toContain("knb append");
+  });
+
+  test("help text documents every typed exit code 0..10", async () => {
+    const result = await runCliBinary(["help"]);
+    const text = result.stdout;
+    expect(text).toContain("not_found");
+    expect(text).toContain("invalid_arguments");
+    expect(text).toContain("validation_failed");
+    expect(text).toContain("duplicate_blocked");
+    expect(text).toContain("io_failed");
+    expect(text).toContain("lock_busy");
+    expect(text).toContain("broken_reference");
+    expect(text).toContain("external_dependency_failed");
+    expect(text).toContain("unsafe_operation_refused");
+    expect(text).toContain("internal_error");
+  });
+});
+
+describe("cli flag parsing", () => {
+  test("equals form --ledger=<path> is honored and overrides default", async () => {
+    const initFirst = await runCliInProcess(["init"]);
+    expect(initFirst.code).toBe(0);
+
+    const customLedger = join(workDir, "custom-ledger.jsonl");
+    const result = await runCliInProcess(["status", `--ledger=${customLedger}`]);
+    expect(result.code).toBe(0);
+    const { envelope } = parseEnvelope(result.stdout);
+    const meta = envelope.meta as { ledger: string };
+    expect(meta.ledger).toBe(customLedger);
+  });
+
+  test("space form --ledger <path> is honored and overrides default", async () => {
+    const initFirst = await runCliInProcess(["init"]);
+    expect(initFirst.code).toBe(0);
+
+    const customLedger = join(workDir, "another-ledger.jsonl");
+    const result = await runCliInProcess(["status", "--ledger", customLedger]);
+    expect(result.code).toBe(0);
+    const { envelope } = parseEnvelope(result.stdout);
+    const meta = envelope.meta as { ledger: string };
+    expect(meta.ledger).toBe(customLedger);
+  });
+
+  test("--actor flag overrides KNB_ACTOR for status", async () => {
+    const initFirst = await runCliInProcess(["init"]);
+    expect(initFirst.code).toBe(0);
+
+    const result = await runCliInProcess(["status", "--actor", "alice@example"]);
+    expect(result.code).toBe(0);
+    const { envelope } = parseEnvelope(result.stdout);
+    const data = envelope.data as { actor: string };
+    expect(data.actor).toBe("alice@example");
+  });
+
+  test("--config flag accepts an alternate config path with a custom ledger", async () => {
+    const initFirst = await runCliInProcess(["init"]);
+    expect(initFirst.code).toBe(0);
+
+    const altConfigDir = join(workDir, "alt-config-dir");
+    await mkdir(altConfigDir, { recursive: true });
+    const altConfig = join(altConfigDir, "knb.json");
+    const altLedger = join(altConfigDir, "alt-ledger.jsonl");
+    await writeFile(altConfig, JSON.stringify({ ledger: altLedger }), "utf8");
+
+    const result = await runCliInProcess(["status", "--config", altConfig]);
+    expect(result.code).toBe(0);
+    const { envelope } = parseEnvelope(result.stdout);
+    const meta = envelope.meta as { ledger: string };
+    expect(meta.ledger).toBe(altLedger);
+  });
+
+  test("unknown flag is silently ignored when commands do not consume it", async () => {
+    const initFirst = await runCliInProcess(["init"]);
+    expect(initFirst.code).toBe(0);
+
+    const result = await runCliInProcess(["status", "--no-such-flag"]);
+    expect(result.code).toBe(0);
+    const { envelope } = parseEnvelope(result.stdout);
+    expect(envelope.ok).toBe(true);
+  });
+
+  test("--quiet beats --json when both are set", async () => {
+    const initFirst = await runCliInProcess(["init"]);
+    expect(initFirst.code).toBe(0);
+
+    const result = await runCliBinary(["status", "--json", "--quiet"]);
+    expect(result.code).toBe(0);
+    expect(result.stdout).toBe("");
+    expect(result.stderr).toBe("");
+  });
+
+  test("--ndjson beats --json when both are set", async () => {
+    const initFirst = await runCliInProcess(["init"]);
+    expect(initFirst.code).toBe(0);
+
+    const result = await runCliBinary(["status", "--json", "--ndjson"]);
+    expect(result.code).toBe(0);
+    const lines = result.stdout.split("\n").filter((l) => l.length > 0);
+    expect(lines.length).toBeGreaterThanOrEqual(1);
+    const last = JSON.parse(lines[lines.length - 1] ?? "");
+    expect(last.ok).toBe(true);
+    expect(last.command).toBe("status");
+  });
+
+  test("--pretty produces indented JSON envelope", async () => {
+    const initFirst = await runCliInProcess(["init"]);
+    expect(initFirst.code).toBe(0);
+
+    const result = await runCliBinary(["status", "--pretty"]);
+    expect(result.code).toBe(0);
+    expect(result.stdout).toContain("\n  ");
+    const parsed = JSON.parse(result.stdout);
+    expect(parsed.ok).toBe(true);
+  });
+
+  test("--json beats --text when both are set (json wins precedence)", async () => {
+    const initFirst = await runCliInProcess(["init"]);
+    expect(initFirst.code).toBe(0);
+
+    const result = await runCliBinary(["status", "--text", "--json"]);
+    expect(result.code).toBe(0);
+    const parsed = JSON.parse(result.stdout.trim());
+    expect(parsed.ok).toBe(true);
+  });
+
+  test("--text forces human text even when piped (no envelope wrapper)", async () => {
+    const initFirst = await runCliInProcess(["init"]);
+    expect(initFirst.code).toBe(0);
+
+    const result = await runCliBinary(["status", "--text"]);
+    expect(result.code).toBe(0);
+    expect(result.stdout).toContain("knb.v1");
+    let parsedAsEnvelope = false;
+    try {
+      const maybeEnv = JSON.parse(result.stdout.trim()) as { ok?: unknown; command?: unknown };
+      if (typeof maybeEnv === "object" && maybeEnv !== null && "ok" in maybeEnv && "command" in maybeEnv) {
+        parsedAsEnvelope = true;
+      }
+    } catch {}
+    expect(parsedAsEnvelope).toBe(false);
+  });
+
+  test("piped (no TTY) defaults to compact JSON envelope", async () => {
+    const initFirst = await runCliInProcess(["init"]);
+    expect(initFirst.code).toBe(0);
+
+    const result = await runCliBinary(["status"]);
+    expect(result.code).toBe(0);
+    const parsed = JSON.parse(result.stdout.trim());
+    expect(parsed.ok).toBe(true);
+    expect(parsed.command).toBe("status");
+    expect(result.stdout.includes("\n  ")).toBe(false);
+  });
+
+  test("isTty=true forces human text (auto-detect path) - no envelope wrapper", async () => {
+    const initFirst = await runCliInProcess(["init"]);
+    expect(initFirst.code).toBe(0);
+
+    const { options, captured } = makeCapturingOptions(undefined);
+    const ttyOpts: OutputOptions = { ...options, isTty: true };
+    const code = await runCli(["status", "--root", workDir], ttyOpts);
+    expect(code).toBe(0);
+    expect(captured.stdout).toContain("knb.v1");
+    let parsedAsEnvelope = false;
+    try {
+      const maybeEnv = JSON.parse(captured.stdout.trim()) as { ok?: unknown; command?: unknown };
+      if (typeof maybeEnv === "object" && maybeEnv !== null && "ok" in maybeEnv && "command" in maybeEnv) {
+        parsedAsEnvelope = true;
+      }
+    } catch {}
+    expect(parsedAsEnvelope).toBe(false);
+  });
+});
+
+describe("cli apply / add / novelty payload sources", () => {
+  test("apply --file <path> reads operations from disk", async () => {
+    await initWorkspace();
+    const opsPath = join(workDir, "ops.json");
+    const payload = {
+      operations: [
+        {
+          op: "add",
+          row: {
+            kind: "source",
+            scope: { collections: ["files-flag"] },
+            source: { type: "web_page", title: "From file", uri: "https://example.com/from-file" },
+            provenance: { acquisition: { method: "manual" } },
+          },
+        },
+      ],
+    };
+    await writeFile(opsPath, JSON.stringify(payload), "utf8");
+
+    const result = await runCliBinary(["apply", "--file", opsPath, "--atomic", "--json"]);
+    expect(result.code).toBe(0);
+    const env = JSON.parse(result.stdout.trim()) as {
+      ok: boolean;
+      data: { meta: { rows_appended: number }; created: Array<{ kind: string }> };
+    };
+    expect(env.ok).toBe(true);
+    expect(env.data.created.length).toBe(1);
+    expect(env.data.created[0]?.kind).toBe("source");
+    expect(env.data.meta.rows_appended).toBe(1);
+  });
+
+  test("apply --json '<payload>' inline JSON form is honored", async () => {
+    await initWorkspace();
+    const payload = JSON.stringify({
+      operations: [
+        {
+          op: "add",
+          row: {
+            kind: "source",
+            scope: { collections: ["inline"] },
+            source: { type: "web_page", title: "Inline", uri: "https://example.com/inline" },
+            provenance: { acquisition: { method: "manual" } },
+          },
+        },
+      ],
+    });
+    const result = await runCliBinary(["apply", "--json", payload, "--atomic", "--pretty"]);
+    expect(result.code).toBe(0);
+    const env = JSON.parse(result.stdout) as {
+      ok: boolean;
+      data: { created: unknown[] };
+    };
+    expect(env.ok).toBe(true);
+    expect(env.data.created.length).toBe(1);
+  });
+
+  test("apply --dry-run previews a batch without appending rows", async () => {
+    await initWorkspace();
+    const payload = JSON.stringify({
+      operations: [
+        {
+          op: "add",
+          row: {
+            kind: "source",
+            scope: { collections: ["dry-run"] },
+            source: { type: "web_page", title: "Dry run", uri: "https://example.com/dry-run" },
+            provenance: { acquisition: { method: "manual" } },
+          },
+        },
+      ],
+    });
+
+    const result = await runCliBinary(["apply", "--json", payload, "--dry-run", "--pretty"]);
+    expect(result.code).toBe(0);
+    const env = JSON.parse(result.stdout.trim()) as {
+      ok: boolean;
+      data: { created: unknown[]; meta: { dry_run: boolean; planned_rows: number; rows_appended: number } };
+      meta: { dry_run: boolean; planned_rows: number; rows_appended: number };
+    };
+    expect(env.ok).toBe(true);
+    expect(env.data.created.length).toBe(1);
+    expect(env.data.meta.dry_run).toBe(true);
+    expect(env.data.meta.planned_rows).toBe(1);
+    expect(env.data.meta.rows_appended).toBe(0);
+    expect(env.meta.dry_run).toBe(true);
+    expect(env.meta.planned_rows).toBe(1);
+    expect(env.meta.rows_appended).toBe(0);
+
+    const statusRun = await runCliBinary(["status", "--json"]);
+    const statusEnv = JSON.parse(statusRun.stdout.trim()) as { data: { row_count: number } };
+    expect(statusEnv.data.row_count).toBe(0);
+  });
+
+  test("apply --dry-run catches invalid relation labels without appending rows", async () => {
+    await initWorkspace();
+    const seedPayload = JSON.stringify({
+      operations: [
+        {
+          op: "add",
+          as: "a",
+          row: {
+            kind: "source",
+            scope: { collections: ["dry-run-rel"] },
+            source: { type: "web_page", title: "A", uri: "https://example.com/a" },
+            provenance: { acquisition: { method: "manual" } },
+          },
+        },
+        {
+          op: "add",
+          as: "b",
+          row: {
+            kind: "source",
+            scope: { collections: ["dry-run-rel"] },
+            source: { type: "web_page", title: "B", uri: "https://example.com/b" },
+            provenance: { acquisition: { method: "manual" } },
+          },
+        },
+      ],
+    });
+    const seed = await runCliBinary(["apply", "--json", seedPayload, "--pretty"]);
+    const seedEnv = JSON.parse(seed.stdout.trim()) as { data: { created: Array<{ id: string }> } };
+    const badPayload = JSON.stringify({
+      operations: [
+        {
+          op: "relate",
+          from_id: seedEnv.data.created[0]?.id,
+          to_id: seedEnv.data.created[1]?.id,
+          rel: "partial_answer_to",
+          scope: { collections: ["dry-run-rel"] },
+        },
+      ],
+    });
+
+    const result = await runCliBinary(["apply", "--json", badPayload, "--dry-run", "--pretty"]);
+    expect(result.code).toBe(3);
+    const env = JSON.parse(result.stderr.trim()) as {
+      ok: boolean;
+      error: { code: string; details?: { issues?: Array<{ code?: string; path?: string; op_index?: number; op_path?: string }> } };
+    };
+    expect(env.ok).toBe(false);
+    expect(env.error.code).toBe("validation_failed");
+    const relIssue = env.error.details?.issues?.find((issue) => issue.code === "relation_kind_invalid");
+    expect(relIssue).toBeDefined();
+    expect(relIssue?.op_index).toBe(0);
+    expect(relIssue?.op_path).toBe("operations[0].rel");
+
+    const statusRun = await runCliBinary(["status", "--json"]);
+    const statusEnv = JSON.parse(statusRun.stdout.trim()) as { data: { row_count: number } };
+    expect(statusEnv.data.row_count).toBe(2);
+  });
+
+  test("apply rejects invalid operation shapes with operation-index diagnostics", async () => {
+    await initWorkspace();
+    const payload = JSON.stringify({ operations: [{ op: "delete" }] });
+
+    const result = await runCliBinary(["apply", "--json", payload, "--pretty"]);
+    expect(result.code).toBe(3);
+    const env = JSON.parse(result.stderr.trim()) as {
+      ok: boolean;
+      error: { code: string; details?: { issues?: Array<{ code?: string; op_index?: number; op_path?: string }> } };
+    };
+    expect(env.ok).toBe(false);
+    expect(env.error.code).toBe("validation_failed");
+    expect(env.error.details?.issues?.[0]?.code).toBe("operation_kind_invalid");
+    expect(env.error.details?.issues?.[0]?.op_index).toBe(0);
+    expect(env.error.details?.issues?.[0]?.op_path).toBe("operations[0].op");
+
+    const statusRun = await runCliBinary(["status", "--json"]);
+    const statusEnv = JSON.parse(statusRun.stdout.trim()) as { data: { row_count: number } };
+    expect(statusEnv.data.row_count).toBe(0);
+  });
+
+  test("add --file <path> appends a single row", async () => {
+    await initWorkspace();
+    const rowPath = join(workDir, "row.json");
+    const row = {
+      kind: "source",
+      scope: { collections: ["add-file"] },
+      source: { type: "web_page", title: "Added via file", uri: "https://example.com/add-file" },
+      provenance: { acquisition: { method: "manual" } },
+    };
+    await writeFile(rowPath, JSON.stringify(row), "utf8");
+
+    const result = await runCliBinary(["add", "--file", rowPath, "--json"]);
+    expect(result.code).toBe(0);
+    const env = JSON.parse(result.stdout.trim()) as {
+      ok: boolean;
+      data: { created: Array<{ kind: string }>; meta: { rows_appended: number } };
+    };
+    expect(env.ok).toBe(true);
+    expect(env.data.created.length).toBe(1);
+    expect(env.data.created[0]?.kind).toBe("source");
+    expect(env.data.meta.rows_appended).toBe(1);
+  });
+
+  test("novelty --file <path> classifies candidates from disk", async () => {
+    await initWorkspace();
+    const file = join(workDir, "candidates.json");
+    await writeFile(
+      file,
+      JSON.stringify([
+        {
+          kind: "claim",
+          scope: { collections: ["novelty"] },
+          identity: { claim_key: "novelty|never-before-seen" },
+          claim: { statement: "Never before seen.", atomic: true },
+          assessment: { confidence: "low" },
+        },
+      ]),
+      "utf8",
+    );
+
+    const result = await runCliBinary(["novelty", "--file", file, "--json"]);
+    expect(result.code).toBe(0);
+    const env = JSON.parse(result.stdout.trim()) as {
+      ok: boolean;
+      data: { results: Array<{ classification: string }> };
+    };
+    expect(env.ok).toBe(true);
+    expect(env.data.results.length).toBe(1);
+    expect(env.data.results[0]?.classification).toBe("new");
+  });
+
+  test("apply with no payload source returns exit 2 invalid_arguments", async () => {
+    await initWorkspace();
+    const result = await runCliBinary(["apply", "--atomic", "--json"]);
+    expect(result.code).toBe(2);
+    expect(result.stdout).toBe("");
+    const env = JSON.parse(result.stderr.trim()) as {
+      ok: boolean;
+      error: { code: string; message: string };
+      meta: { exit_code: number };
+    };
+    expect(env.ok).toBe(false);
+    expect(env.error.code).toBe("invalid_arguments");
+    expect(env.error.message).toContain("--file");
+    expect(env.meta.exit_code).toBe(2);
+  });
+
+  test("apply --stdin with empty stdin returns exit 2 invalid_arguments", async () => {
+    await initWorkspace();
+    const result = await runCliBinary(["apply", "--stdin", "--atomic", "--json"], { stdin: "" });
+    expect(result.code).toBe(2);
+    const env = JSON.parse(result.stderr.trim()) as {
+      ok: boolean;
+      error: { code: string; message: string };
+    };
+    expect(env.ok).toBe(false);
+    expect(env.error.code).toBe("invalid_arguments");
+    expect(env.error.message.toLowerCase()).toContain("stdin");
+  });
+
+  test("apply --stdin with malformed JSON returns exit 2 invalid_arguments", async () => {
+    await initWorkspace();
+    const result = await runCliBinary(["apply", "--stdin", "--atomic", "--json"], {
+      stdin: "{not-json",
+    });
+    expect(result.code).toBe(2);
+    const env = JSON.parse(result.stderr.trim()) as {
+      ok: boolean;
+      error: { code: string; message: string; details?: { source?: string } };
+      meta: { exit_code: number };
+    };
+    expect(env.ok).toBe(false);
+    expect(env.error.code).toBe("invalid_arguments");
+    expect(env.error.message.toLowerCase()).toContain("parse");
+    expect(env.error.details?.source).toBe("--stdin");
+    expect(env.meta.exit_code).toBe(2);
+  });
+
+  test("apply --json with malformed inline JSON returns exit 2 invalid_arguments", async () => {
+    await initWorkspace();
+    const result = await runCliBinary(["apply", "--json", "{not:json", "--atomic", "--pretty"]);
+    expect(result.code).toBe(2);
+    const env = JSON.parse(result.stderr.trim()) as {
+      ok: boolean;
+      error: { code: string; details?: { source?: string } };
+    };
+    expect(env.ok).toBe(false);
+    expect(env.error.code).toBe("invalid_arguments");
+    expect(env.error.details?.source).toBe("--json");
+  });
+
+  test("apply --file with nonexistent path returns exit 5 io_failed", async () => {
+    await initWorkspace();
+    const result = await runCliBinary([
+      "apply",
+      "--file",
+      join(workDir, "no-such-file.json"),
+      "--atomic",
+      "--json",
+    ]);
+    expect(result.code).toBe(5);
+    const env = JSON.parse(result.stderr.trim()) as {
+      ok: boolean;
+      error: { code: string; details?: { path?: string } };
+      meta: { exit_code: number };
+    };
+    expect(env.ok).toBe(false);
+    expect(env.error.code).toBe("io_failed");
+    expect(env.meta.exit_code).toBe(5);
+  });
+
+  test("apply payload that is a JSON array (not object) returns contract diagnostics", async () => {
+    await initWorkspace();
+    const result = await runCliBinary(["apply", "--json", "[1,2,3]", "--atomic", "--pretty"]);
+    expect(result.code).toBe(3);
+    const env = JSON.parse(result.stderr.trim()) as {
+      ok: boolean;
+      error: { code: string; details?: { issues?: Array<{ code?: string; path?: string }> } };
+    };
+    expect(env.ok).toBe(false);
+    expect(env.error.code).toBe("validation_failed");
+    expect(env.error.details?.issues?.[0]?.code).toBe("apply_request_invalid");
+  });
+
+  test("apply payload missing operations[] returns contract diagnostics", async () => {
+    await initWorkspace();
+    const result = await runCliBinary(["apply", "--json", "{}", "--atomic", "--pretty"]);
+    expect(result.code).toBe(3);
+    const env = JSON.parse(result.stderr.trim()) as {
+      ok: boolean;
+      error: { code: string; details?: { issues?: Array<{ code?: string; path?: string }> } };
+    };
+    expect(env.ok).toBe(false);
+    expect(env.error.code).toBe("validation_failed");
+    expect(env.error.details?.issues?.[0]?.code).toBe("apply_request_invalid");
+    expect(env.error.details?.issues?.[0]?.path).toBe("operations");
+  });
+
+  test("novelty with non-array, non-{candidates} payload returns exit 2", async () => {
+    await initWorkspace();
+    const result = await runCliBinary(["novelty", "--json", "{}", "--pretty"]);
+    expect(result.code).toBe(2);
+    const env = JSON.parse(result.stderr.trim()) as {
+      ok: boolean;
+      error: { code: string; message: string };
+    };
+    expect(env.ok).toBe(false);
+    expect(env.error.code).toBe("invalid_arguments");
+    expect(env.error.message).toContain("candidates");
+  });
+
+  test("apply --stdin with very large payload (>5000 ops) does not deadlock and succeeds", async () => {
+    await initWorkspace();
+    const ops = Array.from({ length: 5000 }, (_, i) => ({
+      op: "add",
+      row: {
+        kind: "source",
+        scope: { collections: ["bulk"] },
+        source: {
+          type: "web_page",
+          title: `Bulk ${i}`,
+          uri: `https://example.com/bulk/${i}`,
+        },
+        provenance: { acquisition: { method: "manual" } },
+      },
+    }));
+    const payload = JSON.stringify({ operations: ops });
+
+    const result = await runCliBinary(["apply", "--stdin", "--atomic", "--json"], {
+      stdin: payload,
+    });
+    expect(result.code).toBe(0);
+    const env = JSON.parse(result.stdout.trim()) as {
+      ok: boolean;
+      data: { meta: { rows_appended: number } };
+    };
+    expect(env.ok).toBe(true);
+    expect(env.data.meta.rows_appended).toBe(5000);
+  }, 30000);
+});
+
+describe("cli get / query / context / novelty success envelopes", () => {
+  test("get with no positional ids returns exit 2 invalid_arguments", async () => {
+    await initWorkspace();
+    const result = await runCliBinary(["get", "--json"]);
+    expect(result.code).toBe(2);
+    const env = JSON.parse(result.stderr.trim()) as {
+      ok: boolean;
+      error: { code: string; message: string };
+      command?: string;
+    };
+    expect(env.ok).toBe(false);
+    expect(env.error.code).toBe("invalid_arguments");
+    expect(env.error.message).toContain("at least one id");
+    expect(env.command).toBe("get");
+  });
+
+  test("get all-not-found returns exit 1 not_found with stderr envelope", async () => {
+    await initWorkspace();
+    const result = await runCliBinary(["get", "src:does:not:exist:deadbeef", "--json"]);
+    expect(result.code).toBe(1);
+    expect(result.stdout).toBe("");
+    const env = JSON.parse(result.stderr.trim()) as {
+      ok: boolean;
+      error: { code: string };
+      meta: { exit_code: number };
+    };
+    expect(env.ok).toBe(false);
+    expect(env.error.code).toBe("not_found");
+    expect(env.meta.exit_code).toBe(1);
+  });
+
+  test("get with mix of found and not-found returns exit 0 and not_found list", async () => {
+    await initWorkspace();
+    const addRun = await runCliBinary([
+      "add",
+      "--json",
+      JSON.stringify({
+        kind: "source",
+        scope: { collections: ["mix"] },
+        source: { type: "web_page", title: "Mix", uri: "https://example.com/mix" },
+        provenance: { acquisition: { method: "manual" } },
+      }),
+    ]);
+    expect(addRun.code).toBe(0);
+    const addEnv = JSON.parse(addRun.stdout.trim()) as {
+      data: { created: Array<{ id: string }> };
+    };
+    const realId = addEnv.data.created[0]?.id ?? "";
+    expect(realId.length).toBeGreaterThan(0);
+
+    const result = await runCliBinary([
+      "get",
+      realId,
+      "src:phantom:0:0",
+      "--json",
+    ]);
+    expect(result.code).toBe(0);
+    const env = JSON.parse(result.stdout.trim()) as {
+      ok: boolean;
+      data: { rows: Array<{ id: string; status: string }>; not_found: string[] };
+    };
+    expect(env.ok).toBe(true);
+    expect(env.data.rows.length).toBe(1);
+    expect(env.data.rows[0]?.id).toBe(realId);
+    expect(env.data.not_found).toEqual(["src:phantom:0:0"]);
+  });
+
+  test("query returns rows with total_returned and meta.rows_returned matching", async () => {
+    await initWorkspace();
+    await runCliBinary([
+      "add",
+      "--json",
+      JSON.stringify({
+        kind: "source",
+        scope: { collections: ["q"] },
+        source: { type: "web_page", title: "Q1", uri: "https://example.com/q1" },
+        provenance: { acquisition: { method: "manual" } },
+      }),
+    ]);
+    await runCliBinary([
+      "add",
+      "--json",
+      JSON.stringify({
+        kind: "source",
+        scope: { collections: ["q"] },
+        source: { type: "web_page", title: "Q2", uri: "https://example.com/q2" },
+        provenance: { acquisition: { method: "manual" } },
+      }),
+    ]);
+
+    const result = await runCliBinary(["query", "--collection", "q", "--json"]);
+    expect(result.code).toBe(0);
+    const env = JSON.parse(result.stdout.trim()) as {
+      ok: boolean;
+      data: { rows: unknown[]; total_returned: number; total_matched: number };
+      meta: { rows_returned: number };
+    };
+    expect(env.ok).toBe(true);
+    expect(env.data.rows.length).toBe(2);
+    expect(env.data.total_returned).toBe(2);
+    expect(env.data.total_matched).toBe(2);
+    expect(env.meta.rows_returned).toBe(2);
+  });
+
+  test("query --kind <kind> filters by kind", async () => {
+    await initWorkspace();
+    await runCliBinary([
+      "add",
+      "--json",
+      JSON.stringify({
+        kind: "source",
+        scope: { collections: ["kindtest"] },
+        source: { type: "web_page", title: "kt-source", uri: "https://example.com/kt" },
+        provenance: { acquisition: { method: "manual" } },
+      }),
+    ]);
+
+    const result = await runCliBinary(["query", "--kind", "claim", "--collection", "kindtest", "--json"]);
+    expect(result.code).toBe(0);
+    const env = JSON.parse(result.stdout.trim()) as {
+      data: { rows: unknown[]; total_returned: number };
+    };
+    expect(env.data.rows.length).toBe(0);
+    expect(env.data.total_returned).toBe(0);
+  });
+
+  test("query --citing filters claims by cited source URI", async () => {
+    await initWorkspace();
+    const sourceAdd = await runCliBinary([
+      "add",
+      "--json",
+      JSON.stringify({
+        kind: "source",
+        scope: { collections: ["cite"] },
+        source: { type: "web_page", title: "Cited", uri: "https://example.com/cited" },
+        provenance: { acquisition: { method: "manual" } },
+      }),
+    ]);
+    expect(sourceAdd.code).toBe(0);
+    const sourceEnv = JSON.parse(sourceAdd.stdout.trim()) as {
+      data: { created: Array<{ id: string }> };
+    };
+    const sourceId = sourceEnv.data.created[0]!.id;
+
+    const claimAdd = await runCliBinary([
+      "add",
+      "--json",
+      JSON.stringify({
+        kind: "claim",
+        scope: { collections: ["cite"] },
+        identity: { claim_key: "cite|one" },
+        claim: { statement: "Cited claim.", atomic: true },
+        time: { precision: "unknown" },
+        provenance: {
+          evidence: [{ source_id: sourceId, role: "supports", summary: "Cited source." }],
+        },
+        assessment: { confidence: "high" },
+      }),
+    ]);
+    expect(claimAdd.code).toBe(0);
+
+    const result = await runCliBinary(["query", "--citing", "https://example.com/cited", "--json"]);
+    expect(result.code).toBe(0);
+    const env = JSON.parse(result.stdout.trim()) as {
+      data: { rows: Array<{ id: string; kind: string }>; total_returned: number };
+    };
+    expect(env.data.total_returned).toBe(1);
+    expect(env.data.rows[0]?.kind).toBe("claim");
+    expect(env.data.rows[0]?.id).toContain("claim:cite:");
+  });
+
+  test("query --limit caps total_returned but not total_matched", async () => {
+    await initWorkspace();
+    for (let i = 0; i < 4; i += 1) {
+      await runCliBinary([
+        "add",
+        "--json",
+        JSON.stringify({
+          kind: "source",
+          scope: { collections: ["limit"] },
+          source: { type: "web_page", title: `lim-${i}`, uri: `https://example.com/lim/${i}` },
+          provenance: { acquisition: { method: "manual" } },
+        }),
+      ]);
+    }
+    const result = await runCliBinary(["query", "--collection", "limit", "--limit", "2", "--json"]);
+    expect(result.code).toBe(0);
+    const env = JSON.parse(result.stdout.trim()) as {
+      data: { rows: unknown[]; total_returned: number; total_matched: number };
+    };
+    expect(env.data.rows.length).toBe(2);
+    expect(env.data.total_returned).toBe(2);
+    expect(env.data.total_matched).toBe(4);
+  });
+
+  test("context returns a packet with summary and key_claims arrays", async () => {
+    await initWorkspace();
+    const sourceAdd = await runCliBinary([
+      "add",
+      "--json",
+      JSON.stringify({
+        kind: "source",
+        scope: { collections: ["ctx"] },
+        source: { type: "web_page", title: "Ctx-src", uri: "https://example.com/ctx" },
+        provenance: { acquisition: { method: "manual" } },
+      }),
+    ]);
+    expect(sourceAdd.code).toBe(0);
+    const sourceId = (JSON.parse(sourceAdd.stdout.trim()) as {
+      data: { created: Array<{ id: string }> };
+    }).data.created[0]?.id ?? "";
+
+    const claimAdd = await runCliBinary([
+      "add",
+      "--json",
+      JSON.stringify({
+        kind: "claim",
+        scope: { collections: ["ctx"] },
+        identity: { claim_key: "ctx|x" },
+        claim: { statement: "x is true", atomic: true },
+        time: { precision: "unknown" },
+        provenance: {
+          source_ids: [sourceId],
+          evidence: [{ source_id: sourceId, role: "supports", summary: "Backs x." }],
+        },
+        assessment: { confidence: "high" },
+      }),
+    ]);
+    expect(claimAdd.code).toBe(0);
+
+    const result = await runCliBinary(["context", "--collection", "ctx", "--json"]);
+    expect(result.code).toBe(0);
+    const env = JSON.parse(result.stdout.trim()) as {
+      ok: boolean;
+      data: { summary: string; key_claims: Array<{ id: string }> };
+    };
+    expect(env.ok).toBe(true);
+    expect(typeof env.data.summary).toBe("string");
+    expect(Array.isArray(env.data.key_claims)).toBe(true);
+    expect(env.data.key_claims.length).toBeGreaterThan(0);
+  });
+
+  test("novelty inline payload classifies new vs duplicate against ledger", async () => {
+    await initWorkspace();
+    const sourceAdd = await runCliBinary([
+      "add",
+      "--json",
+      JSON.stringify({
+        kind: "source",
+        scope: { collections: ["nv"] },
+        source: { type: "web_page", title: "nv-src", uri: "https://example.com/nv" },
+        provenance: { acquisition: { method: "manual" } },
+      }),
+    ]);
+    expect(sourceAdd.code).toBe(0);
+    const sourceId = (JSON.parse(sourceAdd.stdout.trim()) as {
+      data: { created: Array<{ id: string }> };
+    }).data.created[0]?.id ?? "";
+
+    const claimAdd = await runCliBinary([
+      "add",
+      "--json",
+      JSON.stringify({
+        kind: "claim",
+        scope: { collections: ["nv"] },
+        identity: { claim_key: "nv|key1" },
+        claim: { statement: "Existing claim text.", atomic: true },
+        time: { precision: "unknown" },
+        provenance: {
+          source_ids: [sourceId],
+          evidence: [{ source_id: sourceId, role: "supports", summary: "Backs claim." }],
+        },
+        assessment: { confidence: "high" },
+      }),
+    ]);
+    expect(claimAdd.code).toBe(0);
+
+    const candidates = JSON.stringify({
+      candidates: [
+        {
+          kind: "claim",
+          scope: { collections: ["nv"] },
+          identity: { claim_key: "nv|key1" },
+          claim: { statement: "Existing claim text.", atomic: true },
+          assessment: { confidence: "high" },
+        },
+        {
+          kind: "claim",
+          scope: { collections: ["nv"] },
+          identity: { claim_key: "nv|fresh" },
+          claim: { statement: "Brand new claim.", atomic: true },
+          assessment: { confidence: "low" },
+        },
+      ],
+    });
+    const result = await runCliBinary(["novelty", "--json", candidates, "--pretty"]);
+    expect(result.code).toBe(0);
+    const env = JSON.parse(result.stdout) as {
+      ok: boolean;
+      data: { results: Array<{ classification: string }> };
+    };
+    expect(env.ok).toBe(true);
+    expect(env.data.results.length).toBe(2);
+    expect(env.data.results[0]?.classification).toBe("duplicate");
+    expect(env.data.results[1]?.classification).toBe("new");
+  });
+});
+
+describe("cli render / check / index", () => {
+  test("render without --collection returns exit 2 invalid_arguments", async () => {
+    await initWorkspace();
+    const result = await runCliBinary(["render", "--json"]);
+    expect(result.code).toBe(2);
+    expect(result.stdout).toBe("");
+    const env = JSON.parse(result.stderr.trim()) as {
+      ok: boolean;
+      error: { code: string; message: string };
+      command?: string;
+    };
+    expect(env.ok).toBe(false);
+    expect(env.error.code).toBe("invalid_arguments");
+    expect(env.error.message).toContain("--collection");
+    expect(env.command).toBe("render");
+  });
+
+  test("render --collection writes view file and returns bytes_written", async () => {
+    await initWorkspace();
+    await runCliBinary([
+      "add",
+      "--json",
+      JSON.stringify({
+        kind: "source",
+        scope: { collections: ["renderc"] },
+        source: { type: "web_page", title: "Render", uri: "https://example.com/render" },
+        provenance: { acquisition: { method: "manual" } },
+      }),
+    ]);
+
+    const result = await runCliBinary(["render", "--collection", "renderc", "--json"]);
+    expect(result.code).toBe(0);
+    const env = JSON.parse(result.stdout.trim()) as {
+      ok: boolean;
+      data: { path: string; bytes_written: number; format: string };
+      meta: { bytes_written: number };
+    };
+    expect(env.ok).toBe(true);
+    expect(env.data.format).toBe("md");
+    expect(env.data.path.endsWith(join("knb", "views", "renderc.md"))).toBe(true);
+    expect(env.data.bytes_written).toBeGreaterThan(0);
+    expect(env.meta.bytes_written).toBe(env.data.bytes_written);
+    expect(await pathExists(env.data.path)).toBe(true);
+  });
+
+  test("render --all writes one view per active collection and returns total bytes", async () => {
+    await initWorkspace();
+    for (const collection of ["cli-beta", "cli-alpha"]) {
+      await runCliBinary([
+        "add",
+        "--json",
+        JSON.stringify({
+          kind: "source",
+          scope: { collections: [collection] },
+          source: {
+            type: "web_page",
+            title: `Render ${collection}`,
+            uri: `https://example.com/${collection}`,
+          },
+          provenance: { acquisition: { method: "manual" } },
+        }),
+      ]);
+    }
+
+    const result = await runCliBinary(["render", "--all", "--json"]);
+    expect(result.code).toBe(0);
+    const env = JSON.parse(result.stdout.trim()) as {
+      ok: boolean;
+      data: {
+        collections: string[];
+        rendered: Array<{ path: string; bytes_written: number }>;
+        total_bytes_written: number;
+      };
+      meta: { collections_rendered: number; bytes_written: number };
+    };
+    expect(env.ok).toBe(true);
+    expect(env.data.collections).toEqual(["cli-alpha", "cli-beta"]);
+    expect(env.data.rendered.length).toBe(2);
+    expect(env.meta.collections_rendered).toBe(2);
+    expect(env.meta.bytes_written).toBe(env.data.total_bytes_written);
+    for (const entry of env.data.rendered) {
+      expect(entry.bytes_written).toBeGreaterThan(0);
+      expect(await pathExists(entry.path)).toBe(true);
+    }
+  });
+
+  test("render rejects --collection combined with --all", async () => {
+    await initWorkspace();
+    const result = await runCliBinary(["render", "--collection", "x", "--all", "--json"]);
+    expect(result.code).toBe(2);
+    const env = JSON.parse(result.stderr.trim()) as {
+      ok: boolean;
+      error: { code: string; message: string };
+    };
+    expect(env.ok).toBe(false);
+    expect(env.error.code).toBe("invalid_arguments");
+    expect(env.error.message).toContain("--collection");
+    expect(env.error.message).toContain("--all");
+  });
+
+  test("check before any render reports ok=false but exits 0", async () => {
+    await initWorkspace();
+    await runCliBinary([
+      "add",
+      "--json",
+      JSON.stringify({
+        kind: "source",
+        scope: { collections: ["chk"] },
+        source: { type: "web_page", title: "Chk", uri: "https://example.com/chk" },
+        provenance: { acquisition: { method: "manual" } },
+      }),
+    ]);
+    const result = await runCliBinary(["check", "--json"]);
+    expect(result.code).toBe(0);
+    const env = JSON.parse(result.stdout.trim()) as {
+      ok: boolean;
+      data: { ok: boolean };
+    };
+    expect(env.ok).toBe(true);
+    expect(env.data.ok).toBe(false);
+  });
+
+  test("index without --rebuild returns projection_freshness only", async () => {
+    await initWorkspace();
+    const result = await runCliBinary(["index", "--json"]);
+    expect(result.code).toBe(0);
+    const env = JSON.parse(result.stdout.trim()) as {
+      ok: boolean;
+      command: string;
+      data: { projection_freshness: { entries: unknown[] } };
+    };
+    expect(env.ok).toBe(true);
+    expect(env.command).toBe("index");
+    expect(Array.isArray(env.data.projection_freshness.entries)).toBe(true);
+  });
+
+  test("index --rebuild produces V1 sidecars in the indexes directory", async () => {
+    await initWorkspace();
+    const result = await runCliBinary(["index", "--rebuild", "--json"]);
+    expect(result.code).toBe(0);
+    const env = JSON.parse(result.stdout.trim()) as {
+      ok: boolean;
+      data: { indexes: Array<{ name: string; path: string; bytes_written: number }> };
+    };
+    expect(env.ok).toBe(true);
+    expect(env.data.indexes.length).toBe(6);
+    expect(env.data.indexes.map((entry) => entry.name).sort()).toEqual([
+      "active-by-collection",
+      "active-by-id",
+      "active-claims-by-key",
+      "active-claims-by-source-uri",
+      "active-sources-by-content-hash",
+      "active-sources-by-uri",
+    ]);
+    for (const entry of env.data.indexes) {
+      expect(entry.bytes_written).toBeGreaterThan(0);
+      expect(await pathExists(entry.path)).toBe(true);
+    }
+  });
+});
+
+describe("cli envelope structure invariants", () => {
+  test("every success envelope has ok/command/data/meta and no error key", async () => {
+    await initWorkspace();
+    const commands = [
+      ["status"],
+      ["schema"],
+      ["check"],
+      ["index"],
+    ];
+    for (const args of commands) {
+      const result = await runCliBinary([...args, "--json"]);
+      expect(result.code).toBe(0);
+      const env = JSON.parse(result.stdout.trim()) as Record<string, unknown>;
+      expect(env.ok).toBe(true);
+      expect(env.command).toBe(args[0]);
+      expect(env).toHaveProperty("data");
+      expect(env).toHaveProperty("meta");
+      expect(env).not.toHaveProperty("error");
+      expect(typeof (env.meta as { elapsed_ms?: unknown }).elapsed_ms).toBe("number");
+    }
+  });
+
+  test("every failure envelope has ok=false, error.code, error.message, meta.exit_code", async () => {
+    await initWorkspace();
+    const failures: Array<{ args: string[]; expectedCode: number; expectedErrorCode: string }> = [
+      { args: ["totally-unknown"], expectedCode: 2, expectedErrorCode: "invalid_arguments" },
+      { args: ["render"], expectedCode: 2, expectedErrorCode: "invalid_arguments" },
+      { args: ["get"], expectedCode: 2, expectedErrorCode: "invalid_arguments" },
+      { args: ["get", "src:phantom:0:00000000"], expectedCode: 1, expectedErrorCode: "not_found" },
+    ];
+    for (const f of failures) {
+      const result = await runCliBinary([...f.args, "--json"]);
+      expect(result.code).toBe(f.expectedCode);
+      expect(result.stdout).toBe("");
+      const env = JSON.parse(result.stderr.trim()) as {
+        ok: boolean;
+        error: { code: string; message: string };
+        meta: { exit_code: number; elapsed_ms?: unknown };
+      };
+      expect(env.ok).toBe(false);
+      expect(env.error.code).toBe(f.expectedErrorCode);
+      expect(typeof env.error.message).toBe("string");
+      expect(env.error.message.length).toBeGreaterThan(0);
+      expect(env.meta.exit_code).toBe(f.expectedCode);
+    }
+  });
+
+  test("--quiet on failure writes only the error code to stderr", async () => {
+    const result = await runCliBinary(["totally-unknown", "--quiet"]);
+    expect(result.code).toBe(2);
+    expect(result.stdout).toBe("");
+    expect(result.stderr.trim()).toBe("invalid_arguments");
+  });
+});

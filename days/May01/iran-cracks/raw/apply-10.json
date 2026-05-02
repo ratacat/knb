@@ -1,0 +1,206 @@
+{
+  "atomic": true,
+  "dedupe": true,
+  "operations": [
+    {
+      "op": "add",
+      "as": "src_khamenei_mojtaba_labor_teacher_msg_may1",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Mojtaba Khamenei", "workers", "teachers"], "tags": ["succession", "labor", "teachers", "official", "persian"], "language": "fa"},
+        "source": {
+          "type": "official_record",
+          "title": "پیام رهبر انقلاب به مناسبت روز کارگر و روز معلم",
+          "uri": "https://farsi.khamenei.ir/news-content?id=62870",
+          "publisher": "Khamenei.ir",
+          "language": "fa",
+          "published_at": "2026-05-01T16:56:16Z",
+          "raw_path": "raw/apply-10-source-notes.md"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-01T23:59:12Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_presstv_mojtaba_labor_teacher_msg_may1",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Mojtaba Khamenei", "workers", "teachers"], "tags": ["succession", "labor", "teachers", "state-media"], "language": "en"},
+        "source": {
+          "type": "article",
+          "title": "Leader vows to defeat enemy in economic, cultural wars following Iran's victory on battlefield",
+          "uri": "https://www.presstv.ir/Detail/2026/05/01/767870/Leader-message-teacher-labor-day-",
+          "publisher": "PressTV",
+          "language": "en",
+          "published_at": "2026-05-01T13:59:00Z",
+          "raw_path": "raw/apply-10-source-notes.md"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-01T23:59:12Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_mehr_mojtaba_msg_notice_may1",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Mojtaba Khamenei", "workers", "teachers"], "tags": ["succession", "labor", "teachers", "state-media", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "پیام رهبر انقلاب به مناسبت روز کارگر و روز معلم منتشر می‌شود",
+          "uri": "https://www.mehrnews.com/news/6816928/%D9%BE%DB%8C%D8%A7%D9%85-%D8%B1%D9%87%D8%A8%D8%B1-%D8%A7%D9%86%D9%82%D9%84%D8%A7%D8%A8-%D8%A8%D9%87-%D9%85%D9%86%D8%A7%D8%B3%D8%A8%D8%AA-%D8%B1%D9%88%D8%B2-%DA%A9%D8%A7%D8%B1%DA%AF%D8%B1-%D9%88-%D8%B1%D9%88%D8%B2-%D9%85%D8%B9%D9%84%D9%85",
+          "publisher": "Mehr News Agency",
+          "language": "fa",
+          "published_at": "2026-05-01T16:15:55Z",
+          "raw_path": "raw/apply-10-source-notes.md"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-01T23:59:12Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_mojtaba_official_labor_teacher_message_may1",
+      "row": {
+        "kind": "claim",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Mojtaba Khamenei"], "tags": ["succession", "official", "state-media", "labor"]},
+        "identity": {"claim_key": "iran|mojtaba_khamenei|official_labor_teacher_message_public_signal|2026-05-01"},
+        "claim": {
+          "statement": "On 1 May 2026, the official Khamenei.ir site published a Labor Day / Teacher Day message signed by Seyyed Mojtaba Hosseini Khamenei and state media presented him as the Leader issuing it; Mehr previewed the message from 'Seyyed Mojtaba Hosseini Khamenei, Leader of the Islamic Revolution,' and PressTV identified him in English as 'Leader of Islamic Revolution Ayatollah Seyyed Mojtaba Khamenei.' This is a high-confidence official public leadership signal, but it does not by itself prove that he personally controls all war decisions.",
+          "atomic": true,
+          "type": "official_signal",
+          "subject": "Mojtaba Khamenei",
+          "predicate": "was_publicly_presented_as",
+          "object": "Leader issuing Labor Day and Teacher Day message"
+        },
+        "time": {"occurred_at": "2026-05-01", "precision": "day", "timezone": "Asia/Tehran"},
+        "provenance": {
+          "evidence": [
+            {"source_id": "$src_khamenei_mojtaba_labor_teacher_msg_may1", "role": "supports", "summary": "Official Khamenei.ir page dated 1405/02/11 published the message and signed it Seyyed Mojtaba Hosseini Khamenei."},
+            {"source_id": "$src_mehr_mojtaba_msg_notice_may1", "role": "supports", "summary": "Mehr previewed the forthcoming message from Seyyed Mojtaba Hosseini Khamenei as Leader of the Islamic Revolution."},
+            {"source_id": "$src_presstv_mojtaba_labor_teacher_msg_may1", "role": "supports", "summary": "PressTV identified him in English as Leader of the Islamic Revolution and summarized the same Labor/Teacher Day message."}
+          ]
+        },
+        "assessment": {"confidence": "high", "source_reliability": "high", "information_depth": {"level": "strong", "rationale": "The signal is recorded on the official Khamenei site and amplified by Persian and English state media on the same date."}, "importance": "high", "uncertainty": "This proves official public presentation and narrative control, not the full internal command structure."}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_mojtaba_workers_teachers_war_frame_may1",
+      "row": {
+        "kind": "claim",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "workers", "teachers", "Mojtaba Khamenei"], "tags": ["labor", "teachers", "narrative", "wartime-economy"]},
+        "identity": {"claim_key": "iran|mojtaba_khamenei|workers_teachers_economic_cultural_war_frame|2026-05-01"},
+        "claim": {
+          "statement": "In the 1 May 2026 Labor Day / Teacher Day message, Mojtaba Khamenei framed teachers as a core link in the cultural battle and workers as core elements in the economic battle after military victory; he said verbal praise was insufficient, called for stronger family-school interaction, prioritizing domestic goods, avoiding layoffs where possible, and government support for employers that keep workers.",
+          "atomic": true,
+          "type": "official_statement",
+          "subject": "Mojtaba Khamenei",
+          "predicate": "framed",
+          "object": "workers and teachers as economic-cultural war backbone"
+        },
+        "time": {"occurred_at": "2026-05-01", "precision": "day", "timezone": "Asia/Tehran"},
+        "provenance": {
+          "evidence": [
+            {"source_id": "$src_khamenei_mojtaba_labor_teacher_msg_may1", "role": "supports", "summary": "The official message explicitly describes teachers as central to cultural battle, workers as central to economic battle, and calls for domestic-goods preference and avoiding layoffs."},
+            {"source_id": "$src_presstv_mojtaba_labor_teacher_msg_may1", "role": "supports", "summary": "PressTV's English summary repeats the economic/cultural war frame and the appeals for practical support, domestic goods, and avoiding layoffs."}
+          ]
+        },
+        "assessment": {"confidence": "high", "source_reliability": "high", "information_depth": {"level": "strong", "rationale": "The claim summarizes the official text and state-media amplification rather than inferring hidden intent."}, "importance": "high", "uncertainty": "The message gives regime framing; it does not measure whether workers, teachers, employers, or families accept it."}
+      }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_mojtaba_official_labor_teacher_message_may1",
+      "to_id": "q:iran-cracks:20260501:e49ee5e4",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "A named official message is directly relevant to whether Mojtaba is exercising visible authority or only serving as nominal cover.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_mojtaba_official_labor_teacher_message_may1",
+      "to_id": "claim:iran-cracks:20260501:ec9e2264",
+      "rel": "supports",
+      "strength": "medium",
+      "rationale": "The official message supports the regime narrative that Mojtaba is active, while still leaving health and actual command authority unresolved.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_mojtaba_official_labor_teacher_message_may1",
+      "to_id": "claim:iran-cracks:20260501:1d1c9f5c",
+      "rel": "contradicts",
+      "strength": "low",
+      "rationale": "The official message counters reports of total absence or incapacity, but it is not a physical public appearance and could be managed messaging.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_mojtaba_workers_teachers_war_frame_may1",
+      "to_id": "claim:iran-cracks:20260501:e847ea04",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "The official appeal to workers and teachers lands against direct evidence that workers, retirees, and teachers are already triaging medicine and care.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_mojtaba_workers_teachers_war_frame_may1",
+      "to_id": "claim:iran-cracks:20260501:c449be15",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "The message's economic-war framing targets the same labor base whose dollar-denominated minimum wage has fallen sharply.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "add",
+      "as": "synth_v9_mojtaba_labor_war_narrator",
+      "row": {
+        "kind": "synthesis",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["overview", "synthesis", "v9"]},
+        "synthesis": {
+          "title": "Cracks in the Islamic Republic, v9 — Mojtaba surfaces as labor-war narrator",
+          "summary": "The ninth pass adds a current official leadership signal to v8's worker-health picture. On 1 May, Khamenei.ir, Mehr, and PressTV publicly presented Seyyed Mojtaba Khamenei as the leader issuing the Labor Day / Teacher Day message. This does not prove he personally controls the IRGC or every war decision, but it narrows the open succession question: the regime is confident enough to put his signature and title on a public message to two sensitive social blocs. The content matters because workers and teachers were cast as the backbone of economic and cultural jihad after military victory, with appeals to buy domestic goods, avoid layoffs, deepen family-school interaction, and support employers that keep workers. That official mobilization language lands against the lived evidence already recorded: worker and retiree medicine triage, falling dollar-denominated minimum wage, unemployment risk, delayed insurance reimbursement, and teachers/retirees among the protesting or financially squeezed groups. Open-web May Day protest evidence in this pass was mostly old 1404 hits or low-confidence opposition-network social claims, so it is excluded from the core record. Net: the regime is layering succession projection and war-economy rhetoric over worker/teacher survival pressure.",
+          "basis": {
+            "claim_ids": [
+              "$claim_mojtaba_official_labor_teacher_message_may1",
+              "$claim_mojtaba_workers_teachers_war_frame_may1",
+              "claim:iran-cracks:20260501:e847ea04",
+              "claim:iran-cracks:20260501:3f8a9cf1",
+              "claim:iran-cracks:20260501:85724eab",
+              "claim:iran-cracks:20260501:a1422c69",
+              "claim:iran-cracks:20260501:c449be15",
+              "claim:iran-cracks:20260501:21915031",
+              "claim:iran-cracks:20260501:f2ddb054",
+              "claim:iran-cracks:20260501:1d1c9f5c",
+              "claim:iran-cracks:20260501:ec9e2264",
+              "claim:iran-cracks:20260501:bb562d39",
+              "claim:iran-cracks:20260501:14fa473e"
+            ],
+            "question_ids": [
+              "q:iran-cracks:20260501:e49ee5e4",
+              "q:iran-cracks:20260501:23c7e90c",
+              "q:iran-cracks:20260501:75c26826",
+              "q:iran-cracks:20260501:a4e932dc"
+            ],
+            "source_ids": [
+              "$src_khamenei_mojtaba_labor_teacher_msg_may1",
+              "$src_presstv_mojtaba_labor_teacher_msg_may1",
+              "$src_mehr_mojtaba_msg_notice_may1"
+            ]
+          },
+          "limitations": "The Mojtaba signal is official public presentation, not independent proof of physical health, public appearance, or actual command authority. State-media wording should be treated as evidence of regime narrative and presentation, not as a neutral description of internal power. May Day protest material remains weak in this pass because many hits were 1404/2025 and xPool results were mostly uncorroborated opposition-network claims.",
+          "status": "active"
+        },
+        "assessment": {"confidence": "high", "source_reliability": "medium", "information_depth": {"level": "strong", "rationale": "Official and state-media sources establish the public presentation signal, while prior worker-health and wage claims ground the social-pressure interpretation."}, "importance": "high"}
+      }
+    },
+    {
+      "op": "supersede",
+      "target_ids": ["synth:iran-cracks:20260501:fb1eab17"],
+      "replacement_id": "$synth_v9_mojtaba_labor_war_narrator",
+      "reason": "v9 adds the official Mojtaba Labor/Teacher Day leadership signal and economic-cultural war framing on top of v8's worker-health evidence.",
+      "scope": {"collections": ["iran-cracks"]}
+    }
+  ]
+}

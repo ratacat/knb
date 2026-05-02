@@ -1,0 +1,15 @@
+{
+  "schema_version": "knb.projection.v1",
+  "kind": "index",
+  "target": "knb/indexes/active-sources-by-content-hash.json",
+  "ledger": {
+    "path": "/Users/jaredsmith/Projects/knb/days/May01/iran-cracks/knb/ledger.jsonl",
+    "rows": 1062,
+    "content_hash": "sha256:92a34a0941fd56832cac320c350f5d9c6918bc540f8e0361cfd08580231e61f9",
+    "last_row_id": "chg:iran-cracks:20260502:c7b10157"
+  },
+  "options": {
+    "name": "active-sources-by-content-hash"
+  },
+  "generated_at": "2026-05-02T05:10:30.136Z"
+}

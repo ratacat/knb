@@ -1,0 +1,1008 @@
+{
+  "atomic": true,
+  "operations": [
+    {
+      "op": "add",
+      "as": "src_npr_blackout",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran"],
+          "tags": ["infrastructure", "war", "context"],
+          "language": "en"
+        },
+        "source": {
+          "type": "article",
+          "title": "Internet blackout causes huge damage to Iran economy",
+          "uri": "https://www.npr.org/2026/04/27/nx-s1-5792049/internet-blackout-causes-huge-damage-to-iran-economy",
+          "publisher": "NPR",
+          "language": "en",
+          "published_at": "2026-04-27T20:48:08Z"
+        },
+        "provenance": {
+          "acquisition": {"method": "exa-search", "observed_at": "2026-05-01T22:40:00Z"}
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_reuters_irgc",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "IRGC"],
+          "tags": ["succession", "war", "command"],
+          "language": "en"
+        },
+        "source": {
+          "type": "article",
+          "title": "Iran's Guards seize wartime power, blunting Supreme Leader's role",
+          "uri": "https://www.reuters.com/world/asia-pacific/irans-guards-seize-wartime-power-blunting-supreme-leaders-role-2026-04-28/",
+          "publisher": "Reuters",
+          "language": "en",
+          "published_at": "2026-04-28T14:26:29Z"
+        },
+        "provenance": {
+          "acquisition": {"method": "exa-search", "observed_at": "2026-05-01T22:40:00Z"}
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_reuters_rial",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran"],
+          "tags": ["economy", "currency"],
+          "language": "en"
+        },
+        "source": {
+          "type": "article",
+          "title": "Iran's rial drops to record low as ceasefire prompts rush for hard currency",
+          "uri": "https://www.reuters.com/business/irans-currency-drops-record-low-level-18-million-rials-dollar-isna-reports-2026-04-29/",
+          "publisher": "Reuters",
+          "language": "en",
+          "published_at": "2026-04-29T22:38:43Z"
+        },
+        "provenance": {
+          "acquisition": {"method": "exa-search", "observed_at": "2026-05-01T22:40:00Z"}
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_indypersian_rial",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran"],
+          "tags": ["economy", "currency", "persian"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "social_post",
+          "title": "Independent Persian — سقوط آزاد ریال (free-fall of rial), 10 Ord 1405",
+          "uri": "https://x.com/indypersian/status/2049753884260696404",
+          "publisher": "Independent Persian (@indypersian)",
+          "language": "fa",
+          "published_at": "2026-04-30T07:33:03Z"
+        },
+        "provenance": {
+          "acquisition": {"method": "xpool-SearchTimeline", "observed_at": "2026-05-01T22:40:00Z"}
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_kayhanlondon_pensioners",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran"],
+          "tags": ["protests", "labor", "persian"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "social_post",
+          "title": "Kayhan London — Steel pensioners simultaneous rallies in Esfahan & Tehran",
+          "uri": "https://x.com/KayhanLondon/status/2049942184577601814",
+          "publisher": "Kayhan London (@KayhanLondon)",
+          "language": "fa",
+          "published_at": "2026-04-30T20:01:17Z"
+        },
+        "provenance": {
+          "acquisition": {"method": "xpool-SearchTimeline", "observed_at": "2026-05-01T22:40:00Z"}
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_hra_protests",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran"],
+          "tags": ["protests", "labor", "persian"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "social_post",
+          "title": "HRANA — at least 4 protest gatherings on 9 Ord 1405",
+          "uri": "https://x.com/hra_news/status/2049546520769311183",
+          "publisher": "HRANA (@hra_news)",
+          "language": "fa",
+          "published_at": "2026-04-29T17:49:03Z"
+        },
+        "provenance": {
+          "acquisition": {"method": "xpool-SearchTimeline", "observed_at": "2026-05-01T22:40:00Z"}
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_euronewspe_succession",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Mojtaba Khamenei"],
+          "tags": ["succession", "persian"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "social_post",
+          "title": "Euronews Persian — two months on, no public appearance from Mojtaba Khamenei",
+          "uri": "https://x.com/euronews_pe/status/2049083171434631584",
+          "publisher": "Euronews Persian (@euronews_pe)",
+          "language": "fa",
+          "published_at": "2026-04-28T11:07:52Z"
+        },
+        "provenance": {
+          "acquisition": {"method": "xpool-SearchTimeline", "observed_at": "2026-05-01T22:40:00Z"}
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_time_supreme",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Mojtaba Khamenei"],
+          "tags": ["succession", "command"],
+          "language": "en"
+        },
+        "source": {
+          "type": "article",
+          "title": "Iran's Supreme Leader No Longer Reigns Supreme",
+          "uri": "https://time.com/article/2026/04/21/war-iran-mojtaba-khamenei-supreme-leader/",
+          "publisher": "TIME",
+          "language": "en",
+          "published_at": "2026-04-22T10:00:00Z"
+        },
+        "provenance": {
+          "acquisition": {"method": "exa-search", "observed_at": "2026-05-01T22:40:00Z"}
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_ndtv_board",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Mojtaba Khamenei", "IRGC"],
+          "tags": ["succession", "command"],
+          "language": "en"
+        },
+        "source": {
+          "type": "article",
+          "title": "Mojtaba Khamenei Injured, A 'Board' Of Generals Helps Take The Calls In Iran",
+          "uri": "https://www.ndtv.com/world-news/mojtaba-khamenei-injured-a-board-of-generals-helps-take-the-calls-in-iran-11400822",
+          "publisher": "NDTV",
+          "language": "en",
+          "published_at": "2026-04-23T19:19:08Z"
+        },
+        "provenance": {
+          "acquisition": {"method": "exa-search", "observed_at": "2026-05-01T22:40:00Z"}
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_ap_blockade",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran"],
+          "tags": ["economy", "war"],
+          "language": "en"
+        },
+        "source": {
+          "type": "article",
+          "title": "Israel's strikes and Trump's blockade have battered Iran's economy",
+          "uri": "https://apnews.com/article/iran-us-israel-war-economy-blockade-steel-exports-7d3c6c63ec432e57325814d48938ccfe",
+          "publisher": "Associated Press",
+          "language": "en",
+          "published_at": "2026-04-28T05:14:02Z"
+        },
+        "provenance": {
+          "acquisition": {"method": "exa-search", "observed_at": "2026-05-01T22:40:00Z"}
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_voa_water",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Tehran"],
+          "tags": ["water", "infrastructure", "persian"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "از خشکسالی پایدار تهران تا روز صفر آبی (From Tehran's persistent drought to Day Zero of water)",
+          "uri": "https://ir.voanews.com/a/iran-tehran-water-crisis-dryland/8143443.html",
+          "publisher": "VOA Persian",
+          "language": "fa",
+          "published_at": "2026-04-29T00:15:29Z"
+        },
+        "provenance": {
+          "acquisition": {"method": "exa-search", "observed_at": "2026-05-01T22:40:00Z"}
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_jss_water",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Tehran"],
+          "tags": ["water", "infrastructure", "persian"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "بحران آب تهران؛ هشدار پزشکیان: انتقال آب از خلیج فارس متری ۵۰۰ هزار تومان",
+          "uri": "https://vista.ir/n/jahansanatnews/hiief",
+          "publisher": "Jahan-Sanat News (via Vista)",
+          "language": "fa",
+          "published_at": "2026-05-01T02:25:01Z"
+        },
+        "provenance": {
+          "acquisition": {"method": "exa-search", "observed_at": "2026-05-01T22:40:00Z"}
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_workercommunist_apr20",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran"],
+          "tags": ["protests", "labor", "persian"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "social_post",
+          "title": "Asghar Karimi (Worker-Communist) — protests by various labor sectors resume",
+          "uri": "https://x.com/workercommunist/status/2046297702632477010",
+          "publisher": "@workercommunist",
+          "language": "fa",
+          "published_at": "2026-04-20T18:39:25Z"
+        },
+        "provenance": {
+          "acquisition": {"method": "xpool-SearchTimeline", "observed_at": "2026-05-01T22:40:00Z"}
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_qaworld_schools",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran"],
+          "tags": ["protests", "education"],
+          "language": "en"
+        },
+        "source": {
+          "type": "article",
+          "title": "Unprecedented Iran School Strike Silence Lasting Weeks, Former US Officials Report",
+          "uri": "https://qaworld.news/unprecedented-iran-school-strike-silence-lasting-weeks-former-us-officials-report/",
+          "publisher": "Q&A World News",
+          "language": "en",
+          "published_at": "2026-04-29T04:30:20Z"
+        },
+        "provenance": {
+          "acquisition": {"method": "exa-search", "observed_at": "2026-05-01T22:40:00Z"}
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_indy_keane",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "United States"],
+          "tags": ["war", "negotiations", "persian"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "social_post",
+          "title": "Independent Persian — Gen. Jack Keane warns of military return if talks fail",
+          "uri": "https://x.com/indypersian/status/2046354000417562956",
+          "publisher": "Independent Persian (@indypersian)",
+          "language": "fa",
+          "published_at": "2026-04-20T22:23:07Z"
+        },
+        "provenance": {
+          "acquisition": {"method": "xpool-SearchTimeline", "observed_at": "2026-05-01T22:40:00Z"}
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_fa_health_office",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Mojtaba Khamenei"],
+          "tags": ["succession", "health", "official", "persian"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "معاون بین‌الملل دفتر رهبری: آیت‌الله سید مجتبی خامنه‌ای در سلامت کامل مشغول تدبیر امور هستند",
+          "uri": "https://vista.ir/n/roozno/2bze7",
+          "publisher": "Roozno (via Vista) — citing the Supreme Leader's office",
+          "language": "fa",
+          "published_at": "2026-05-01T15:34:38Z"
+        },
+        "provenance": {
+          "acquisition": {"method": "exa-search", "observed_at": "2026-05-01T22:40:00Z"}
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_pet_health_conflict",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Mojtaba Khamenei"],
+          "tags": ["succession", "health", "persian"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "اظهارات متفاوت مقامات جمهوری اسلامی درباره سلامت مجتبی خامنه‌ای",
+          "uri": "https://persianepochtimes.com/conflicting-statements-by-iranian-officials-on-mojtaba-khameneis-health/",
+          "publisher": "Persian Epoch Times",
+          "language": "fa",
+          "published_at": "2026-04-20T19:43:01Z"
+        },
+        "provenance": {
+          "acquisition": {"method": "exa-search", "observed_at": "2026-05-01T22:40:00Z"}
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_ilna_truckers",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran"],
+          "tags": ["economy", "logistics", "persian"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "سوخت تنخواه کامیون‌داران واریز شد/ افزایش ٢٢ درصدی حمل کالای اساسی در جنگ",
+          "uri": "https://www.ilna.ir/%D8%A8%D8%AE%D8%B4-%D8%A7%D9%82%D8%AA%D8%B5%D8%A7%D8%AF%DB%8C-4/1776608",
+          "publisher": "ILNA",
+          "language": "fa",
+          "published_at": "2026-04-22T12:54:44Z"
+        },
+        "provenance": {
+          "acquisition": {"method": "exa-search", "observed_at": "2026-05-01T22:40:00Z"}
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_airstrikes_killed_khamenei",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Ali Khamenei"],
+          "tags": ["war", "succession", "context"]
+        },
+        "identity": {"claim_key": "iran|khamenei|killed_in_us_israel_strikes_feb28"},
+        "claim": {
+          "statement": "On 28 February 2026, ~1 hour after U.S. and Israel began a series of airstrikes, former Supreme Leader Ali Khamenei and other top officials were killed.",
+          "atomic": true,
+          "type": "event",
+          "subject": "Ali Khamenei",
+          "predicate": "killed_in",
+          "object": "US-Israel airstrikes 2026-02-28"
+        },
+        "time": {"occurred_at": "2026-02-28", "precision": "day", "timezone": "Asia/Tehran"},
+        "provenance": {
+          "evidence": [
+            {"source_id": "$src_npr_blackout", "role": "supports", "summary": "NPR (Apr 27) states airstrikes 'would kill former supreme leader Ali Khamenei and other top officials' starting Feb 28."}
+          ]
+        },
+        "assessment": {"confidence": "medium", "source_reliability": "high", "contested": false, "uncertainty": "Reported as established context by NPR and corroborated downstream by Persian sources referring to 'killing of Ali Khamenei'; primary regime confirmation unclear."}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_internet_blackout_60d",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran"],
+          "tags": ["infrastructure", "war", "economy"]
+        },
+        "identity": {"claim_key": "iran|internet_blackout|active_~60_days_as_of_2026-04-27"},
+        "claim": {
+          "statement": "As of 27 April 2026, Iran's national internet blackout had been ongoing for 59 days, with police saying more than 1,800 people had been arrested for internet-related offenses.",
+          "atomic": true,
+          "type": "state",
+          "subject": "Iran internet",
+          "predicate": "blocked",
+          "qualifiers": {"duration_days": 59, "arrests": 1800}
+        },
+        "time": {"valid_at": "2026-04-27", "precision": "day"},
+        "provenance": {
+          "evidence": [
+            {"source_id": "$src_npr_blackout", "role": "supports", "summary": "NPR: 'After 59 days of war, the internet is still largely blocked in Iran. Police say they have arrested more than 1,800 people for crimes related to internet use.'"}
+          ]
+        },
+        "assessment": {"confidence": "high", "source_reliability": "high"}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_blackout_cost_1_8b",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran"],
+          "tags": ["economy", "infrastructure"]
+        },
+        "identity": {"claim_key": "iran|internet_blackout|economic_cost_first_48d_>=_1.8b_usd"},
+        "claim": {
+          "statement": "Per NetBlocks, the first 48 days of Iran's national internet blackout cost the Iranian economy more than $1.8 billion.",
+          "atomic": true,
+          "type": "estimate",
+          "subject": "Iran economy",
+          "predicate": "cost_due_to_blackout",
+          "object": ">=$1.8B over 48 days"
+        },
+        "time": {"valid_at": "2026-04-27", "precision": "day"},
+        "provenance": {
+          "evidence": [
+            {"source_id": "$src_npr_blackout", "role": "supports", "summary": "NPR cites NetBlocks figure for first 48 days."}
+          ]
+        },
+        "assessment": {"confidence": "medium", "source_reliability": "high", "uncertainty": "NetBlocks third-party estimate; methodology not disclosed in NPR excerpt."}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_rial_record_low_apr29",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran"],
+          "tags": ["economy", "currency"]
+        },
+        "identity": {"claim_key": "iran|rial|record_low_~1.8m_per_usd|2026-04-29"},
+        "claim": {
+          "statement": "On 29 April 2026 the Iranian rial fell to a record low of approximately 1,800,000 rials per US dollar in the free market in Tehran (per ISNA, reported by Reuters).",
+          "atomic": true,
+          "type": "measurement",
+          "subject": "IRR/USD free market rate",
+          "predicate": "reached",
+          "object": "~1,800,000",
+          "qualifiers": {"market": "Tehran free market", "report": "ISNA via Reuters"}
+        },
+        "time": {"occurred_at": "2026-04-29", "precision": "day", "timezone": "Asia/Tehran"},
+        "provenance": {
+          "evidence": [
+            {"source_id": "$src_reuters_rial", "role": "supports", "summary": "Reuters headline: 'Iran's currency drops to record low level — 1.8 million rials/dollar — ISNA reports.'"},
+            {"source_id": "$src_indypersian_rial", "role": "supports", "summary": "Independent Persian: dollar passed 182,500 toman (= 1,825,000 rial) in second day after currency market reopened post-ceasefire."}
+          ]
+        },
+        "assessment": {"confidence": "high", "source_reliability": "high"}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_rial_freefall_post_ceasefire",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran"],
+          "tags": ["economy", "currency"]
+        },
+        "identity": {"claim_key": "iran|rial|freefall_>10pct_week_late_apr_2026"},
+        "claim": {
+          "statement": "Following the ceasefire-driven reopening of the Tehran free currency market, the rial fell more than 10% within a single week in late April 2026, with the dollar climbing >11,000 toman in a single session on 30 April.",
+          "atomic": true,
+          "type": "trend",
+          "subject": "IRR/USD",
+          "predicate": "depreciated",
+          "qualifiers": {"window": "2026-04-22..2026-04-30"}
+        },
+        "time": {"valid_from": "2026-04-22", "valid_until": "2026-04-30", "precision": "range"},
+        "provenance": {
+          "evidence": [
+            {"source_id": "$src_indypersian_rial", "role": "supports", "summary": "indypersian: dollar up >11,000 toman on second day of reopened market (Apr 30)."},
+            {"source_id": "$src_reuters_rial", "role": "supports", "summary": "Reuters: rial dropped to record low after ceasefire prompted rush for hard currency."}
+          ]
+        },
+        "assessment": {"confidence": "high", "source_reliability": "high"}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_irgc_seized_wartime_power",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "IRGC", "Mojtaba Khamenei"],
+          "tags": ["succession", "command", "war"]
+        },
+        "identity": {"claim_key": "iran|irgc|seized_wartime_power_blunting_supreme_leader"},
+        "claim": {
+          "statement": "The Islamic Revolutionary Guard Corps has seized wartime decision-making authority, blunting the role of the Supreme Leader's office under nominal successor Mojtaba Khamenei.",
+          "atomic": true,
+          "type": "structural",
+          "subject": "IRGC",
+          "predicate": "seized",
+          "object": "wartime decision power"
+        },
+        "time": {"valid_at": "2026-04-28", "precision": "day"},
+        "provenance": {
+          "evidence": [
+            {"source_id": "$src_reuters_irgc", "role": "supports", "summary": "Reuters Apr 28: 'Iran's Guards seize wartime power, blunting Supreme Leader's role.'"},
+            {"source_id": "$src_time_supreme", "role": "supports", "summary": "TIME Apr 22: 'Iran's Supreme Leader No Longer Reigns Supreme.'"}
+          ]
+        },
+        "assessment": {"confidence": "high", "source_reliability": "high"}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_mojtaba_injured_isolated",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Mojtaba Khamenei"],
+          "tags": ["succession", "command", "health"]
+        },
+        "identity": {"claim_key": "iran|mojtaba_khamenei|injured_isolated_delegating_to_generals"},
+        "claim": {
+          "statement": "Mojtaba Khamenei is reportedly severely wounded and isolated, delegating decisions to a 'board' of IRGC generals, and has not made a public appearance in the ~2 months since the war began.",
+          "atomic": true,
+          "type": "structural",
+          "subject": "Mojtaba Khamenei",
+          "predicate": "delegated_authority_to",
+          "object": "IRGC generals"
+        },
+        "time": {"valid_at": "2026-04-28", "precision": "day"},
+        "provenance": {
+          "evidence": [
+            {"source_id": "$src_ndtv_board", "role": "supports", "summary": "NDTV: 'Mojtaba Khamenei Injured, A Board Of Generals Helps Take The Calls In Iran.'"},
+            {"source_id": "$src_euronewspe_succession", "role": "supports", "summary": "Euronews Persian: two months on, no public appearance from Mojtaba; speculation about his health."},
+            {"source_id": "$src_pet_health_conflict", "role": "supports", "summary": "Persian Epoch Times: Iranian officials make conflicting statements on Mojtaba's health."}
+          ]
+        },
+        "assessment": {"confidence": "medium", "source_reliability": "medium", "contested": true, "uncertainty": "Severity of injury and exact governance arrangement vary across reports."}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_official_denial_mojtaba_health",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Mojtaba Khamenei"],
+          "tags": ["succession", "official", "health"]
+        },
+        "identity": {"claim_key": "iran|leader_office|claims_mojtaba_in_full_health|2026-05-01"},
+        "claim": {
+          "statement": "On 1 May 2026 the Supreme Leader's deputy for international affairs publicly stated that Ayatollah Sayyid Mojtaba Khamenei is in full health and is personally managing both negotiations and battlefield matters.",
+          "atomic": true,
+          "type": "official_statement",
+          "subject": "Office of the Supreme Leader",
+          "predicate": "denied",
+          "object": "rumors of Mojtaba's incapacitation"
+        },
+        "time": {"occurred_at": "2026-05-01", "precision": "day", "timezone": "Asia/Tehran"},
+        "provenance": {
+          "evidence": [
+            {"source_id": "$src_fa_health_office", "role": "supports", "summary": "Roozno: deputy says Mojtaba is in full health and overseeing 'negotiation and battlefield' matters."}
+          ]
+        },
+        "assessment": {"confidence": "high", "source_reliability": "medium", "contested": true, "uncertainty": "Statement is from the regime; conflicts with Western and Persian-diaspora reporting on injury and absence."}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_pensioners_dual_city_apr29",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran"],
+          "tags": ["protests", "labor", "pensioners"]
+        },
+        "identity": {"claim_key": "iran|steel_pensioners|simultaneous_rallies_esfahan_tehran|2026-04-29"},
+        "claim": {
+          "statement": "On 29 April 2026 (9 Ordibehesht 1405) steel-industry pensioners simultaneously rallied outside the Esfahan governor's office and the steel pension fund building on Vozara St. in Tehran, demanding restoration of supplementary medical insurance.",
+          "atomic": true,
+          "type": "event",
+          "subject": "Steel-industry pensioners",
+          "predicate": "rallied",
+          "object": "Esfahan governorate + Tehran pension fund"
+        },
+        "time": {"occurred_at": "2026-04-29", "precision": "day", "timezone": "Asia/Tehran"},
+        "provenance": {
+          "evidence": [
+            {"source_id": "$src_kayhanlondon_pensioners", "role": "supports", "summary": "Kayhan London (Persian) reports simultaneous rallies in Esfahan and Tehran on 9 Ord 1405."},
+            {"source_id": "$src_hra_protests", "role": "supports", "summary": "HRANA: Steel pensioners (Esfahan & Tehran) and railway technical workers (Andimeshk, Dorud Lorestan) for 2nd consecutive day; ≥4 protest gatherings on 9 Ord."}
+          ]
+        },
+        "assessment": {"confidence": "high", "source_reliability": "high"}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_protests_resume_post_war",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran"],
+          "tags": ["protests", "labor"]
+        },
+        "identity": {"claim_key": "iran|labor_protests|resumed_despite_martial_atmosphere_late_apr_2026"},
+        "claim": {
+          "statement": "Despite a continuing martial-law atmosphere, by mid-to-late April 2026 economic protests had resumed across multiple sectors — Tamin-Ejtemaei pensioners (Shush, 19 Apr), Karnameh-Sabz green-card teachers (Tehran, 21 Apr), Ilam refinery workers, electricity workers, and railway technical workers (Lorestan/Andimeshk).",
+          "atomic": true,
+          "type": "trend",
+          "subject": "Iranian labor sectors",
+          "predicate": "resumed_protests"
+        },
+        "time": {"valid_from": "2026-04-19", "valid_until": "2026-04-29", "precision": "range"},
+        "provenance": {
+          "evidence": [
+            {"source_id": "$src_workercommunist_apr20", "role": "supports", "summary": "Asghar Karimi: 'protests of various worker segments resume despite the militarized atmosphere'."},
+            {"source_id": "$src_hra_protests", "role": "supports", "summary": "HRANA reports multiple simultaneous protest gatherings on 9 Ord 1405."}
+          ]
+        },
+        "assessment": {"confidence": "high", "source_reliability": "high"}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_school_strike_silent_weeks",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran"],
+          "tags": ["protests", "education"]
+        },
+        "identity": {"claim_key": "iran|school_strike|unprecedented_silence_weeks|2026-04"},
+        "claim": {
+          "statement": "Former US officials publicly characterized an ongoing weeks-long silent strike in Iranian schools in late April 2026 as 'unprecedented'.",
+          "atomic": true,
+          "type": "report",
+          "subject": "Iranian schools",
+          "predicate": "engaged_in",
+          "object": "weeks-long silent strike"
+        },
+        "time": {"valid_at": "2026-04-29", "precision": "day"},
+        "provenance": {
+          "evidence": [
+            {"source_id": "$src_qaworld_schools", "role": "supports", "summary": "Q&A World News headline citing former US officials."}
+          ]
+        },
+        "assessment": {"confidence": "low", "source_reliability": "medium", "contested": false, "uncertainty": "Single second-tier outlet; needs corroboration from Iranian-domestic teachers' union or HRANA."}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_blockade_steel_export",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran"],
+          "tags": ["economy", "war"]
+        },
+        "identity": {"claim_key": "iran|economy|battered_by_strikes_and_blockade|2026-04-28"},
+        "claim": {
+          "statement": "Israeli strikes and a Trump-administration naval blockade have battered Iran's economy, with steel and other industrial exports cut and goods shortages reported.",
+          "atomic": true,
+          "type": "structural",
+          "subject": "Iran's economy",
+          "predicate": "battered_by",
+          "object": "Israeli strikes and US blockade"
+        },
+        "time": {"valid_at": "2026-04-28", "precision": "day"},
+        "provenance": {
+          "evidence": [
+            {"source_id": "$src_ap_blockade", "role": "supports", "summary": "AP Apr 28: 'Israel's strikes and Trump's blockade have battered Iran's economy.'"}
+          ]
+        },
+        "assessment": {"confidence": "high", "source_reliability": "high"}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_water_pezeshkian_warning",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Tehran"],
+          "tags": ["water", "infrastructure"]
+        },
+        "identity": {"claim_key": "iran|tehran|water_crisis|pezeshkian_500k_toman_per_m3"},
+        "claim": {
+          "statement": "President Pezeshkian publicly warned (early May 2026) that piping water from the Persian Gulf to relieve Tehran's drought would cost ~500,000 toman per cubic meter, framing the crisis as essentially unaffordable to mitigate.",
+          "atomic": true,
+          "type": "official_statement",
+          "subject": "Masoud Pezeshkian",
+          "predicate": "warned_about",
+          "object": "water transfer cost",
+          "qualifiers": {"figure": "500,000 toman / m3"}
+        },
+        "time": {"occurred_at": "2026-05-01", "precision": "day", "timezone": "Asia/Tehran"},
+        "provenance": {
+          "evidence": [
+            {"source_id": "$src_jss_water", "role": "supports", "summary": "Jahan-Sanat (Persian): 'Pezeshkian warning: transferring water from Persian Gulf would cost 500,000 toman per cubic meter.'"},
+            {"source_id": "$src_voa_water", "role": "supports", "summary": "VOA Persian: 'From Tehran's persistent drought to Day Zero of water'."}
+          ]
+        },
+        "assessment": {"confidence": "high", "source_reliability": "high"}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_truckers_govt_bailout",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran"],
+          "tags": ["economy", "logistics", "concession"]
+        },
+        "identity": {"claim_key": "iran|truckers|fuel_advance_paid_2026-04-22"},
+        "claim": {
+          "statement": "On 22 April 2026 the Iranian government paid the long-disputed truckers' fuel advance (سوخت تنخواه) and credited a 22% rise in basic-goods transport during wartime — a rare on-the-books concession to the truckers' guild.",
+          "atomic": true,
+          "type": "policy",
+          "subject": "Government of Iran",
+          "predicate": "paid",
+          "object": "truckers' fuel advance"
+        },
+        "time": {"occurred_at": "2026-04-22", "precision": "day", "timezone": "Asia/Tehran"},
+        "provenance": {
+          "evidence": [
+            {"source_id": "$src_ilna_truckers", "role": "supports", "summary": "ILNA: 'Truckers' fuel advance has been deposited / 22% rise in basic goods transport during the war'."}
+          ]
+        },
+        "assessment": {"confidence": "high", "source_reliability": "high"}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_keane_warning",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "United States"],
+          "tags": ["war", "negotiations"]
+        },
+        "identity": {"claim_key": "iran|us|keane_warning_double_air_power|2026-04-20"},
+        "claim": {
+          "statement": "On 20 April 2026, retired Gen. Jack Keane told Fox News that if negotiations with Iran fail, the U.S. is positioned to resume military operations and that U.S. combat air power in the region has 'doubled' since the start of the war.",
+          "atomic": true,
+          "type": "official_statement",
+          "subject": "Gen. Jack Keane",
+          "predicate": "warned_of",
+          "object": "potential resumed strikes"
+        },
+        "time": {"occurred_at": "2026-04-20", "precision": "day"},
+        "provenance": {
+          "evidence": [
+            {"source_id": "$src_indy_keane", "role": "supports", "summary": "Independent Persian summary of Keane's Fox News interview."}
+          ]
+        },
+        "assessment": {"confidence": "medium", "source_reliability": "medium"}
+      }
+    },
+    {
+      "op": "add",
+      "row": {
+        "kind": "question",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Mojtaba Khamenei"],
+          "tags": ["succession", "open"]
+        },
+        "question": {
+          "text": "Is Mojtaba Khamenei actually exercising authority, or is the IRGC 'board of generals' the de facto sovereign — and how stable is that arrangement?",
+          "status": "open",
+          "priority": "high",
+          "resolution_criteria": "Confirmed public appearance / televised address by Mojtaba; or open IRGC declaration of governing council; or named decree in his sole signature.",
+          "why_it_matters": "Determines whether external leverage (sanctions, talks) lands on a single figure or a junta-style structure."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "row": {
+        "kind": "question",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran"],
+          "tags": ["protests", "open"]
+        },
+        "question": {
+          "text": "Are the resumed labor protests (pensioners, teachers, railway, refineries) coalescing into a coordinated nationwide movement, or remaining sectoral/local?",
+          "status": "open",
+          "priority": "high",
+          "resolution_criteria": "Cross-sector strike communique; joint demands published by ≥3 distinct guilds; or rolling general-strike calls beyond Karnameh-Sabz teachers and steel pensioners.",
+          "why_it_matters": "A coordinated movement is the likeliest accelerant of regime collapse during the post-war reconstruction window."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "row": {
+        "kind": "question",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran"],
+          "tags": ["economy", "currency", "open"]
+        },
+        "question": {
+          "text": "Will the rial stabilize at ~1.8M IRR/USD, blow through that floor, or trigger a mass deposit run / bread riots?",
+          "status": "open",
+          "priority": "high",
+          "resolution_criteria": "Daily exchange-rate prints over the next 2 weeks; CBI hard-currency interventions; bread queue/shortage reports."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "row": {
+        "kind": "question",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran"],
+          "tags": ["repression", "open"]
+        },
+        "question": {
+          "text": "What is the actual death toll from the Dey 1404 (Dec 2025–Jan 2026) crackdown?",
+          "status": "open",
+          "priority": "medium",
+          "resolution_criteria": "Independent forensic count (HRANA, Amnesty, OHCHR) vs. Pahlavi/MEK figure of >40,000 vs. NPR's '≥7,000'.",
+          "why_it_matters": "Anchors the narrative of regime brittleness; the spread between estimates is itself a diagnostic of fog-of-war."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "row": {
+        "kind": "question",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran"],
+          "tags": ["water", "open"]
+        },
+        "question": {
+          "text": "How close is Tehran to a literal Day Zero (taps off) on water, and what does the regime do when it arrives?",
+          "status": "open",
+          "priority": "medium",
+          "resolution_criteria": "Reservoir storage % at Karaj/Lar/Latyan dams; rationing decrees; mass relocation chatter."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "row": {
+        "kind": "question",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran"],
+          "tags": ["repression", "executions", "open"]
+        },
+        "question": {
+          "text": "Is the regime accelerating executions of protesters as a deterrent, or holding steady? (Tabari death sentence May 1; Sasan Azadvar reportedly executed Apr 30.)",
+          "status": "open",
+          "priority": "high",
+          "resolution_criteria": "Weekly tallies from HRANA / IHR; Judiciary announcements; named protester executions."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "synth_cracks_overview",
+      "row": {
+        "kind": "synthesis",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran"],
+          "tags": ["overview", "synthesis"]
+        },
+        "synthesis": {
+          "title": "Cracks in the Islamic Republic, 17 Apr – 1 May 2026",
+          "summary": "In the two weeks following the Iran ceasefire, four reinforcing cracks are visible. (1) Command vacuum: Ali Khamenei was killed on 28 Feb; nominal successor Mojtaba is reportedly injured and absent, with the IRGC running wartime decisions through a generals' 'board' — even as the leader's office insists Mojtaba is in full health. (2) Currency collapse: the rial fell to a record ~1.8M/USD on 29 Apr (down >10% in a week post-ceasefire), with bread and medicine becoming visibly scarcer. (3) Labor unrest re-ignites: despite a martial-law atmosphere and a months-long internet blackout, steel pensioners, Karnameh-Sabz teachers, railway technicians, and refinery workers held simultaneous rallies in Esfahan/Tehran/Shush/Andimeshk. The truckers' guild appears to have been bought off (fuel-advance paid 22 Apr). (4) Infrastructure & repression squeeze: ≥59-day internet blackout costing >$1.8B, Tehran water at the brink (Pezeshkian flagging 500,000 toman/m³ Persian-Gulf transfer cost), school silent-strike entering weeks, and execution sentences for protesters (Tabari 1 May, Azadvar reportedly 30 Apr). The brittle equilibrium is held by IRGC coercion, an emergency information clamp, and a regime hope that talks with the U.S. produce sanctions relief before the rial / streets break.",
+          "basis": {
+            "claim_ids": [
+              "$claim_airstrikes_killed_khamenei",
+              "$claim_irgc_seized_wartime_power",
+              "$claim_mojtaba_injured_isolated",
+              "$claim_official_denial_mojtaba_health",
+              "$claim_rial_record_low_apr29",
+              "$claim_rial_freefall_post_ceasefire",
+              "$claim_pensioners_dual_city_apr29",
+              "$claim_protests_resume_post_war",
+              "$claim_truckers_govt_bailout",
+              "$claim_internet_blackout_60d",
+              "$claim_blackout_cost_1_8b",
+              "$claim_water_pezeshkian_warning",
+              "$claim_school_strike_silent_weeks",
+              "$claim_blockade_steel_export",
+              "$claim_keane_warning"
+            ]
+          },
+          "limitations": "Window is two weeks, post-ceasefire. Deep on-the-ground signal is dampened by Iran's national internet blackout, which forces reliance on diaspora amplifiers and Persian-language outlets in exile (Kayhan London, Independent Persian, VOA Persian, Euronews Persian, HRANA). Counts of dead/arrested/striking carry significant uncertainty.",
+          "status": "active"
+        }
+      }
+    }
+  ]
+}

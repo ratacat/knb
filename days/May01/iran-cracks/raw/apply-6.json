@@ -1,0 +1,315 @@
+{
+  "atomic": true,
+  "dedupe": true,
+  "operations": [
+    {
+      "op": "add",
+      "as": "src_iranintl_drug_prices_apr29",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["medicine", "inflation", "insulin", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "قیمت دارو در ایران تا ۳۸۰ درصد افزایش یافته است",
+          "uri": "https://www.iranintl.com/fa/202604294554",
+          "publisher": "Iran International",
+          "author": "سبا حیدرخانی",
+          "language": "fa",
+          "published_at": "2026-04-29T10:27:07Z"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-01T23:45:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_radiofarda_drug_prices_apr25",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["medicine", "inflation", "insulin", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "جهش قیمت‌های دارو در ایران پس از جنگ؛ از انسولین تا داروهای قلبی",
+          "uri": "https://www.radiofarda.com/a/war-iran-rise-prices-medicine/33742223.html",
+          "publisher": "Radio Farda",
+          "language": "fa",
+          "published_at": "2026-04-25T08:30:01Z"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-01T23:45:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_aftab_diabetes_apr20",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["medicine", "diabetes", "insulin", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "بیماران در مخمصه تهیه دارو",
+          "uri": "https://aftabnews.ir/fa/news/1046507/%D8%A8%DB%8C%D9%85%D8%A7%D8%B1%D8%A7%D9%86-%D8%AF%D8%B1-%D9%85%D8%AE%D9%85%D8%B5%D9%87-%D8%AA%D9%87%DB%8C%D9%87-%D8%AF%D8%A7%D8%B1%D9%88",
+          "publisher": "Aftab News / ILNA",
+          "language": "fa",
+          "published_at": "2026-04-20T12:07:12Z"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-01T23:45:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_melliun_hrana_protests_apr29",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["labor", "pensioners", "railway", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "دستکم ۴ تجمع اعتراضی برگزار شد",
+          "uri": "https://melliun.org/iran/525109",
+          "publisher": "Melliun / HRANA",
+          "language": "fa",
+          "published_at": "2026-04-29T20:26:58Z"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-01T23:45:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_x_steel_retirees_apr30",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["labor", "pensioners", "xpool", "persian"], "language": "fa"},
+        "source": {
+          "type": "social_post",
+          "title": "X post: steel retirees in Tehran and Isfahan protested cutoff of supplementary insurance",
+          "uri": "https://x.com/IranPanorama_P/status/2049881953294324144",
+          "publisher": "X / @IranPanorama_P",
+          "language": "fa",
+          "published_at": "2026-04-30T16:01:57Z"
+        },
+        "provenance": {"acquisition": {"method": "xpool SearchTimeline", "observed_at": "2026-05-01T23:45:00Z", "job_id": "31802227-5543-4bb3-93dc-02ef6a61dc70"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_x_tehran_water_apr30",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Tehran"], "tags": ["water", "xpool", "persian"], "language": "fa", "geo": ["Tehran"]},
+        "source": {
+          "type": "social_post",
+          "title": "X post: Tehran water reportedly cut for eight daytime hours",
+          "uri": "https://x.com/N0tKn0wM3/status/2049807444801466731",
+          "publisher": "X / @N0tKn0wM3",
+          "language": "fa",
+          "published_at": "2026-04-30T11:05:53Z"
+        },
+        "provenance": {"acquisition": {"method": "xpool SearchTimeline", "observed_at": "2026-05-01T23:45:00Z", "job_id": "173c17a3-8888-43c3-a0c3-c0ed908bec20"}}
+      }
+    },
+
+    {
+      "op": "add",
+      "as": "claim_drug_price_shock_apr29",
+      "row": {
+        "kind": "claim",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["medicine", "inflation", "insulin", "household-costs"]},
+        "identity": {"claim_key": "iran|medicine_prices|repricing_5000_items_up_to_380pct|2026-04-29"},
+        "claim": {
+          "statement": "On 29 April 2026, Iran International reported that about 5,000 branded drug items had changed price, a review of roughly 200 items showed increases up to 380%, and 46 sampled drugs averaged 107% growth; reported examples included Iranian insulin pens rising from 205,000 to 640,000 toman and foreign Novomix/Novorapid from 240,000 to 890,000 toman.",
+          "atomic": true,
+          "type": "measurement",
+          "subject": "Iran drug market",
+          "predicate": "repriced",
+          "object": "thousands of medicines with triple-digit increases"
+        },
+        "time": {"occurred_at": "2026-04-29", "precision": "day", "timezone": "Asia/Tehran"},
+        "provenance": {
+          "evidence": [
+            {"source_id": "$src_iranintl_drug_prices_apr29", "role": "supports", "summary": "Iran International reported 5,000 branded drug price changes, up to 380% increases in a 200-item review, 107% average growth for 46 drugs, and specific insulin price jumps."},
+            {"source_id": "$src_radiofarda_drug_prices_apr25", "role": "supports", "summary": "Radio Farda, citing ILNA field reporting, described insulin and metformin scarcity and multi-fold price increases, including Osvix rising from 280-320k toman to 1.2M toman."}
+          ]
+        },
+        "assessment": {"confidence": "high", "source_reliability": "medium", "information_depth": {"level": "strong", "rationale": "Multiple Persian reports provide item-level price figures and market-wide repricing counts."}, "importance": "high"}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_diabetes_patients_ration_insulin",
+      "row": {
+        "kind": "claim",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["medicine", "diabetes", "insulin", "household-costs"]},
+        "identity": {"claim_key": "iran|insulin_access|patients_search_multiple_cities_ration_doses|2026-04-20"},
+        "claim": {
+          "statement": "On 20 April 2026, Aftab/ILNA reported patient-level insulin access stress across multiple cities: Lantus was hard to find in Tehran, patients in Bijar and Mianeh reported failing to buy needed insulin, a Shahin Shahr patient said she visited seven pharmacies and rationed doses out of fear of running out, and a Bandar Anzali patient said his usual pharmacy had received no insulin since before Nowruz.",
+          "atomic": true,
+          "type": "field_report",
+          "subject": "Iranian diabetic patients",
+          "predicate": "reported",
+          "object": "hard insulin access and dose rationing"
+        },
+        "time": {"occurred_at": "2026-04-20", "precision": "day", "timezone": "Asia/Tehran"},
+        "provenance": {"evidence": [{"source_id": "$src_aftab_diabetes_apr20", "role": "supports", "summary": "Aftab/ILNA included named patient anecdotes from Shahin Shahr and Bandar Anzali plus reports from Tehran, Bijar, and Mianeh; it also cited 3-4x price increases for test strips and sensors rising to 16-20M toman."}]},
+        "assessment": {"confidence": "high", "source_reliability": "medium", "information_depth": {"level": "strong", "rationale": "Includes direct patient accounts, city names, concrete medication names, and equipment prices."}, "importance": "high"}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_apr29_pensioner_railway_protests",
+      "row": {
+        "kind": "claim",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["labor", "pensioners", "railway", "medical-insurance"]},
+        "identity": {"claim_key": "iran|labor_protests|steel_retirees_railway_workers|2026-04-29"},
+        "claim": {
+          "statement": "On 29 April 2026, HRANA/Melliun reported at least four labor/pensioner protest actions: steel-industry retirees gathered in Isfahan and Tehran over a nine-day lapse in supplementary medical insurance, while railway infrastructure workers in Dorud, Lorestan and Andimeshk protested for a second consecutive day over neglected arrears and customary benefits; workers said 400-500 people were employed in Dorud alone and contractor workers had been excluded from wartime aid given to administrative staff.",
+          "atomic": true,
+          "type": "event_report",
+          "subject": "Iranian steel retirees and railway infrastructure workers",
+          "predicate": "protested",
+          "object": "insurance lapse, arrears, and benefit exclusion"
+        },
+        "time": {"occurred_at": "2026-04-29", "precision": "day", "timezone": "Asia/Tehran"},
+        "provenance": {
+          "evidence": [
+            {"source_id": "$src_melliun_hrana_protests_apr29", "role": "supports", "summary": "HRANA/Melliun reported steel retiree gatherings in Isfahan and Tehran plus second-day protests by railway infrastructure workers in Dorud and Andimeshk."},
+            {"source_id": "$src_x_steel_retirees_apr30", "role": "supports", "summary": "xPool found an April 30 Persian X post repeating the steel-retiree protest claim and stating retirees demanded restoration of supplementary insurance."}
+          ]
+        },
+        "assessment": {"confidence": "high", "source_reliability": "medium", "information_depth": {"level": "strong", "rationale": "Specific date, places, groups, demands, and worker-count detail from HRANA/ILNA, with xPool social corroboration."}, "importance": "high"}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_x_tehran_water_8h_anecdote",
+      "row": {
+        "kind": "claim",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Tehran"], "tags": ["water", "xpool", "ground-signal"], "geo": ["Tehran"]},
+        "identity": {"claim_key": "iran|tehran_water|x_user_reports_8h_daytime_cut|2026-04-30"},
+        "claim": {
+          "statement": "On 30 April 2026, xPool surfaced a Persian X post complaining that despite heavy rain in Tehran, water had been cut for eight hours during the day; this is a low-confidence ground signal consistent with other reports of informal Tehran water restrictions, not independently verified evidence of citywide service status.",
+          "atomic": true,
+          "type": "social_signal",
+          "subject": "Tehran water service",
+          "predicate": "was described as",
+          "object": "cut for eight daytime hours by one X user"
+        },
+        "time": {"occurred_at": "2026-04-30", "precision": "day", "timezone": "Asia/Tehran"},
+        "provenance": {"evidence": [{"source_id": "$src_x_tehran_water_apr30", "role": "supports", "summary": "The X post said that in Tehran, despite rainfall, water was cut for eight hours during the day."}]},
+        "assessment": {"confidence": "low", "source_reliability": "low", "information_depth": {"level": "thin", "rationale": "Single social post found through xPool; useful as ground texture but not independently verified."}, "importance": "medium", "uncertainty": "Treat as anecdotal evidence only unless corroborated by additional local posts or service notices."}
+      }
+    },
+
+    {
+      "op": "add",
+      "as": "q_patient_protests",
+      "row": {
+        "kind": "question",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["medicine", "protests", "patients"]},
+        "question": {
+          "text": "Do medicine price shocks and insulin shortages produce organized patient protests around the Food and Drug Administration, hospitals, or insurers?",
+          "status": "open",
+          "priority": "high",
+          "why_it_matters": "Patient-led mobilization would broaden the current labor/pensioner protest map into a direct health-access legitimacy crisis."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "q_benefits_to_healthcare",
+      "row": {
+        "kind": "question",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["labor", "pensioners", "medicine"]},
+        "question": {
+          "text": "Are labor and pensioner protests shifting from wage-only grievances toward health-insurance and treatment-access demands?",
+          "status": "open",
+          "priority": "medium",
+          "why_it_matters": "A benefits-to-healthcare shift would connect economic unrest with the drug and hospital-access crisis."
+        }
+      }
+    },
+
+    {
+      "op": "relate",
+      "from_id": "$claim_drug_price_shock_apr29",
+      "to_id": "claim:iran-cracks:20260501:845ab13d",
+      "rel": "supports",
+      "strength": "high",
+      "rationale": "The repricing data quantifies and broadens the prior claim that ordinary illness is becoming unaffordable.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_diabetes_patients_ration_insulin",
+      "to_id": "claim:iran-cracks:20260501:845ab13d",
+      "rel": "supports",
+      "strength": "high",
+      "rationale": "Insulin search/rationing is a concrete patient-level example of the medicine access squeeze.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_apr29_pensioner_railway_protests",
+      "to_id": "claim:iran-cracks:20260501:80555b70",
+      "rel": "supports",
+      "strength": "high",
+      "rationale": "The Apr 29 steel-retiree and railway-worker actions extend the multi-city wage/benefits protest pattern.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_apr29_pensioner_railway_protests",
+      "to_id": "claim:iran-cracks:20260501:ded4c10d",
+      "rel": "context_for",
+      "strength": "medium",
+      "rationale": "The new protests are a current instance inside the broader HRANA-documented labor/guild unrest trend.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_x_tehran_water_8h_anecdote",
+      "to_id": "claim:iran-cracks:20260501:3d29837a",
+      "rel": "supports",
+      "strength": "low",
+      "rationale": "The social post is weak corroborating texture for informal Tehran water cuts.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+
+    {
+      "op": "add",
+      "as": "synth_v6_cracks",
+      "row": {
+        "kind": "synthesis",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["overview", "synthesis", "v6"]},
+        "synthesis": {
+          "title": "Cracks in the Islamic Republic, v6 — medicine squeeze meets benefits unrest",
+          "summary": "The sixth pass adds sharper health-system and benefits signals. The medicine crisis is now measurable beyond generic scarcity: Persian reports describe about 5,000 drug items repriced, sampled increases up to 380%, Iranian insulin pens rising from 205k to 640k toman, foreign Novomix/Novorapid from 240k to 890k, and 46 drugs averaging 107% growth. Patient-level reporting from Tehran, Bijar, Mianeh, Shahin Shahr, and Bandar Anzali shows insulin scarcity forcing pharmacy searches, substitute insulin, and dose rationing. On the labor side, Apr 29 steel-retiree protests in Isfahan and Tehran over a nine-day supplementary-insurance lapse, plus second-day railway-worker protests in Dorud and Andimeshk over arrears/benefits, suggest the wage-protest field is bleeding into medical-coverage survival. xPool adds one low-confidence Tehran water-cut anecdote, useful only as texture. Net: the current crack map is no longer just food, wages, internet, and elite bargaining; medicine access and health-insurance loss are becoming daily-life pressure points that can connect retirees, patients, workers, and households.",
+          "basis": {
+            "claim_ids": [
+              "$claim_drug_price_shock_apr29",
+              "$claim_diabetes_patients_ration_insulin",
+              "$claim_apr29_pensioner_railway_protests",
+              "$claim_x_tehran_water_8h_anecdote",
+              "claim:iran-cracks:20260501:bb562d39",
+              "claim:iran-cracks:20260501:ba56878f",
+              "claim:iran-cracks:20260501:14fa473e",
+              "claim:iran-cracks:20260501:8e69a6e8",
+              "claim:iran-cracks:20260501:80555b70",
+              "claim:iran-cracks:20260501:ecc4b1a8",
+              "claim:iran-cracks:20260501:3d29837a",
+              "claim:iran-cracks:20260501:845ab13d",
+              "claim:iran-cracks:20260501:ded4c10d"
+            ],
+            "question_ids": ["$q_patient_protests", "$q_benefits_to_healthcare", "q:iran-cracks:20260501:a4e932dc", "q:iran-cracks:20260501:7680b246", "q:iran-cracks:20260501:99119082"]
+          },
+          "limitations": "Medicine-price reports are strong on item-level examples but still need systematic official price-table or pharmacy-scrape verification. The xPool Tehran water item is a single social post and should not be treated as verified citywide evidence.",
+          "status": "active"
+        }
+      }
+    },
+    {
+      "op": "supersede",
+      "target_ids": ["synth:iran-cracks:20260501:34070046"],
+      "replacement_id": "$synth_v6_cracks",
+      "reason": "v6 adds quantified medicine repricing, insulin access/rationing, benefits-linked labor protests, and one low-confidence xPool water signal.",
+      "scope": {"collections": ["iran-cracks"]}
+    }
+  ]
+}

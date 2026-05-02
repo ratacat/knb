@@ -26,14 +26,25 @@ Reusable row modules are `scope`, `identity`, `time`, `provenance`, `assessment`
 ## Commands
 
 ```bash
-bun run knb -- validate
-bun run knb -- append --file row.json
-bun run knb -- query --collection example --kind claim
-bun run knb -- render --collection example --out knb/views/example.md
+bun run knb -- init
+bun run knb -- status --json
+bun run knb -- schema --json
+bun run knb -- apply --stdin --json
+bun run knb -- add --stdin --json
+bun run knb -- get <id>
+bun run knb -- query --kind claim --collection example
+bun run knb -- context --collection example --max-tokens 3000 --json
+bun run knb -- check --json
+bun run knb -- render --collection example
+bun run knb -- index --rebuild
 ```
+
+Writes go through `apply` (atomic batch) or its single-row wrapper `add`. Reads (`get`, `query`, `context`, `render`, `check`, `index`) go through validated effective-state snapshots, so they respect lifecycle changes and projection freshness automatically.
 
 ## Design Notes
 
-The CLI is the gate into and out of the ledger. It should validate JSON, preserve row identity, resolve source and relation references, and keep generated views disposable. Agents should add knowledge as small source, claim, question, and synthesis rows rather than dumping long essays into claims.
+The CLI is a thin adapter: parse args, open a workspace, call one library method, render an envelope. Both the CLI and host applications use the same `openKnb` facade, so the public library is also the test surface. Any new behavior should live behind a facade method, not in CLI argument handling.
 
-See [Agent-First CLI Design](docs/design/agent-first-cli.md) for the target command surface and lifecycle model.
+`knb/ledger.jsonl` is canonical. Generated `knb/views/` and `knb/indexes/` are disposable projections rebuilt from the ledger.
+
+See [Agent-First CLI Design](docs/design/agent-first-cli.md) for the full command surface, output envelopes, lifecycle model, and module seams. See [Library Usage](docs/library-usage.md) for `openKnb` and the facade methods host applications call.

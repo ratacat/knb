@@ -1,0 +1,337 @@
+{
+  "atomic": true,
+  "dedupe": true,
+  "operations": [
+    {
+      "op": "add",
+      "as": "src_hrana_alirezai_arrest_apr30",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Sharif University", "Ali Alirezai", "students", "arrests"], "tags": ["students", "arrests", "repression", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "علی علیرضایی، دانشجوی دانشگاه صنعتی شریف بازداشت شد",
+          "uri": "https://www.hra-news.org/2026/hranews/a-2347aa6f/",
+          "publisher": "HRANA",
+          "language": "fa",
+          "published_at": "2026-04-30T14:43:42Z",
+          "raw_path": "raw/apply-14-source-notes.md"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-02T00:55:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_hrana_kohnzad_arrest_apr28",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Sharif University", "Fariborz Kohnzad", "students", "arrests"], "tags": ["students", "arrests", "repression", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "فریبرز کهن‌زاد، دانشجو بازداشت شد",
+          "uri": "https://www.hra-news.org/2026/hranews/a-99a11526/",
+          "publisher": "HRANA",
+          "language": "fa",
+          "published_at": "2026-04-28T11:16:34Z",
+          "raw_path": "raw/apply-14-source-notes.md"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-02T00:55:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_xpool_mohammadhasan_detention_apr28",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Sharif University", "Mostafa Mohammadhasan", "students", "detention"], "tags": ["students", "arrests", "repression", "xpool", "persian"], "language": "fa"},
+        "source": {
+          "type": "social_post",
+          "title": "xPool SearchTimeline result: Mostafa Mohammadhasan continued detention and study obstruction",
+          "uri": "https://x.com/iranhrs99/status/2049167290705305711",
+          "publisher": "X / @iranhrs99 via xPool",
+          "language": "fa",
+          "raw_path": "raw/apply-14-source-notes.md"
+        },
+        "provenance": {"acquisition": {"method": "xpool query SearchTimeline", "observed_at": "2026-05-02T00:55:00Z", "job_id": "032c7f1f-40a4-48f2-8763-467e752064f5"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_sedayemardom_iust_email_discipline_apr30",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Iran University of Science and Technology", "students", "discipline"], "tags": ["students", "discipline", "internet", "repression", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "ارسال دفاعیات کمیته انضباطی با ایمیل در دانشگاه علم و صنعت!",
+          "uri": "https://www.sedayemardom.net/?p=161523",
+          "publisher": "Sedaye Mardom",
+          "language": "fa",
+          "published_at": "2026-04-30T07:48:49Z",
+          "raw_path": "raw/apply-14-source-notes.md"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-02T00:55:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_sedayemardom_sharif_tiered_internet_apr26",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Sharif University", "students", "internet"], "tags": ["students", "internet", "internet-pro", "campus", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "مخالفت صنوف و دانشگاهیان با اینترنت طبقاتی",
+          "uri": "https://www.sedayemardom.net/?p=161385",
+          "publisher": "Sedaye Mardom, citing Radio Zamaneh",
+          "language": "fa",
+          "published_at": "2026-04-26T12:28:44Z",
+          "raw_path": "raw/apply-14-source-notes.md"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-02T00:55:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_bartarinha_sharif_tiered_internet_apr25",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Sharif University", "students", "internet"], "tags": ["students", "internet", "internet-pro", "campus", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "انتقاد دو تشکل دانشجویی دانشگاه شریف به ادامه قطعی اینترنت",
+          "uri": "https://www.bartarinha.ir/%D8%A8%D8%AE%D8%B4-%D8%A7%D8%AE%D8%A8%D8%A7%D8%B1-%D8%B1%D9%88%D8%B2-20/1591176-%D8%A7%D9%86%D8%AA%D9%82%D8%A7%D8%AF-%D8%AF%D9%88-%D8%AA%D8%B4%DA%A9%D9%84-%D8%AF%D8%A7%D9%86%D8%B4%D8%AC%D9%88%DB%8C%DB%8C-%D8%AF%D8%A7%D9%86%D8%B4%DA%AF%D8%A7%D9%87-%D8%B4%D8%B1%DB%8C%D9%81-%D8%A8%D9%87-%D8%A7%D8%AF%D8%A7%D9%85%D9%87-%D9%82%D8%B7%D8%B9%DB%8C-%D8%A7%DB%8C%D9%86%D8%AA%D8%B1%D9%86%D8%AA",
+          "publisher": "Bartarinha, citing Jamaran",
+          "language": "fa",
+          "published_at": "2026-04-25T10:03:21Z",
+          "raw_path": "raw/apply-14-source-notes.md"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-02T00:55:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_alirezai_arrest_hrana",
+      "row": {
+        "kind": "claim",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Sharif University", "Ali Alirezai", "students", "arrests"], "tags": ["students", "arrests", "repression"]},
+        "identity": {"claim_key": "iran|sharif_university|ali_alirezai_arrested_unknown_location|2026-04-30", "novelty": "corroboration"},
+        "claim": {
+          "statement": "On 30 April 2026, HRANA reported that Ali Alirezai, a 1402-entry mathematics undergraduate at Sharif University, had been arrested by security forces on Wednesday 9 Ordibehesht and moved to an unknown location; HRANA said Sharif University's student council reported that his place of detention was still unknown and that no charges or reasons for arrest were known at publication time.",
+          "atomic": true,
+          "type": "rights_report",
+          "subject": "Ali Alirezai",
+          "predicate": "was_reportedly_arrested",
+          "object": "security-force arrest and unknown detention location"
+        },
+        "time": {"occurred_at": "2026-04-29", "reported_at": "2026-04-30", "precision": "day", "timezone": "Asia/Tehran"},
+        "provenance": {"evidence": [{"source_id": "$src_hrana_alirezai_arrest_apr30", "role": "supports", "summary": "HRANA cites Sharif University's student council for the arrest, unknown detention location, and lack of known charges."}]},
+        "assessment": {"confidence": "medium", "source_reliability": "medium", "information_depth": {"level": "strong", "rationale": "The report gives name, program, entry year, date, university, and source channel, but no official or family/lawyer confirmation."}, "importance": "high", "uncertainty": "Needs family, lawyer, official judicial, or primary student-council confirmation."}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_kohnzad_arrest_hrana",
+      "row": {
+        "kind": "claim",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Sharif University", "Fariborz Kohnzad", "students", "arrests"], "tags": ["students", "arrests", "repression"]},
+        "identity": {"claim_key": "iran|sharif_university|fariborz_kohnzad_arrested_unknown_location|2026-04-28", "novelty": "corroboration"},
+        "claim": {
+          "statement": "On 28 April 2026, HRANA, citing United Students, reported that Fariborz Kohnzad, an undergraduate electrical-engineering student at Sharif University, had been arrested by security forces and transferred to an unknown location; HRANA said the report did not specify the arrest date or place and that no charges were known at publication time.",
+          "atomic": true,
+          "type": "rights_report",
+          "subject": "Fariborz Kohnzad",
+          "predicate": "was_reportedly_arrested",
+          "object": "security-force arrest and unknown detention location"
+        },
+        "time": {"reported_at": "2026-04-28", "precision": "day", "timezone": "Asia/Tehran"},
+        "provenance": {"evidence": [{"source_id": "$src_hrana_kohnzad_arrest_apr28", "role": "supports", "summary": "HRANA cites United Students for Kohnzad's arrest, unknown location, and lack of known charges or arrest details."}]},
+        "assessment": {"confidence": "medium", "source_reliability": "medium", "information_depth": {"level": "partial", "rationale": "The source gives identity and status but lacks date/place of arrest and independent confirmation."}, "importance": "high", "uncertainty": "Needs primary student-channel, family, lawyer, or official confirmation."}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_mohammadhasan_detention_study_obstruction",
+      "row": {
+        "kind": "claim",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Sharif University", "Mostafa Mohammadhasan", "students", "detention"], "tags": ["students", "arrests", "repression", "education"]},
+        "identity": {"claim_key": "iran|sharif_university|mostafa_mohammadhasan_remains_detained_study_obstructed|2026-04-28", "novelty": "corroboration"},
+        "claim": {
+          "statement": "In an xPool-captured Persian X post, @iranhrs99 / Ansuye Divarha said that, according to Sharif student-association reporting, Mostafa Mohammadhasan, a Sharif master's student in philosophy of science, remained detained while some other recently detained students had been released on bail; the post also said requests for release or electronic monitoring were unanswered and limits on transferring course books into prison disrupted his studies.",
+          "atomic": true,
+          "type": "social_report",
+          "subject": "Mostafa Mohammadhasan",
+          "predicate": "reportedly_remained_detained",
+          "object": "continued detention and study disruption"
+        },
+        "time": {"reported_at": "2026-04-28", "precision": "day", "timezone": "Asia/Tehran"},
+        "provenance": {
+          "evidence": [
+            {"source_id": "$src_xpool_mohammadhasan_detention_apr28", "role": "supports", "summary": "xPool captured a Persian X post claiming continued detention and study obstruction."},
+            {"source_id": "src:iran-cracks:20260502:2c67770a", "role": "supports", "summary": "IranWire also reported that student sources said Mohammadhasan remained detained."}
+          ]
+        },
+        "assessment": {"confidence": "medium", "source_reliability": "low", "information_depth": {"level": "partial", "rationale": "The continued-detention point is corroborated by IranWire, but the study-obstruction details come from social-source reporting."}, "importance": "medium", "uncertainty": "Needs direct student-channel, family, lawyer, or prison/judiciary confirmation, especially for the course-book restriction."}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_sharif_student_letter_rejects_tiered_internet",
+      "row": {
+        "kind": "claim",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Sharif University", "students", "internet"], "tags": ["students", "internet", "internet-pro", "campus"]},
+        "identity": {"claim_key": "iran|sharif_university|student_council_scientific_associations_reject_tiered_internet|2026-04-26", "novelty": "new"},
+        "claim": {
+          "statement": "By 25-26 April 2026, reports quoting a joint letter by Sharif University's student council and scientific-association assembly said the groups rejected Internet Pro / tiered internet, argued that internet access is an indivisible public right rather than a privilege, and said four months of restrictions had paralyzed many educational and research activities, stopped projects, blocked international academic communication and article submissions, forced costly VPN or Internet Pro workarounds, and risked widening inequality and youth hopelessness.",
+          "atomic": true,
+          "type": "student_statement",
+          "subject": "Sharif student council and scientific-association assembly",
+          "predicate": "rejected",
+          "object": "Internet Pro / tiered internet after months of academic disruption"
+        },
+        "time": {"reported_at": "2026-04-26", "precision": "day", "timezone": "Asia/Tehran"},
+        "provenance": {
+          "evidence": [
+            {"source_id": "$src_sedayemardom_sharif_tiered_internet_apr26", "role": "supports", "summary": "Sedaye Mardom / Zamaneh gives the longer rendering of the letter and its claims about paralyzed research, inequality, VPN costs, and Internet Pro rent."},
+            {"source_id": "$src_bartarinha_sharif_tiered_internet_apr25", "role": "supports", "summary": "Bartarinha / Jamaran carries a short excerpt from the same letter about universities becoming dead ends without free internet and refusing rent-seeking access."},
+            {"source_id": "src:iran-cracks:20260502:0867d98e", "role": "context", "summary": "Iran Online's interview with Sharif's ICT director independently confirms the faculty/student international-internet asymmetry at Sharif."}
+          ]
+        },
+        "assessment": {"confidence": "high", "source_reliability": "medium", "information_depth": {"level": "strong", "rationale": "Multiple Persian outlets quote the letter and the operational internet asymmetry is independently confirmed by Sharif's ICT director."}, "importance": "high", "uncertainty": "Original student-council publication would further improve provenance."}
+      }
+    },
+    {
+      "op": "add",
+      "as": "q_primary_student_arrest_status",
+      "row": {
+        "kind": "question",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Sharif University", "students", "arrests"], "tags": ["students", "arrests", "verification"]},
+        "question": {
+          "text": "Can primary student-channel posts, family/lawyer statements, official notices, or later release reports confirm current custody status, charges, and location for Ali Alirezai, Fariborz Kohnzad, and Mostafa Mohammadhasan?",
+          "status": "open",
+          "priority": "high",
+          "why_it_matters": "The arrest layer is central to the campus-crack thesis but remains medium-confidence until supported by primary or accountable sources.",
+          "resolution_criteria": "Find primary student-council/channel archives, direct family/lawyer statements, judiciary/university notices, or follow-up release/detention reports dated after 30 April 2026."
+        }
+      }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_alirezai_arrest_hrana",
+      "to_id": "claim:iran-cracks:20260502:2c7a8601",
+      "rel": "supports",
+      "strength": "high",
+      "rationale": "HRANA's separate Alirezai report corroborates the Alirezai component of the broader IranWire Sharif-arrests claim.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_kohnzad_arrest_hrana",
+      "to_id": "claim:iran-cracks:20260502:2c7a8601",
+      "rel": "supports",
+      "strength": "high",
+      "rationale": "HRANA's separate Kohnzad report corroborates the Kohnzad component of the broader IranWire Sharif-arrests claim.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_mohammadhasan_detention_study_obstruction",
+      "to_id": "claim:iran-cracks:20260502:2c7a8601",
+      "rel": "supports",
+      "strength": "medium",
+      "rationale": "The xPool-captured social report plus IranWire source corroborate the Mohammadhasan continued-detention component while adding lower-confidence study-obstruction details.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$src_sedayemardom_iust_email_discipline_apr30",
+      "to_id": "claim:iran-cracks:20260502:51b45ead",
+      "rel": "supports",
+      "strength": "high",
+      "rationale": "Sedaye Mardom preserves a direct rendering of the IUST student-rights working group's disciplinary-procedure objections.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_sharif_student_letter_rejects_tiered_internet",
+      "to_id": "claim:iran-cracks:20260501:14fa473e",
+      "rel": "supports",
+      "strength": "high",
+      "rationale": "The Sharif student letter is a concrete institutional-student example of Internet Pro becoming a legitimacy and rent problem.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_sharif_student_letter_rejects_tiered_internet",
+      "to_id": "claim:iran-cracks:20260502:8b5d6056",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "The letter explains why the faculty/student internet asymmetry at Sharif is politically and educationally explosive.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_sharif_student_letter_rejects_tiered_internet",
+      "to_id": "claim:iran-cracks:20260502:58169613",
+      "rel": "context_for",
+      "strength": "medium",
+      "rationale": "The letter is student-side evidence for the science minister's statement that cutting international internet damages university social resilience.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "add",
+      "as": "synth_v13_campus_corrob",
+      "row": {
+        "kind": "synthesis",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["overview", "synthesis", "v13"]},
+        "synthesis": {
+          "title": "Cracks in the Islamic Republic, v13 — campus corroboration hardens",
+          "summary": "The thirteenth pass turns the campus layer from a soft student-rights signal into a better-corroborated pattern. HRANA now carries separate Persian reports for Ali Alirezai and Fariborz Kohnzad at Sharif, citing the Sharif student council and United Students respectively; xPool surfaced parallel Persian social reporting that Mostafa Mohammadhasan remains detained and that his studies are being disrupted by prison-course-material limits. Sedaye Mardom preserves the Iran University of Science and Technology working group's legal objection to email disciplinary defenses under internet-cut conditions. The most structurally important new piece is the Sharif student council / scientific associations letter rejecting Internet Pro: it says four months of restrictions paralyzed research, blocked international academic communication and article submissions, pushed people toward expensive VPN or special access, and risked turning universities into another rent platform. Net: universities remain a high-resolution crack with two linked channels, coercive discipline/arrests and unequal information access. The regime needs universities for recovery but is rationing the very tools students need to study, publish, organize, and leave.",
+          "basis": {
+            "claim_ids": [
+              "$claim_alirezai_arrest_hrana",
+              "$claim_kohnzad_arrest_hrana",
+              "$claim_mohammadhasan_detention_study_obstruction",
+              "$claim_sharif_student_letter_rejects_tiered_internet",
+              "claim:iran-cracks:20260502:51b45ead",
+              "claim:iran-cracks:20260502:2c7a8601",
+              "claim:iran-cracks:20260502:8b5d6056",
+              "claim:iran-cracks:20260502:58169613",
+              "claim:iran-cracks:20260502:ea0dbfff",
+              "claim:iran-cracks:20260501:14fa473e",
+              "claim:iran-cracks:20260501:bb562d39",
+              "claim:iran-cracks:20260501:2989de1b"
+            ],
+            "question_ids": [
+              "$q_primary_student_arrest_status",
+              "q:iran-cracks:20260502:751166cb",
+              "q:iran-cracks:20260502:2df836b3",
+              "q:iran-cracks:20260501:00218f9b",
+              "q:iran-cracks:20260501:7680b246"
+            ],
+            "source_ids": [
+              "$src_hrana_alirezai_arrest_apr30",
+              "$src_hrana_kohnzad_arrest_apr28",
+              "$src_xpool_mohammadhasan_detention_apr28",
+              "$src_sedayemardom_iust_email_discipline_apr30",
+              "$src_sedayemardom_sharif_tiered_internet_apr26",
+              "$src_bartarinha_sharif_tiered_internet_apr25",
+              "src:iran-cracks:20260502:0867d98e",
+              "src:iran-cracks:20260502:2c67770a"
+            ]
+          },
+          "limitations": "The access and Internet Pro layer is now strong because it joins an official Sharif ICT interview with student-institutional statements carried by multiple Persian outlets. The arrest/discipline layer remains medium confidence: HRANA improves corroboration, but the underlying student channels, family/lawyer confirmation, charges, detention locations, and later release status still need primary evidence. The Mohammadhasan study-obstruction detail is particularly tentative because it comes from social-source reporting captured through xPool.",
+          "status": "active"
+        },
+        "assessment": {"confidence": "high", "source_reliability": "medium", "information_depth": {"level": "strong", "rationale": "The synthesis distinguishes official access evidence, institutional student statements, rights-media corroboration, and weaker xPool social reporting."}, "importance": "high"}
+      }
+    },
+    {
+      "op": "supersede",
+      "target_ids": ["synth:iran-cracks:20260502:cd609486"],
+      "replacement_id": "$synth_v13_campus_corrob",
+      "reason": "v13 adds HRANA corroboration for Sharif arrests, xPool social corroboration for Mohammadhasan detention, a direct IUST disciplinary-process rendering, and a Sharif student-institutional rejection of tiered internet.",
+      "scope": {"collections": ["iran-cracks"]}
+    }
+  ]
+}

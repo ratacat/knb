@@ -1,0 +1,29 @@
+{
+  "requestId": "4c63ae1a1470413dccba83bf796354ee",
+  "results": [
+    {
+      "id": "https://iranwire.com/en/news/151851-three-death-row-inmates-transferred-from-urmia-prison-to-unknown-locations/",
+      "title": "Three Death Row Inmates Transferred from Urmia Prison to Unknown Locations",
+      "url": "https://iranwire.com/en/news/151851-three-death-row-inmates-transferred-from-urmia-prison-to-unknown-locations/",
+      "publishedDate": "2026-04-30T16:48:51.000Z",
+      "author": null,
+      "text": "Three Death Row Inmates Transferred from Urmia Prison to Unknown Locations\n\nSwitch to Iranwire Light?\n\nIt looks like you’re having trouble loading the content on this page. Switch to Iranwire Light instead.\n\nstay on full site\n\n# Three Death Row Inmates Transferred from Urmia Prison to Unknown Locations\n\nApril 30, 2026\n\n2 min read\n\nAccording to the report, on the morning of Thursday, April 30, Naser Bakrzadeh, Karim Yaghoubpour, and Mehrab Abdollahzadeh, all sentenced to death, were moved separately from the prison to undisclosed locations.\n\nKHRN, quoting an informed source, stated: “This morning, Naser Bakrzadeh, along with two other political prisoners, was summoned to the prison’s execution office to meet with an official from the Public and Revolutionary Prosecutor’s Office. After the meeting, the other two prisoners returned to their ward, but Naser Bakrzadeh was taken out of the prison in a refrigerated vehicle and moved to an unknown location.”\n\nRegarding Karim Yaghoubpour, the source noted that he was taken out of the prison this morning under the pretext of being sent to the Medical Examiner’s Office and has not yet returned.\n\nMehrab Abdollahzadeh had been moved to solitary confinement two days ago by order of the prison warden following a verbal altercation with a guard in the visitation hall. While another political prisoner held with him was returned to the general ward this morning, Abdollahzadeh’s fate and current location remain unknown.\n\nGiven the recent threatening remarks by the Chief Justice of the Islamic Republic and the accelerated pace of executions of political and security-related prisoners, these sudden transfers have heightened fears that their sentences may be carried out imminently.\n\nNaser Bakrzadeh, 26, is a resident of Urmia sentenced to death on charges of “espionage for Israel.” Although his execution had recently been stayed, he previously wrote an open letter denying all charges and pleading with human rights organizations to intervene.\n\nKarim Yaghoubpour is a citizen of Turkish descent and a member of the Yarsan minority who has a disability. Arrested in June 2025 by the Ministry of Intelligence, he was reportedly subjected to severe physical and psychological pressure to provide forced confessions. His case is currently before the Supreme Court, though a branch has not yet been assigned.\n\nMehrab Abdollahzadeh was arrested by the IRGC Intelligence Organization in October 2022 during the “Woman, Life, Freedom” protests. He was interrogated and allegedly tortured for 38 days to confess to participating in protests and the killing of a Basij member. His death sentence was issued in September 2024 and later upheld by the Supreme Court. A two-month stay on his execution expired today.\n\n## comments\n\nLog in or Sign Up to join the discussion.\n\n## RELATED ARTICLES\n\n### Economic Crisis Deepens as Bank Melli Gets New Chief\n\n### Mojtaba Khamenei: Iran to Apply “New Legal Rules” in Hormuz\n\n### Over 10,000 Sign Petition Calling for Investigation into Ali Alizadeh’s Activities\n\n### Iran Ranks 177th in Global Press Freedom Index\n\n### Eviction Notices Issued to Displaced Families\n\n### 41-Year-Old Baha’i Woman Detained Without Charges in Iran\n\n### Trial by Email: New Pressure on Iran University of Science and Technology Students\n\n### Students, Creators Reject Iran’s “Internet Pro” Plan\n\n### Ghalibaf Offers Live Feed of Oil Wells to Counter U.S. Blockade Claims\n\nload more\n\n## you may also like\n\n### Bushehr Teacher Suffers Heart Attack in Custody\n\n### Ejei: No Mercy for “Enemy Infantry” in Iran\n\n### Iran Executes 21-Year-Old Protester Sasan Azadvar\n\n### Another Sharif University Student Arrested\n\n### Economic Crisis Deepens as Bank Melli Gets New Chief\n\n### Mojtaba Khamenei: Iran to Apply “New Legal Rules” in Hormuz\n\n### Over 10,000 Sign Petition Calling for Investigation into Ali Alizadeh’s Activities\n\n### Iran Ranks 177th in Global Press Freedom Index\n\n### Eviction Notices Issued to Displaced Families\n\nload more\n\n## Bushehr Teacher Suffers Heart Attack in Custody\n\nApril 30, 2026\n\n1 min read\n\nContinue to next article\n\n## Sign up for our newsletter\n\nGet the day's biggest stories from IranWire sent directly to your inbox.\n\n*Please enter a valid email address.\n\nsubscribe\n\n*Please enter a valid email address.",
+      "image": "https://static.prod.iranwire.com/_versions_jpeg/articleslide/Yaghob-Mehrab-Nasser_HgKY__v1024x512__box_6%2C0%2C1034%2C540.jpeg",
+      "favicon": "https://static.prod.iranwire.com/static/assets/favicon/apple-icon-57x57.png?hash=f61c0bca604c959fa87e085b9012372b"
+    }
+  ],
+  "statuses": [
+    {
+      "id": "https://iranwire.com/en/news/151851-three-death-row-inmates-transferred-from-urmia-prison-to-unknown-locations/",
+      "status": "success",
+      "source": "cached"
+    }
+  ],
+  "costDollars": {
+    "total": 0.001,
+    "contents": {
+      "text": 0.001
+    }
+  },
+  "searchTime": 13.754890999989584
+}

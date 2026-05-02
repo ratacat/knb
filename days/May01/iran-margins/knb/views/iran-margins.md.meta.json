@@ -1,0 +1,16 @@
+{
+  "schema_version": "knb.projection.v1",
+  "kind": "view",
+  "target": "knb/views/iran-margins.md",
+  "ledger": {
+    "path": "/Users/jaredsmith/Projects/knb/days/May01/iran-margins/knb/ledger.jsonl",
+    "rows": 58,
+    "content_hash": "sha256:6dc899a410d66ac6b3c255b03312d601d8dd614e2b76590be1252041143bf445",
+    "last_row_id": "q:iran-margins:20260502:d4a484b4"
+  },
+  "options": {
+    "collection": "iran-margins",
+    "format": "md"
+  },
+  "generated_at": "2026-05-02T03:48:18.839Z"
+}

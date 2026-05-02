@@ -1,0 +1,18 @@
+{
+  "atomic": true,
+  "dedupe": true,
+  "operations": [
+    {
+      "op": "merge",
+      "target_ids": ["src:iran-cracks:20260502:b9b6be23"],
+      "canonical_id": "src:iran-cracks:20260501:10513b58",
+      "reason": "Duplicate source URI introduced during v17 labor pass; keep the earlier ILNA steel-retiree source row canonical."
+    },
+    {
+      "op": "merge",
+      "target_ids": ["src:iran-cracks:20260502:1938feb1"],
+      "canonical_id": "src:iran-cracks:20260501:71b3cc12",
+      "reason": "Duplicate source URI introduced during v17 labor pass; keep the earlier Radio Farda cross-sector labor source row canonical."
+    }
+  ]
+}

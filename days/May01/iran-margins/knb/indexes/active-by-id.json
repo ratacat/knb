@@ -1,0 +1,942 @@
+{
+  "claim:iran-margins:20260501:4074ecc3": {
+    "kind": "claim",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Iran",
+        "CENTCOM"
+      ],
+      "tags": [
+        "sanctions",
+        "blockade",
+        "oil"
+      ]
+    }
+  },
+  "claim:iran-margins:20260501:4762fa1f": {
+    "kind": "claim",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Kerman",
+        "Bahá'í"
+      ],
+      "tags": [
+        "minorities",
+        "prisoners",
+        "women"
+      ]
+    }
+  },
+  "claim:iran-margins:20260501:4b14bdb4": {
+    "kind": "claim",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "IRIB",
+        "Iran"
+      ],
+      "tags": [
+        "cyber",
+        "official",
+        "persian"
+      ]
+    }
+  },
+  "claim:iran-margins:20260501:8372289c": {
+    "kind": "claim",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Tehran",
+        "Tehran Bazaar"
+      ],
+      "tags": [
+        "bazaar",
+        "economy",
+        "protests",
+        "persian"
+      ]
+    }
+  },
+  "claim:iran-margins:20260501:8aec7e1b": {
+    "kind": "claim",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "IRGC",
+        "Iran"
+      ],
+      "tags": [
+        "hijab",
+        "women",
+        "official",
+        "persian"
+      ]
+    }
+  },
+  "claim:iran-margins:20260501:8b7f2e3f": {
+    "kind": "claim",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Iran"
+      ],
+      "tags": [
+        "conscription",
+        "military",
+        "official",
+        "persian"
+      ]
+    }
+  },
+  "claim:iran-margins:20260501:8ef38b81": {
+    "kind": "claim",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Iran",
+        "reformists"
+      ],
+      "tags": [
+        "elite-defection",
+        "reformists",
+        "negotiations"
+      ]
+    }
+  },
+  "claim:iran-margins:20260501:98f92acf": {
+    "kind": "claim",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "IRIB",
+        "Reza Pahlavi",
+        "Iran"
+      ],
+      "tags": [
+        "cyber",
+        "predatory-sparrow",
+        "propaganda"
+      ]
+    }
+  },
+  "claim:iran-margins:20260501:a9357e20": {
+    "kind": "claim",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Iran",
+        "Bahá'í",
+        "Peyvand Naimi",
+        "Borna Naimi"
+      ],
+      "tags": [
+        "minorities",
+        "executions",
+        "repression"
+      ]
+    }
+  },
+  "claim:iran-margins:20260501:bc42f7bf": {
+    "kind": "claim",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Iran",
+        "oil"
+      ],
+      "tags": [
+        "sanctions",
+        "oil",
+        "blockade"
+      ]
+    }
+  },
+  "claim:iran-margins:20260501:c6dca85b": {
+    "kind": "claim",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Iran",
+        "Afghan migrants"
+      ],
+      "tags": [
+        "migration",
+        "scapegoating",
+        "persian"
+      ]
+    }
+  },
+  "claim:iran-margins:20260501:cf074b88": {
+    "kind": "claim",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Iran"
+      ],
+      "tags": [
+        "hijab",
+        "women",
+        "propaganda",
+        "persian"
+      ]
+    }
+  },
+  "claim:iran-margins:20260501:e206a455": {
+    "kind": "claim",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Iran",
+        "United States",
+        "oil"
+      ],
+      "tags": [
+        "sanctions",
+        "oil",
+        "shadow-fleet"
+      ]
+    }
+  },
+  "claim:iran-margins:20260501:ee755da4": {
+    "kind": "claim",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Iran",
+        "Tehran"
+      ],
+      "tags": [
+        "friday-prayer",
+        "propaganda",
+        "official",
+        "persian"
+      ]
+    }
+  },
+  "claim:iran-margins:20260501:f99c8c84": {
+    "kind": "claim",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Iran",
+        "Afghan migrants"
+      ],
+      "tags": [
+        "migration",
+        "scapegoating"
+      ]
+    }
+  },
+  "claim:iran-margins:20260502:2cd968bb": {
+    "kind": "claim",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Iran",
+        "Conscript desertion"
+      ],
+      "tags": [
+        "sarbazi"
+      ]
+    }
+  },
+  "claim:iran-margins:20260502:2f53cccc": {
+    "kind": "claim",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Iran",
+        "Oil-worker dissent"
+      ],
+      "tags": [
+        "oil",
+        "kharg"
+      ]
+    }
+  },
+  "claim:iran-margins:20260502:4a57c9ca": {
+    "kind": "claim",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Iran",
+        "Reza Pahlavi messaging"
+      ],
+      "tags": [
+        "pahlavi",
+        "execution"
+      ]
+    }
+  },
+  "claim:iran-margins:20260502:91c99d6d": {
+    "kind": "claim",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Iran",
+        "Police cohesion"
+      ],
+      "tags": [
+        "radan",
+        "police",
+        "regime-cohesion"
+      ]
+    }
+  },
+  "q:iran-margins:20260501:096765ad": {
+    "kind": "question",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Iran",
+        "Tehran Bazaar"
+      ],
+      "tags": [
+        "bazaar",
+        "economy",
+        "open"
+      ]
+    }
+  },
+  "q:iran-margins:20260501:0d8cf1ed": {
+    "kind": "question",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Iran"
+      ],
+      "tags": [
+        "conscription",
+        "military",
+        "open"
+      ]
+    }
+  },
+  "q:iran-margins:20260501:12df3bee": {
+    "kind": "question",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Iran"
+      ],
+      "tags": [
+        "women",
+        "hijab",
+        "open"
+      ]
+    }
+  },
+  "q:iran-margins:20260501:6c996814": {
+    "kind": "question",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Iran",
+        "Bahá'í"
+      ],
+      "tags": [
+        "minorities",
+        "executions",
+        "open"
+      ]
+    }
+  },
+  "q:iran-margins:20260501:f30b5568": {
+    "kind": "question",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Iran"
+      ],
+      "tags": [
+        "oil",
+        "blockade",
+        "open"
+      ]
+    }
+  },
+  "q:iran-margins:20260502:c026ea73": {
+    "kind": "question",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Iran",
+        "Conscript desertion"
+      ],
+      "tags": [
+        "sarbazi"
+      ]
+    }
+  },
+  "q:iran-margins:20260502:d4a484b4": {
+    "kind": "question",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Iran",
+        "Police cohesion"
+      ],
+      "tags": [
+        "radan",
+        "police"
+      ]
+    }
+  },
+  "src:iran-margins:20260501:03db4f84": {
+    "kind": "source",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "IRIB",
+        "Iran"
+      ],
+      "tags": [
+        "cyber",
+        "official",
+        "persian"
+      ],
+      "language": "fa"
+    }
+  },
+  "src:iran-margins:20260501:6e006644": {
+    "kind": "source",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Iran",
+        "CENTCOM",
+        "oil"
+      ],
+      "tags": [
+        "sanctions",
+        "blockade",
+        "oil",
+        "persian"
+      ],
+      "language": "fa"
+    }
+  },
+  "src:iran-margins:20260501:77ae6ab0": {
+    "kind": "source",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Iran",
+        "oil"
+      ],
+      "tags": [
+        "sanctions",
+        "oil",
+        "blockade"
+      ],
+      "language": "en"
+    }
+  },
+  "src:iran-margins:20260501:7f4308af": {
+    "kind": "source",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Iran",
+        "Afghan migrants"
+      ],
+      "tags": [
+        "migration",
+        "persian"
+      ],
+      "language": "fa"
+    }
+  },
+  "src:iran-margins:20260501:8d637f35": {
+    "kind": "source",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Iran",
+        "Afghan migrants"
+      ],
+      "tags": [
+        "migration",
+        "scapegoating"
+      ],
+      "language": "en"
+    }
+  },
+  "src:iran-margins:20260501:9367d97e": {
+    "kind": "source",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Iran"
+      ],
+      "tags": [
+        "hijab",
+        "women",
+        "persian"
+      ],
+      "language": "fa"
+    }
+  },
+  "src:iran-margins:20260501:a91301a0": {
+    "kind": "source",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Iran",
+        "United States",
+        "oil"
+      ],
+      "tags": [
+        "sanctions",
+        "oil",
+        "shadow-fleet",
+        "persian"
+      ],
+      "language": "fa"
+    }
+  },
+  "src:iran-margins:20260501:b0027c29": {
+    "kind": "source",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Tehran",
+        "Tehran Bazaar"
+      ],
+      "tags": [
+        "bazaar",
+        "protests",
+        "persian"
+      ],
+      "language": "fa"
+    }
+  },
+  "src:iran-margins:20260501:b066e0d8": {
+    "kind": "source",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Iran",
+        "Chabahar",
+        "oil"
+      ],
+      "tags": [
+        "sanctions",
+        "oil",
+        "blockade"
+      ],
+      "language": "en"
+    }
+  },
+  "src:iran-margins:20260501:b7a976c9": {
+    "kind": "source",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Iran"
+      ],
+      "tags": [
+        "conscription",
+        "military",
+        "persian"
+      ],
+      "language": "fa"
+    }
+  },
+  "src:iran-margins:20260501:c7895852": {
+    "kind": "source",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Tehran",
+        "Iran"
+      ],
+      "tags": [
+        "friday-prayer",
+        "propaganda",
+        "persian"
+      ],
+      "language": "fa"
+    }
+  },
+  "src:iran-margins:20260501:ca27ffae": {
+    "kind": "source",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "IRGC",
+        "Iran"
+      ],
+      "tags": [
+        "hijab",
+        "women",
+        "official",
+        "persian"
+      ],
+      "language": "fa"
+    }
+  },
+  "src:iran-margins:20260501:d16cac29": {
+    "kind": "source",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Iran",
+        "reformists"
+      ],
+      "tags": [
+        "elite-defection",
+        "reformists",
+        "negotiations"
+      ],
+      "language": "en"
+    }
+  },
+  "src:iran-margins:20260501:e4961a3a": {
+    "kind": "source",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Iran",
+        "Afghan migrants"
+      ],
+      "tags": [
+        "migration",
+        "persian"
+      ],
+      "language": "fa"
+    }
+  },
+  "src:iran-margins:20260501:e572bfa8": {
+    "kind": "source",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Kerman",
+        "Bahá'í"
+      ],
+      "tags": [
+        "minorities",
+        "prisoners"
+      ],
+      "language": "en"
+    }
+  },
+  "src:iran-margins:20260501:e8804d33": {
+    "kind": "source",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Tehran",
+        "Tehran Bazaar"
+      ],
+      "tags": [
+        "bazaar",
+        "economy",
+        "persian"
+      ],
+      "language": "fa"
+    }
+  },
+  "src:iran-margins:20260501:ebfe9019": {
+    "kind": "source",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "IRIB",
+        "Iran",
+        "Reza Pahlavi"
+      ],
+      "tags": [
+        "cyber",
+        "predatory-sparrow",
+        "propaganda"
+      ],
+      "language": "en"
+    }
+  },
+  "src:iran-margins:20260501:f3f900ca": {
+    "kind": "source",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Iran",
+        "Bahá'í"
+      ],
+      "tags": [
+        "minorities",
+        "executions",
+        "persian"
+      ],
+      "language": "fa"
+    }
+  },
+  "src:iran-margins:20260502:00d750a6": {
+    "kind": "source",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Iran",
+        "Conscript desertion"
+      ],
+      "tags": [
+        "sarbazi",
+        "semnan",
+        "fa"
+      ],
+      "language": "fa"
+    }
+  },
+  "src:iran-margins:20260502:533f237a": {
+    "kind": "source",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Iran",
+        "Conscript desertion"
+      ],
+      "tags": [
+        "sarbazi",
+        "fa"
+      ],
+      "language": "fa"
+    }
+  },
+  "src:iran-margins:20260502:5785f236": {
+    "kind": "source",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Iran",
+        "Conscript desertion"
+      ],
+      "tags": [
+        "sarbazi",
+        "fa"
+      ],
+      "language": "fa"
+    }
+  },
+  "src:iran-margins:20260502:59d19b22": {
+    "kind": "source",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Iran",
+        "Reza Pahlavi messaging"
+      ],
+      "tags": [
+        "pahlavi",
+        "execution",
+        "fa"
+      ],
+      "language": "fa"
+    }
+  },
+  "src:iran-margins:20260502:7e9748cb": {
+    "kind": "source",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Iran",
+        "Police cohesion"
+      ],
+      "tags": [
+        "radan",
+        "police",
+        "fa"
+      ],
+      "language": "fa"
+    }
+  },
+  "src:iran-margins:20260502:8acdc824": {
+    "kind": "source",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Iran",
+        "Police cohesion"
+      ],
+      "tags": [
+        "police",
+        "rey",
+        "fa"
+      ],
+      "language": "fa"
+    }
+  },
+  "src:iran-margins:20260502:8eb15440": {
+    "kind": "source",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Iran",
+        "Oil-worker dissent"
+      ],
+      "tags": [
+        "oil",
+        "kharg",
+        "fa"
+      ],
+      "language": "fa"
+    }
+  },
+  "src:iran-margins:20260502:9d1744ef": {
+    "kind": "source",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Iran",
+        "Police cohesion"
+      ],
+      "tags": [
+        "radan",
+        "police",
+        "regime-cohesion",
+        "fa"
+      ],
+      "language": "fa"
+    }
+  },
+  "src:iran-margins:20260502:a53d3ba6": {
+    "kind": "source",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Iran",
+        "Police cohesion"
+      ],
+      "tags": [
+        "radan",
+        "police",
+        "fa"
+      ],
+      "language": "fa"
+    }
+  },
+  "synth:iran-margins:20260501:25c5aebc": {
+    "kind": "synthesis",
+    "scope": {
+      "collections": [
+        "iran-margins"
+      ],
+      "subjects": [
+        "Iran"
+      ],
+      "tags": [
+        "synthesis",
+        "margins",
+        "overview"
+      ]
+    }
+  }
+}

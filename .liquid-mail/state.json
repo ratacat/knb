@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "windows": {
+    "lm70ef07f36d33": {
+      "topic_id": "knb-agent-first-cli",
+      "updated_at": "2026-05-01T18:34:55.586Z"
+    },
+    "lm5b0d6a8e51ab": {
+      "topic_id": "knb-profiles",
+      "updated_at": "2026-05-02T07:49:40.629Z"
+    }
+  },
+  "aliases": {}
+}

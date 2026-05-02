@@ -1,0 +1,605 @@
+{
+  "atomic": true,
+  "dedupe": true,
+  "operations": [
+    {
+      "op": "add",
+      "as": "src_source_notes_v30",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": [
+            "iran-cracks"
+          ],
+          "subjects": [
+            "Iran",
+            "Tehran Bazaar",
+            "currency",
+            "market controls"
+          ],
+          "tags": [
+            "research-notes",
+            "bazaar",
+            "currency",
+            "market-freeze",
+            "v30"
+          ]
+        },
+        "source": {
+          "type": "raw_note",
+          "title": "v30 source notes - Bazaar follow-up and market freeze",
+          "raw_path": "raw/apply-35-source-notes.md",
+          "language": "en"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "agent synthesis of exa-cli and xPool results",
+            "observed_at": "2026-05-02T03:25:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_xpool_bazaar_followup_v30",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": [
+            "iran-cracks"
+          ],
+          "subjects": [
+            "Iran",
+            "Tehran Bazaar",
+            "Ferdowsi",
+            "Persian X"
+          ],
+          "tags": [
+            "xpool",
+            "social",
+            "bazaar",
+            "currency",
+            "negative-evidence",
+            "persian",
+            "v30"
+          ],
+          "language": "fa"
+        },
+        "source": {
+          "type": "dataset",
+          "title": "xPool Persian latest query for Bazaar/Ferdowsi/Aladdin follow-up",
+          "uri": "xpool://query-jobs/41b7af5a-5d93-4dd0-859a-9bc33f4b2953/result",
+          "raw_path": "raw/xpool-bazaar-followup-v30b.json",
+          "publisher": "xPool / X SearchTimeline",
+          "language": "fa",
+          "published_at": "2026-05-02T03:03:35Z"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "xpool query",
+            "observed_at": "2026-05-02T03:03:35Z",
+            "job_id": "41b7af5a-5d93-4dd0-859a-9bc33f4b2953",
+            "query": "(علاءالدین OR \"بازار موبایل\" OR فردوسی OR \"بازار تهران\" OR \"بازار بزرگ\" OR \"بازار ارز\") (تعطیل OR اعتصاب OR بسته OR بازگشایی OR دلار OR ارز OR موبایل OR قیمت OR صرافی) since:2026-05-01 lang:fa",
+            "target_items": 200,
+            "max_pages": 10,
+            "items_emitted": 5
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_shahrara_stock_halt_14_ordibehesht",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": [
+            "iran-cracks"
+          ],
+          "subjects": [
+            "Iran",
+            "stock market",
+            "Securities and Exchange Organization"
+          ],
+          "tags": [
+            "stock-market",
+            "market-freeze",
+            "currency",
+            "persian",
+            "v30"
+          ],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "بازار سهام فعلا تا دوشنبه ۱۴ اردیبهشت ۱۴۰۵ متوقف خواهد بود",
+          "uri": "https://shahraranews.ir/fa/news/411100/بازار-سهام-فعلا-تا-دوشنبه-۱۴-اردیبهشت-۱۴۰۵-متوقف-خواهد-بود",
+          "publisher": "Shahrara News",
+          "language": "fa",
+          "published_at": "2026-05-01T12:07:07Z"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search",
+            "observed_at": "2026-05-02T03:17:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_snn_stock_reopen_conditions",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": [
+            "iran-cracks"
+          ],
+          "subjects": [
+            "Iran",
+            "stock market",
+            "Securities and Exchange Organization"
+          ],
+          "tags": [
+            "stock-market",
+            "market-freeze",
+            "transparency",
+            "persian",
+            "v30"
+          ],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "بازگشایی بازار سهام پس از تحقق شرایط و الزامات تعیین‌شده، امکان‌پذیر است",
+          "uri": "https://vista.ir/n/snn/qqa5c",
+          "publisher": "SNN via Vista",
+          "language": "fa",
+          "published_at": "2026-05-01T19:42:36Z"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search",
+            "observed_at": "2026-05-02T03:20:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_aftab_mobile_price_30_40",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": [
+            "iran-cracks"
+          ],
+          "subjects": [
+            "Iran",
+            "mobile phone market",
+            "imports"
+          ],
+          "tags": [
+            "mobile-market",
+            "prices",
+            "imports",
+            "currency",
+            "persian",
+            "v30"
+          ],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "افزایش ۳۰ تا ۴۰ درصدی قیمت موبایل/ مردم به تعمیرات رو آورده‌اند!",
+          "uri": "https://aftabnews.ir/fa/news/1047132/افزایش-۳۰-تا-۴۰-درصدی-قیمت-موبایل-مردم-به-تعمیرات-رو-آورده‌اند",
+          "publisher": "Aftab News",
+          "language": "fa",
+          "published_at": "2026-05-01T13:31:04Z"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search",
+            "observed_at": "2026-05-02T03:16:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_fararu_three_fx_doubts",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": [
+            "iran-cracks"
+          ],
+          "subjects": [
+            "Iran",
+            "currency market",
+            "gold"
+          ],
+          "tags": [
+            "currency",
+            "gold",
+            "market-uncertainty",
+            "persian",
+            "v30"
+          ],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "سه تردید بازار ارز",
+          "uri": "https://fararu.com/fa/news/967222/%d8%b3%d9%87-%d8%aa%d8%b1%d8%af%db%8c%d8%af-%d8%a8%d8%a7%d8%b2%d8%a7%d8%b1-%d8%a7%d8%b1%d8%b2",
+          "publisher": "Fararu",
+          "language": "fa",
+          "published_at": "2026-05-01T12:23:42Z"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search",
+            "observed_at": "2026-05-02T03:18:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_bazaar_followup_no_verified_strike_v30",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": [
+            "iran-cracks"
+          ],
+          "subjects": [
+            "Iran",
+            "Tehran Bazaar",
+            "Ferdowsi",
+            "Aladdin mobile market"
+          ],
+          "tags": [
+            "bazaar",
+            "currency",
+            "negative-evidence",
+            "strike",
+            "v30"
+          ]
+        },
+        "identity": {
+          "claim_key": "iran-cracks|bazaar|may2-followup-no-verified-renewed-strike-cluster|2026-05-02",
+          "novelty": "update"
+        },
+        "claim": {
+          "statement": "A 2 May 2026 follow-up did not find a verified renewed Aladdin/Ferdowsi/Tehran Bazaar strike cluster after the 27-29 April protests and partial closures: Exa returned price, stock-market, and generic market-management items rather than source-near strike reports, while the broader May 1 xPool query reached 10 pages but emitted only 5 low-engagement items and no direct merchant-video or closure cluster.",
+          "atomic": true,
+          "type": "negative_evidence",
+          "subject": "May 2 Bazaar/Ferdowsi/Aladdin follow-up searches",
+          "predicate": "did_not_surface",
+          "object": "a verified renewed strike or closure cluster"
+        },
+        "time": {
+          "occurred_at": "2026-05-02",
+          "precision": "day",
+          "timezone": "America/Denver"
+        },
+        "provenance": {
+          "source_ids": [
+            "$src_source_notes_v30",
+            "$src_xpool_bazaar_followup_v30",
+            "src:iran-cracks:20260502:df875c72",
+            "src:iran-cracks:20260502:4fd49c99"
+          ],
+          "evidence": [
+            {
+              "source_id": "$src_source_notes_v30",
+              "role": "supports",
+              "summary": "The notes record the Exa searches and strict/broad xPool searches; neither surfaced a clean current strike cluster."
+            },
+            {
+              "source_id": "$src_xpool_bazaar_followup_v30",
+              "role": "supports",
+              "summary": "The broad xPool dataset emitted only 5 items from 10 pages, none of which verified Aladdin, Ferdowsi, or Tehran Bazaar closure."
+            },
+            {
+              "source_id": "src:iran-cracks:20260502:4fd49c99",
+              "role": "context",
+              "summary": "The existing Jahan-e Sanat source in KNB supports the previous 29 April Tehran Bazaar partial-closure report, which remains the last verified closure cluster."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "medium",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "partial",
+            "rationale": "Negative evidence is bounded by search terms and blackout conditions; it can rule down a visible current cluster, not prove no localized closures occurred."
+          },
+          "importance": "high",
+          "uncertainty": "Needs direct merchant footage, guild statements, police/court releases, or local price-board reports for May 3-4."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_stock_market_halt_reopen_conditions_v30",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": [
+            "iran-cracks"
+          ],
+          "subjects": [
+            "Iran",
+            "stock market",
+            "capital market"
+          ],
+          "tags": [
+            "stock-market",
+            "market-freeze",
+            "liquidity",
+            "currency",
+            "v30"
+          ]
+        },
+        "identity": {
+          "claim_key": "iran-cracks|stock-market|halt-until-14-ordibehesht-reopening-conditional|2026-05-01",
+          "novelty": "new"
+        },
+        "claim": {
+          "statement": "On 1 May 2026, Persian market reports said Iran's stock market remained stopped until at least Monday 14 Ordibehesht 1405, while the Securities and Exchange Organization framed reopening as conditional on defined requirements and information transparency rather than a normal calendar restart.",
+          "atomic": true,
+          "type": "official_measurement",
+          "subject": "Iranian stock market",
+          "predicate": "remained",
+          "object": "halted with conditional reopening requirements"
+        },
+        "time": {
+          "occurred_at": "2026-05-01",
+          "precision": "day",
+          "timezone": "Asia/Tehran"
+        },
+        "provenance": {
+          "source_ids": [
+            "$src_shahrara_stock_halt_14_ordibehesht",
+            "$src_snn_stock_reopen_conditions"
+          ],
+          "evidence": [
+            {
+              "source_id": "$src_shahrara_stock_halt_14_ordibehesht",
+              "role": "supports",
+              "summary": "Shahrara/Vista reported the market would remain stopped until Monday 14 Ordibehesht."
+            },
+            {
+              "source_id": "$src_snn_stock_reopen_conditions",
+              "role": "supports",
+              "summary": "SNN/Vista framed reopening as possible only after defined conditions and requirements were met."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "strong",
+            "rationale": "Multiple domestic Persian market reports converge on a formal halt and conditional reopening language."
+          },
+          "importance": "high"
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_mobile_fx_price_shock_v30",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": [
+            "iran-cracks"
+          ],
+          "subjects": [
+            "Iran",
+            "mobile market",
+            "currency market"
+          ],
+          "tags": [
+            "mobile-market",
+            "prices",
+            "currency",
+            "consumer-stress",
+            "v30"
+          ]
+        },
+        "identity": {
+          "claim_key": "iran-cracks|mobile-fx|mobile-30-40-price-rise-repair-substitution-and-fx-doubt|2026-05-01",
+          "novelty": "new"
+        },
+        "claim": {
+          "statement": "By 1 May 2026, Persian market reporting showed price discovery stress outside the Bazaar strike lane: Aftab reported mobile prices up 30-40% in recent months amid stopped import registration and customs-cost increases, pushing consumers toward repair, while Fararu framed the FX market as uncertain because domestic dollar and gold rose despite a global gold drop.",
+          "atomic": true,
+          "type": "economic_signal",
+          "subject": "mobile and FX-adjacent consumer markets",
+          "predicate": "showed",
+          "object": "sharp price increases, repair substitution, and currency-market doubt"
+        },
+        "time": {
+          "occurred_at": "2026-05-01",
+          "precision": "day",
+          "timezone": "Asia/Tehran"
+        },
+        "provenance": {
+          "source_ids": [
+            "$src_aftab_mobile_price_30_40",
+            "$src_fararu_three_fx_doubts",
+            "src:iran-cracks:20260502:fad60119"
+          ],
+          "evidence": [
+            {
+              "source_id": "$src_aftab_mobile_price_30_40",
+              "role": "supports",
+              "summary": "Aftab reported 30-40% mobile-price increases, stopped import registration, customs-cost changes, and a consumer shift toward repairs."
+            },
+            {
+              "source_id": "$src_fararu_three_fx_doubts",
+              "role": "supports",
+              "summary": "Fararu described domestic dollar and gold rising despite a global gold decline, framing the currency market through doubt/uncertainty."
+            },
+            {
+              "source_id": "src:iran-cracks:20260502:fad60119",
+              "role": "context",
+              "summary": "The existing Radio Farda source in KNB records the 29 April break above 180,000 toman per dollar."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "medium",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "partial",
+            "rationale": "The signal is strong on direction and market stress, but exact mobile-price baselines and realized transaction prices need direct market or guild corroboration."
+          },
+          "importance": "medium"
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "synth_v30_market_freeze_not_normalization",
+      "row": {
+        "kind": "synthesis",
+        "scope": {
+          "collections": [
+            "iran-cracks"
+          ],
+          "subjects": [
+            "Iran"
+          ],
+          "tags": [
+            "overview",
+            "synthesis",
+            "v30",
+            "bazaar",
+            "currency",
+            "market-freeze"
+          ]
+        },
+        "synthesis": {
+          "title": "Cracks in the Islamic Republic, v30 - market strike rumor fades into managed freeze",
+          "summary": "The thirtieth pass follows the immediate Bazaar/Ferdowsi/Aladdin question after the 27-29 April protest and partial closure. It does not find a verified renewed Saturday strike cluster: Exa turns up price and market-management reports rather than source-near closure reporting, and xPool is sparse even with broad terms. That lowers the probability of a visible May 2 Bazaar strike, but it is not normalization. The market crack has shifted into administrative freeze and price shock. The stock market remains formally stopped until at least 14 Ordibehesht, and reopening is described as conditional on requirements and information transparency. Mobile-market reporting says prices rose 30-40%, import registration stopped, customs costs rose, and consumers are shifting to repair instead of replacement. FX discourse remains unstable after the 180k-toman dollar record, with Fararu framing dollar/gold movement as doubt rather than clear stabilization. Net: collective merchant action appears contained for now, but the regime is buying quiet through halted trading, conditional reopening, price enforcement, and thin information flow while household and trader price reality keeps worsening.",
+          "basis": {
+            "claim_ids": [
+              "$claim_bazaar_followup_no_verified_strike_v30",
+              "$claim_stock_market_halt_reopen_conditions_v30",
+              "$claim_mobile_fx_price_shock_v30",
+              "claim:iran-cracks:20260502:c035dffa",
+              "claim:iran-cracks:20260502:d2544ad1"
+            ],
+            "question_ids": [
+              "q:iran-cracks:20260502:c607af87",
+              "q:iran-cracks:20260502:7bde737a",
+              "q:iran-cracks:20260502:2648e903",
+              "q:iran-cracks:20260502:52634e28",
+              "q:iran-cracks:20260501:17058533"
+            ],
+            "source_ids": [
+              "$src_source_notes_v30",
+              "$src_xpool_bazaar_followup_v30",
+              "$src_shahrara_stock_halt_14_ordibehesht",
+              "$src_snn_stock_reopen_conditions",
+              "$src_aftab_mobile_price_30_40",
+              "$src_fararu_three_fx_doubts",
+              "src:iran-cracks:20260502:df875c72",
+              "src:iran-cracks:20260502:4fd49c99",
+              "src:iran-cracks:20260502:fad60119"
+            ]
+          },
+          "limitations": "Negative evidence on Bazaar action is bounded by search terms, blackout, and xPool visibility. The mobile-price report needs direct guild or shop-level transaction corroboration. Stock-market reopening must be checked on 14 Ordibehesht and then again after any phased reopening to see whether selling pressure is delayed or released.",
+          "status": "active"
+        },
+        "assessment": {
+          "confidence": "medium",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "strong",
+            "rationale": "The pass combines current Persian search, saved xPool negative evidence, domestic market reports, and existing KNB Bazaar/currency rows."
+          },
+          "importance": "high"
+        }
+      }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_bazaar_followup_no_verified_strike_v30",
+      "to_id": "q:iran-cracks:20260502:2648e903",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "The sparse May 1-2 search result directly tests whether reopening produced forced quiet or renewed verified closures.",
+      "scope": {
+        "collections": [
+          "iran-cracks"
+        ]
+      }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_bazaar_followup_no_verified_strike_v30",
+      "to_id": "q:iran-cracks:20260502:7bde737a",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "The absence of a visible Aladdin/Ferdowsi/Bazaar cluster updates the strike-rumor question without closing it.",
+      "scope": {
+        "collections": [
+          "iran-cracks"
+        ]
+      }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_stock_market_halt_reopen_conditions_v30",
+      "to_id": "q:iran-cracks:20260502:52634e28",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "A formal stock-market halt and conditional reopening are direct evidence that stabilization is being managed through market closure and information controls.",
+      "scope": {
+        "collections": [
+          "iran-cracks"
+        ]
+      }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_mobile_fx_price_shock_v30",
+      "to_id": "q:iran-cracks:20260502:52634e28",
+      "rel": "context_for",
+      "strength": "medium",
+      "rationale": "Mobile-price and FX uncertainty show whether price controls and dual-market management are stabilizing or merely rationing access.",
+      "scope": {
+        "collections": [
+          "iran-cracks"
+        ]
+      }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_mobile_fx_price_shock_v30",
+      "to_id": "q:iran-cracks:20260501:17058533",
+      "rel": "context_for",
+      "strength": "medium",
+      "rationale": "The 30-40% mobile-price rise and domestic FX/gold uncertainty are consumer-market expressions of the rial-stability question.",
+      "scope": {
+        "collections": [
+          "iran-cracks"
+        ]
+      }
+    },
+    {
+      "op": "supersede",
+      "target_ids": [
+        "synth:iran-cracks:20260502:8aac718a"
+      ],
+      "replacement_id": "$synth_v30_market_freeze_not_normalization",
+      "reason": "v30 updates the active read from anti-execution mobilization to the immediate Bazaar/currency follow-up: no verified May 2 strike cluster, but formal stock-market halt, conditional reopening, mobile-price shock, and continuing FX uncertainty."
+    }
+  ]
+}

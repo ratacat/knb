@@ -1,0 +1,596 @@
+{
+  "atomic": true,
+  "dedupe": true,
+  "operations": [
+    {
+      "op": "add",
+      "as": "src_source_notes_v23",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "May Day", "Teacher Day", "labor"],
+          "tags": ["research-notes", "labor", "teachers", "may-day", "v23"]
+        },
+        "source": {
+          "type": "raw_note",
+          "title": "v23 source notes - May Day / Teacher Day labor pressure",
+          "raw_path": "raw/apply-27-source-notes.md",
+          "language": "en"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "agent synthesis of exa-cli and xPool results",
+            "observed_at": "2026-05-02T02:35:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_xpool_labor_teachers_v23",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "May Day", "teachers", "workers", "retirees"],
+          "tags": ["xpool", "social", "labor", "teachers", "persian"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "dataset",
+          "title": "xPool Persian latest query for May Day / Teacher Day labor pressure",
+          "raw_path": "raw/xpool-labor-teachers-v23.json",
+          "publisher": "xPool / X SearchTimeline",
+          "language": "fa",
+          "published_at": "2026-05-02T02:03:57Z"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "xpool query",
+            "observed_at": "2026-05-02T02:03:57Z",
+            "job_id": "aaed895d-da1e-405a-a062-8d45d96926ab",
+            "query": "(\"روز کارگر\" OR \"اول ماه مه\" OR کارگران OR بازنشستگان OR معلمان OR فرهنگیان) (تجمع OR اعتراض OR اعتصاب OR معیشت OR حقوق OR بیمه OR قرارداد) since:2026-04-29 lang:fa",
+            "target_items": 100,
+            "max_pages": 10,
+            "items_emitted": 100
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_rokna_worker_day_resolution",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "May Day", "House Worker", "workers"],
+          "tags": ["labor", "may-day", "resolution", "house-worker", "persian"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "قطعنامه روز جهانی کارگر: اولویت‌های معیشتی، امنیت شغلی و حمایت‌های فوری از جامعه کارگری اعلام شد",
+          "uri": "https://vista.ir/n/rokna/ivhhz",
+          "publisher": "Rokna via Vista",
+          "language": "fa",
+          "published_at": "2026-05-01T15:36:59Z"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search",
+            "observed_at": "2026-05-02T02:25:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_hrana_workers_year_review",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "workers", "labor protests", "workplace safety"],
+          "tags": ["labor", "annual-review", "protests", "safety", "rights"],
+          "language": "en"
+        },
+        "source": {
+          "type": "article",
+          "title": "International Workers' Day: A Year in Review of Iranian Workers' Conditions",
+          "uri": "https://www.en-hrana.org/international-workers-day-a-year-in-review-of-iranian-workers-conditions-2/",
+          "publisher": "HRANA",
+          "language": "en",
+          "published_at": "2026-04-30T09:26:08Z"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search",
+            "observed_at": "2026-05-02T02:25:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_sedayemardom_workers_year_review",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "workers", "labor protests", "teachers"],
+          "tags": ["labor", "annual-review", "protests", "teachers", "persian"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "روز جهانی کارگر؛ نگاهی آماری به وضعیت کارگران در یک سال اخیر ۱۴۰۵-۱۴۰۴",
+          "uri": "https://www.sedayemardom.net/?p=161547",
+          "publisher": "Sedaye Mardom / HRANA statistics",
+          "language": "fa",
+          "published_at": "2026-05-01T04:43:30Z"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search",
+            "observed_at": "2026-05-02T02:25:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_ilna_job_security_not_slogans",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "West Azerbaijan", "workers", "layoffs"],
+          "tags": ["labor", "layoffs", "job-security", "may-day", "persian"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "در روز جهانی کارگر به جای تبریک‌های شعاری و مراسم تشریفاتی، امنیت شغلی می خواهیم",
+          "uri": "https://www.ilna.ir/%D8%A8%D8%AE%D8%B4-%D8%A7%D8%B3%D8%AA%D8%A7%D9%86-%D9%87%D8%A7-15/1780444-%D8%AF%D8%B1-%D8%B1%D9%88%D8%B2-%D8%AC%D9%87%D8%A7%D9%86%DB%8C-%DA%A9%D8%A7%D8%B1%DA%AF%D8%B1-%D8%A8%D9%87-%D8%AC%D8%A7%DB%8C-%D8%AA%D8%A8%D8%B1%DB%8C%DA%A9-%D9%87%D8%A7%DB%8C-%D8%B4%D8%B9%D8%A7%D8%B1%DB%8C-%D9%85%D8%B1%D8%A7%D8%B3%D9%85-%D8%AA%D8%B4%D8%B1%DB%8C%D9%81%D8%A7%D8%AA%DB%8C-%D8%A7%D9%85%D9%86%DB%8C%D8%AA-%D8%B4%D8%BA%D9%84%DB%8C-%D9%85%DB%8C-%D8%AE%D9%88%D8%A7%D9%87%DB%8C%D9%85",
+          "publisher": "ILNA",
+          "language": "fa",
+          "published_at": "2026-05-01T11:52:30Z"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search",
+            "observed_at": "2026-05-02T02:25:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_ilna_fars_labor_retiree_needs",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Fars", "workers", "retirees", "Social Security"],
+          "tags": ["labor", "retirees", "social-security", "healthcare", "may-day", "persian"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "معیشت کارگران و بازنشستگان نیازمند توجه فوری مسئولان است",
+          "uri": "https://www.ilna.ir/%D8%A8%D8%AE%D8%B4-%D8%A7%D8%B3%D8%AA%D8%A7%D9%86-%D9%87%D8%A7-15/1780413-%D9%85%D8%B9%DB%8C%D8%B4%D8%AA-%DA%A9%D8%A7%D8%B1%DA%AF%D8%B1%D8%A7%D9%86-%D8%A8%D8%A7%D8%B2%D9%86%D8%B4%D8%B3%D8%AA%DA%AF%D8%A7%D9%86-%D9%86%DB%8C%D8%A7%D8%B2%D9%85%D9%86%D8%AF-%D8%AA%D9%88%D8%AC%D9%87-%D9%81%D9%88%D8%B1%DB%8C-%D9%85%D8%B3%D8%A6%D9%88%D9%84%D8%A7%D9%86-%D8%A7%D8%B3%D8%AA",
+          "publisher": "ILNA",
+          "language": "fa",
+          "published_at": "2026-05-01T10:28:25Z"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search",
+            "observed_at": "2026-05-02T02:25:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_snn_country_loving_teachers",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Teacher Day", "teachers", "Keshvar-Doust street"],
+          "tags": ["teachers", "state-mobilization", "allegiance", "persian"],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "اجتماع بزرگ معلمان کشور‌دوست شنبه ۱۲ اردیبهشت",
+          "uri": "https://snn.ir/fa/news/1399706/%D8%A7%D8%AC%D8%AA%D9%85%D8%A7%D8%B9-%D8%A8%D8%B2%D8%B1%DA%AF-%D9%85%D8%B9%D9%84%D9%85%D8%A7%D9%86-%DA%A9%D8%B4%D9%88%D8%B1%E2%80%8C%D8%AF%D9%88%D8%B3%D8%AA-%D8%B4%D9%86%D8%A8%D9%87-%DB%B1%DB%B2-%D8%A7%D8%B1%D8%AF%DB%8C%D8%A8%D9%87%D8%B4%D8%AA",
+          "publisher": "SNN / Student News Agency",
+          "language": "fa",
+          "published_at": "2026-05-01T15:03:23Z"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search",
+            "observed_at": "2026-05-02T02:25:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_mayday_managed_demand_package",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "May Day", "workers"],
+          "tags": ["labor", "may-day", "demands", "house-worker", "v23"]
+        },
+        "identity": {
+          "claim_key": "iran-cracks|may-day|managed-demand-package|2026-05-01"
+        },
+        "claim": {
+          "statement": "On May 1, House Worker / worker-week channels converted May Day into a managed but explicit demand package, calling for urgent state support for Social Security, labor inspection, job security, livelihood protection, anti-corruption action, inflation control, and retiree support.",
+          "atomic": true,
+          "type": "event",
+          "subject": "House Worker May Day channel",
+          "predicate": "issued",
+          "object": "managed worker demand package"
+        },
+        "time": {
+          "occurred_at": "2026-05-01",
+          "precision": "day",
+          "timezone": "Asia/Tehran"
+        },
+        "provenance": {
+          "source_ids": ["$src_rokna_worker_day_resolution", "$src_ilna_fars_labor_retiree_needs"],
+          "evidence": [
+            {
+              "source_id": "$src_rokna_worker_day_resolution",
+              "role": "supports",
+              "summary": "Rokna/Vista summarized the House Worker May Day resolution around Social Security support, labor inspection, job security, livelihood, inflation, anti-corruption, and retiree demands."
+            },
+            {
+              "source_id": "$src_ilna_fars_labor_retiree_needs",
+              "role": "supports",
+              "summary": "ILNA quoted the Fars House Worker secretary calling for faster retiree wage orders, job-security action, and support for Social Security treatment capacity and unemployment-insurance load."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "partial",
+            "rationale": "The managed labor-channel demand package is well-sourced, though it reflects semi-official organized labor rather than independent rank-and-file coordination."
+          },
+          "importance": "high"
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_labor_grievances_survival_not_ceremony",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "workers", "retirees", "West Azerbaijan", "Fars"],
+          "tags": ["labor", "job-security", "retirees", "healthcare", "layoffs", "v23"]
+        },
+        "identity": {
+          "claim_key": "iran-cracks|labor|survival-demands-not-ceremony|2026-05-01"
+        },
+        "claim": {
+          "statement": "May Day source-near Persian reporting emphasized survival demands over ceremony: laid-off West Azerbaijan production workers asked for job security instead of slogan greetings, and Fars House Worker warned that retirees could not cover living, treatment, and housing costs while Social Security carried growing unemployment-insurance and hospital-capacity burdens.",
+          "atomic": true,
+          "type": "pattern",
+          "subject": "May Day labor grievance reporting",
+          "predicate": "emphasized",
+          "object": "job security, retiree survival, healthcare, and unemployment burden"
+        },
+        "time": {
+          "occurred_at": "2026-05-01",
+          "precision": "day",
+          "timezone": "Asia/Tehran"
+        },
+        "provenance": {
+          "source_ids": ["$src_ilna_job_security_not_slogans", "$src_ilna_fars_labor_retiree_needs"],
+          "evidence": [
+            {
+              "source_id": "$src_ilna_job_security_not_slogans",
+              "role": "supports",
+              "summary": "ILNA quoted laid-off West Azerbaijan production workers saying they needed job security and real support rather than ceremonial greetings after post-war factory closures and layoffs."
+            },
+            {
+              "source_id": "$src_ilna_fars_labor_retiree_needs",
+              "role": "supports",
+              "summary": "ILNA quoted Fars House Worker saying retirees cannot cover life, treatment, and housing costs, the Fars Social Security hospital project is essential for 2.5m insured, and around 15k people are on unemployment insurance."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "partial",
+            "rationale": "Two ILNA source-near reports capture concrete worker/retiree grievances, but they do not by themselves show coordinated national action."
+          },
+          "importance": "high"
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_hrana_labor_year_stats",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "labor protests", "guild protests", "workers", "teachers"],
+          "tags": ["labor", "annual-stats", "protests", "strikes", "repression", "v23"]
+        },
+        "identity": {
+          "claim_key": "iran-cracks|labor|annual-stats|2025-05-01-to-2026-04-28"
+        },
+        "claim": {
+          "statement": "HRANA's May Day annual review reported 5,019 worker deaths/injuries, 682 labor gatherings, 691 guild gatherings, 383 labor strikes, 39 guild strikes, 10 worker/labor-activist arrests, and 40 union/guild activist arrests in the year ending 28 April 2026, while noting reported labor/guild strikes and gatherings fell sharply from the prior year amid repression and disorganization.",
+          "atomic": true,
+          "type": "statistical_summary",
+          "subject": "Iran labor conditions over the prior year",
+          "predicate": "included",
+          "object": "high injury/protest volume plus repression and lower reported strike activity"
+        },
+        "time": {
+          "valid_from": "2025-05-01",
+          "valid_until": "2026-04-28",
+          "precision": "range",
+          "timezone": "Asia/Tehran"
+        },
+        "provenance": {
+          "source_ids": ["$src_hrana_workers_year_review", "$src_sedayemardom_workers_year_review"],
+          "evidence": [
+            {
+              "source_id": "$src_hrana_workers_year_review",
+              "role": "supports",
+              "summary": "HRANA's English review gives the annual counts for worker casualties, labor/guild gatherings and strikes, arrests, and repression indicators."
+            },
+            {
+              "source_id": "$src_sedayemardom_workers_year_review",
+              "role": "supports",
+              "summary": "Sedaye Mardom reproduces HRANA's statistics in Persian, including the decline in reported gatherings/strikes and the teacher/guild repression counts."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "strong",
+            "rationale": "The claim uses HRANA's compiled annual statistics plus a Persian reproduction, but counts remain based on reported/documented incidents rather than complete population data."
+          },
+          "importance": "high"
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_teacher_day_state_allegiance_channel",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "Teacher Day", "teachers", "state mobilization"],
+          "tags": ["teachers", "teacher-day", "state-mobilization", "allegiance", "v23"]
+        },
+        "identity": {
+          "claim_key": "iran-cracks|teacher-day|state-allegiance-channel|2026-05-02"
+        },
+        "claim": {
+          "statement": "For Teacher Day, SNN announced a May 2 'country-loving teachers' gathering at Keshvar-Doust street that framed teachers around allegiance to Mojtaba Khamenei and turning classrooms into 'trenches of resistance', showing state efforts to channel teacher identity into loyalty theater rather than independent grievance.",
+          "atomic": true,
+          "type": "event",
+          "subject": "Teacher Day state-aligned gathering",
+          "predicate": "framed",
+          "object": "teachers as allegiance/resistance actors"
+        },
+        "time": {
+          "occurred_at": "2026-05-02",
+          "reported_at": "2026-05-01",
+          "precision": "day",
+          "timezone": "Asia/Tehran"
+        },
+        "provenance": {
+          "source_ids": ["$src_snn_country_loving_teachers"],
+          "evidence": [
+            {
+              "source_id": "$src_snn_country_loving_teachers",
+              "role": "supports",
+              "summary": "SNN said the May 2 gathering would renew pledge after the missed leader meeting and turn every classroom into a resistance trench, explicitly naming allegiance to Mojtaba Khamenei."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "partial",
+            "rationale": "The state-aligned event frame is direct; follow-up is needed to see attendance and whether independent teacher grievances surface around the same date."
+          },
+          "importance": "medium"
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_xpool_labor_teacher_diffuse",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "May Day", "labor", "teachers", "X"],
+          "tags": ["xpool", "social", "labor", "teachers", "discourse", "v23"]
+        },
+        "identity": {
+          "claim_key": "iran-cracks|xpool|labor-teacher-discourse|2026-05-01"
+        },
+        "claim": {
+          "statement": "The v23 xPool May Day / Teacher Day sample emitted 100 Persian items: 87 categorized as labor, 11 as teacher, and 2 other; manual inspection found politically charged but diffuse grievance, opposition, and honorific teacher content rather than a clean signal of nationwide coordinated labor action.",
+          "atomic": true,
+          "type": "observation",
+          "subject": "v23 xPool labor/teacher sample",
+          "predicate": "showed",
+          "object": "diffuse labor grievance discourse without clear national coordination signal"
+        },
+        "time": {
+          "first_observed_at": "2026-05-02T02:03:57Z",
+          "precision": "instant",
+          "timezone": "UTC"
+        },
+        "provenance": {
+          "source_ids": ["$src_xpool_labor_teachers_v23", "$src_source_notes_v23"],
+          "evidence": [
+            {
+              "source_id": "$src_xpool_labor_teachers_v23",
+              "role": "supports",
+              "summary": "The saved xPool dataset emitted 100 items; jq categorization counted 87 labor, 11 teacher, and 2 other posts."
+            },
+            {
+              "source_id": "$src_source_notes_v23",
+              "role": "supports",
+              "summary": "Manual inspection found May Day history, opposition slogans, low-wage complaints, unemployment/layoff references, and honorific/pro-state teacher posts, but no clean nationwide strike signal."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "partial",
+            "rationale": "The xPool sample is useful for discourse topology but cannot establish absence of offline coordination."
+          },
+          "importance": "medium"
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "q_mayday_managed_or_independent",
+      "row": {
+        "kind": "question",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran", "labor", "teachers", "May Day"],
+          "tags": ["labor", "teachers", "coordination", "verification", "v23"]
+        },
+        "question": {
+          "text": "Do May Day and Teacher Day grievances remain inside managed/loyal channels, or do follow-up actions after May 2 show independent coordination by workers, retirees, or teachers?",
+          "status": "open",
+          "priority": "high",
+          "resolution_criteria": "Resolve with source-near reports of post-May-2 strikes, coordinated union statements, repeat gatherings across sectors, teacher council statements, or verified local videos/accounts.",
+          "why_it_matters": "The regime can absorb grievance if it stays ceremonial and local; independent coordination would make labor/teacher pressure a regime-stability problem."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "synth_v23_mayday_managed_grievance",
+      "row": {
+        "kind": "synthesis",
+        "scope": {
+          "collections": ["iran-cracks"],
+          "subjects": ["Iran"],
+          "tags": ["overview", "synthesis", "v23", "labor", "teachers", "may-day"]
+        },
+        "synthesis": {
+          "title": "Cracks in the Islamic Republic, v23 - May Day exposes managed grievance",
+          "summary": "The May Day / Teacher Day pass does not show a verified nationwide labor strike, but it does show the regime's labor problem in a clear form. Official and semi-official channels can still contain the day inside ritual: the House Worker May Day resolution praises wartime labor and packages demands through recognized bodies, while SNN's Teacher Day item turns teachers into allegiance/resistance actors around Mojtaba Khamenei. But the content of the managed channels is still hard-edged: Social Security needs urgent support, inspection and job security must improve, retirees cannot cover living/treatment/housing costs, and Fars alone has about 15k unemployment-insurance recipients costing roughly 100b toman per month. ILNA's West Azerbaijan workers say they need security and real support instead of ceremonial greetings after post-war factory closures and layoffs. HRANA's annual review supplies the structural backdrop: thousands of worker casualties, hundreds of gatherings and strikes, documented arrests and punishments, and lower reported strike/gathering numbers amid repression and disorganization. xPool confirms the social layer is politically charged but diffuse: 87 labor hits and 11 teacher hits in a 100-item sample, without a clean national coordination signal. Net: the crack is not yet a May Day general strike; it is that even loyal and managed labor/teacher rituals are forced to speak the language of survival, job security, healthcare, unpaid benefits, and inflation.",
+          "basis": {
+            "claim_ids": [
+              "$claim_mayday_managed_demand_package",
+              "$claim_labor_grievances_survival_not_ceremony",
+              "$claim_hrana_labor_year_stats",
+              "$claim_teacher_day_state_allegiance_channel",
+              "$claim_xpool_labor_teacher_diffuse",
+              "claim:iran-cracks:20260501:d168ec46",
+              "claim:iran-cracks:20260502:968f15cd",
+              "claim:iran-cracks:20260502:f05f70a0",
+              "claim:iran-cracks:20260502:8b6a7e38",
+              "claim:iran-cracks:20260502:4c097c00"
+            ],
+            "question_ids": [
+              "$q_mayday_managed_or_independent",
+              "q:iran-cracks:20260501:7680b246",
+              "q:iran-cracks:20260502:6db3dc7d",
+              "q:iran-cracks:20260501:e807f10c"
+            ],
+            "source_ids": [
+              "$src_source_notes_v23",
+              "$src_xpool_labor_teachers_v23",
+              "$src_rokna_worker_day_resolution",
+              "$src_hrana_workers_year_review",
+              "$src_sedayemardom_workers_year_review",
+              "$src_ilna_job_security_not_slogans",
+              "$src_ilna_fars_labor_retiree_needs",
+              "$src_snn_country_loving_teachers"
+            ]
+          },
+          "limitations": "This pass is strong for grievance taxonomy and May Day framing, but weak for offline coordination. The xPool sample is not representative, and official/House Worker sources describe managed channels rather than independent labor organizing. Follow-up should check May 2-7 for repeat worker/retiree/teacher actions after the ceremony window closes.",
+          "status": "active"
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "strong",
+            "rationale": "The pass combines domestic labor reporting, HRANA annual statistics, state-aligned Teacher Day framing, existing KNB protest rows, and a bounded xPool discourse sample."
+          },
+          "importance": "high"
+        }
+      }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_hrana_labor_year_stats",
+      "to_id": "q:iran-cracks:20260501:7680b246",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "The annual strike/gathering/repression counts update the question of whether labor protests are coalescing or remaining sectoral/local.",
+      "scope": {
+        "collections": ["iran-cracks"]
+      }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_mayday_managed_demand_package",
+      "to_id": "q:iran-cracks:20260502:6db3dc7d",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "The House Worker demand package shows labor grievances being kept in a lawful/managed frame for now.",
+      "scope": {
+        "collections": ["iran-cracks"]
+      }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_xpool_labor_teacher_diffuse",
+      "to_id": "$q_mayday_managed_or_independent",
+      "rel": "context_for",
+      "strength": "medium",
+      "rationale": "The social sample supports dispersed grievance rather than clear coordination, but follow-up is required.",
+      "scope": {
+        "collections": ["iran-cracks"]
+      }
+    },
+    {
+      "op": "supersede",
+      "target_ids": ["synth:iran-cracks:20260502:2bbb36be"],
+      "replacement_id": "$synth_v23_mayday_managed_grievance",
+      "reason": "v23 adds the May Day / Teacher Day labor-pressure layer on top of v22's communications-control layer."
+    }
+  ]
+}

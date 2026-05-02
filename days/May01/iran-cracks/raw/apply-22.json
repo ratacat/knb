@@ -1,0 +1,30 @@
+{
+  "atomic": true,
+  "dedupe": true,
+  "operations": [
+    {
+      "op": "merge",
+      "target_ids": ["src:iran-cracks:20260502:925057f5"],
+      "canonical_id": "src:iran-cracks:20260501:ca5d8ee8",
+      "reason": "Duplicate Reuters source URI from an earlier succession pass; keep the first iran-cracks Reuters row canonical."
+    },
+    {
+      "op": "merge",
+      "target_ids": ["src:iran-regime-cracks:20260502:b468bafc"],
+      "canonical_id": "src:iran-cracks:20260502:fad60119",
+      "reason": "Duplicate Radio Farda source URI from the older iran-regime-cracks collection; keep the current iran-cracks currency row canonical."
+    },
+    {
+      "op": "merge",
+      "target_ids": ["src:iran-regime-cracks:20260502:dcc0a20d"],
+      "canonical_id": "src:iran-cracks:20260502:1267ab69",
+      "reason": "Duplicate Jerusalem Post source URI from the older iran-regime-cracks collection; keep the current iran-cracks protest-risk row canonical."
+    },
+    {
+      "op": "merge",
+      "target_ids": ["src:iran-regime-cracks:20260502:bf760d4f"],
+      "canonical_id": "src:iran-cracks:20260502:eb7f893e",
+      "reason": "Duplicate Vista/Eghtesad-e Irani source URI from the older iran-regime-cracks collection; keep the current iran-cracks civil-servant wage row canonical."
+    }
+  ]
+}

@@ -1,0 +1,199 @@
+{
+  "atomic": true,
+  "dedupe": true,
+  "operations": [
+    {
+      "op": "add",
+      "as": "src_serat_nurses_refuse_internet_pro_apr27",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "nurses"], "tags": ["internet", "internet-pro", "professional-associations", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "نه پرستاران به اینترنت پرو",
+          "uri": "https://www.seratnews.com/fa/news/735684/%D9%86%D9%87-%D9%BE%D8%B1%D8%B3%D8%AA%D8%A7%D8%B1%D8%A7%D9%86-%D8%A8%D9%87-%D8%A7%DB%8C%D9%86%D8%AA%D8%B1%D9%86%D8%AA-%D9%BE%D8%B1%D9%88",
+          "publisher": "Serat News",
+          "language": "fa",
+          "published_at": "2026-04-27T05:13:41Z",
+          "raw_path": "raw/crawl5-serat-nurses-refuse-internet-pro.txt"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-01T23:35:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_radiofarda_food_basket_apr18",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["food", "inflation", "workers", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "فشار تورم در ایران؛ هزینه سبد خوراکی به «۸۵ درصدِ» درآمد یک کارگر رسید",
+          "uri": "https://www.radiofarda.com/a/iran-war-economy-inflation-up-basket-prices-huge-chunk-of-salary/33735107.html",
+          "publisher": "Radio Farda",
+          "language": "fa",
+          "published_at": "2026-04-18T10:32:15Z",
+          "raw_path": "raw/crawl5-radiofarda-food-basket-85pct.txt"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-01T23:35:00Z"}}
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_entekhab_qalibaf_negotiation_apr19",
+      "row": {
+        "kind": "source",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Mohammad Bagher Qalibaf"], "tags": ["elite-split", "negotiations", "persian"], "language": "fa"},
+        "source": {
+          "type": "article",
+          "title": "قالیباف: آماده‌ام هم جانم و هم آبرویم را برای دستیابی مردم به حقشان بدم",
+          "uri": "https://vista.ir/n/entekhab/7q1dt",
+          "publisher": "Entekhab via Vista",
+          "language": "fa",
+          "published_at": "2026-04-19T23:51:03Z",
+          "raw_path": "raw/crawl5-entekhab-qalibaf-negotiation.txt"
+        },
+        "provenance": {"acquisition": {"method": "exa-cli crawl", "observed_at": "2026-05-01T23:35:00Z"}}
+      }
+    },
+
+    {
+      "op": "add",
+      "as": "claim_nurses_refuse_internet_pro",
+      "row": {
+        "kind": "claim",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "nurses"], "tags": ["internet", "internet-pro", "professional-associations"]},
+        "identity": {"claim_key": "iran|internet_pro|nurses_refuse_special_access|2026-04-27"},
+        "claim": {
+          "statement": "On 27 April 2026, Iran's Nursing Organization announced that despite the possibility of Internet Pro access for nurses, it would request no special privilege until international internet access was restored for the general public.",
+          "atomic": true,
+          "type": "official_statement",
+          "subject": "Iran Nursing Organization",
+          "predicate": "refused",
+          "object": "Internet Pro special access"
+        },
+        "time": {"occurred_at": "2026-04-27", "precision": "day", "timezone": "Asia/Tehran"},
+        "provenance": {"evidence": [{"source_id": "$src_serat_nurses_refuse_internet_pro_apr27", "role": "supports", "summary": "Serat reproduced the Nursing Organization notice saying it would request no special privilege until public international internet access is restored."}]},
+        "assessment": {"confidence": "high", "source_reliability": "medium", "information_depth": {"level": "strong", "rationale": "Specific association statement with direct quoted text."}, "importance": "high"}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_food_basket_85pct_worker_income",
+      "row": {
+        "kind": "claim",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["food", "inflation", "workers", "household-costs"]},
+        "identity": {"claim_key": "iran|food_basket|85pct_min_worker_income|2026-04-18"},
+        "claim": {
+          "statement": "On 18 April 2026, Radio Farda reported a Donya-e Eqtesad estimate that a standard food basket for a four-person worker household cost 25.159 million toman, equal to 85% of the 29.575 million toman minimum income of a married worker with two children; average food prices had risen 68% over four months.",
+          "atomic": true,
+          "type": "measurement",
+          "subject": "Iran standard food basket",
+          "predicate": "cost",
+          "object": "85% of minimum worker household income"
+        },
+        "time": {"occurred_at": "2026-04-18", "precision": "day", "timezone": "Asia/Tehran"},
+        "provenance": {"evidence": [{"source_id": "$src_radiofarda_food_basket_apr18", "role": "supports", "summary": "Radio Farda cited Donya-e Eqtesad's retail-data estimate: 25.159M toman food basket vs 29.575M worker income, with sunflower oil +366%, chicken +75%, beef +68%, cheese +51% since Azar."}]},
+        "assessment": {"confidence": "high", "source_reliability": "medium", "information_depth": {"level": "strong", "rationale": "Concrete basket/income figures and item-level price changes."}, "importance": "high"}
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_qalibaf_defends_negotiation",
+      "row": {
+        "kind": "claim",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran", "Mohammad Bagher Qalibaf"], "tags": ["elite-split", "negotiations"]},
+        "identity": {"claim_key": "iran|qalibaf|defends_negotiation_against_hardline_media|2026-04-19"},
+        "claim": {
+          "statement": "On 19 April 2026, Mohammad Bagher Qalibaf publicly defended negotiations with the US, saying he heard state media voices claiming Iran had destroyed all US military power and should continue rather than negotiate; he framed negotiation as a method of struggle alongside battlefield and street pressure.",
+          "atomic": true,
+          "type": "official_statement",
+          "subject": "Mohammad Bagher Qalibaf",
+          "predicate": "defended",
+          "object": "negotiation as struggle"
+        },
+        "time": {"occurred_at": "2026-04-19", "precision": "day", "timezone": "Asia/Tehran"},
+        "provenance": {"evidence": [{"source_id": "$src_entekhab_qalibaf_negotiation_apr19", "role": "supports", "summary": "Entekhab/Vista reported Qalibaf's televised remarks about state-media hardline claims and negotiation as one arena of struggle."}]},
+        "assessment": {"confidence": "high", "source_reliability": "medium", "information_depth": {"level": "partial", "rationale": "Publicly reported official remarks; does not prove a full factional rupture by itself."}, "importance": "medium"}
+      }
+    },
+
+    {
+      "op": "relate",
+      "from_id": "$claim_nurses_refuse_internet_pro",
+      "to_id": "claim:iran-cracks:20260501:14fa473e",
+      "rel": "supports",
+      "strength": "high",
+      "rationale": "Nurses' refusal is a concrete organized-professional instance of Internet Pro backlash.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_food_basket_85pct_worker_income",
+      "to_id": "claim:iran-cracks:20260501:f3462b41",
+      "rel": "supports",
+      "strength": "high",
+      "rationale": "The food-basket/income estimate quantifies the household affordability pressure behind the staple-price claim.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_food_basket_85pct_worker_income",
+      "to_id": "claim:iran-cracks:20260501:80555b70",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "Food costs consuming most worker household income explain why delayed wages are politically volatile.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_qalibaf_defends_negotiation",
+      "to_id": "claim:iran-cracks:20260501:ec552948",
+      "rel": "context_for",
+      "strength": "medium",
+      "rationale": "Qalibaf's public defense of negotiation is another establishment-pragmatist pressure signal alongside Rouhani's 'great change' statement.",
+      "scope": {"collections": ["iran-cracks"]}
+    },
+
+    {
+      "op": "add",
+      "as": "synth_v5_cracks",
+      "row": {
+        "kind": "synthesis",
+        "scope": {"collections": ["iran-cracks"], "subjects": ["Iran"], "tags": ["overview", "synthesis", "v5"]},
+        "synthesis": {
+          "title": "Cracks in the Islamic Republic, v5 — professional refusal and quantified household squeeze",
+          "summary": "The fifth pass sharpens two v4 themes. Internet Pro backlash is not only media anger: the Nursing Organization formally refused special access until ordinary Iranians regain international internet, turning a digital-class grievance into organized professional refusal. The food crisis is now quantifiable at worker-household scale: a standard four-person food basket was estimated at 25.159 million toman, 85% of a married minimum worker's 29.575 million toman income, after 68% average food-price growth over four months. Qalibaf's public defense of negotiation against hardline state-media rhetoric adds another establishment-pragmatist pressure point: senior regime figures are having to justify negotiation as a method of struggle, not surrender. Net: the crack map now includes professional refusal, quantified subsistence squeeze, and elite argument over how to end or manage the war, layered onto v4's internet class split, executions, wage protests, factory damage, water cuts, medicine stress, bread scarcity, and succession opacity.",
+          "basis": {
+            "claim_ids": [
+              "$claim_nurses_refuse_internet_pro",
+              "$claim_food_basket_85pct_worker_income",
+              "$claim_qalibaf_defends_negotiation",
+              "claim:iran-cracks:20260501:14fa473e",
+              "claim:iran-cracks:20260501:8e69a6e8",
+              "claim:iran-cracks:20260501:80555b70",
+              "claim:iran-cracks:20260501:ecc4b1a8",
+              "claim:iran-cracks:20260501:d18b6dbf",
+              "claim:iran-cracks:20260501:39500a81",
+              "claim:iran-cracks:20260501:3d29837a",
+              "claim:iran-cracks:20260501:f3462b41",
+              "claim:iran-cracks:20260501:845ab13d",
+              "claim:iran-cracks:20260501:f2ddb054",
+              "claim:iran-cracks:20260501:f897f060"
+            ],
+            "question_ids": ["q:iran-cracks:20260501:00218f9b", "q:iran-cracks:20260501:6094f3f5", "q:iran-cracks:20260501:6b36a6b5"]
+          },
+          "limitations": "Student-protest search hits in this pass were excluded because the bodies were older than the aggregator dates. Qalibaf's public negotiation remarks are a pressure signal, not proof of a private factional break.",
+          "status": "active"
+        }
+      }
+    },
+    {
+      "op": "supersede",
+      "target_ids": ["synth:iran-cracks:20260501:f9b99b9f"],
+      "replacement_id": "$synth_v5_cracks",
+      "reason": "v5 adds organized professional Internet Pro refusal, a quantified worker-food-basket squeeze, and public establishment defense of negotiations.",
+      "scope": {"collections": ["iran-cracks"]}
+    }
+  ]
+}

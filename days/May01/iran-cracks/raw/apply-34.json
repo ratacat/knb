@@ -1,0 +1,681 @@
+{
+  "atomic": true,
+  "dedupe": true,
+  "operations": [
+    {
+      "op": "add",
+      "as": "src_source_notes_v29",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": [
+            "iran-cracks"
+          ],
+          "subjects": [
+            "Iran",
+            "executions",
+            "anti-execution mobilization",
+            "families"
+          ],
+          "tags": [
+            "research-notes",
+            "execution",
+            "anti-execution",
+            "family-repression",
+            "v29"
+          ]
+        },
+        "source": {
+          "type": "raw_note",
+          "title": "v29 source notes - anti-execution mobilization follow-up",
+          "raw_path": "raw/apply-34-source-notes.md",
+          "language": "en"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "agent synthesis of exa-cli and xPool results",
+            "observed_at": "2026-05-02T03:20:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_xpool_anti_execution_v29",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": [
+            "iran-cracks"
+          ],
+          "subjects": [
+            "Iran",
+            "anti-execution mobilization",
+            "Persian X"
+          ],
+          "tags": [
+            "xpool",
+            "social",
+            "execution",
+            "anti-execution",
+            "persian",
+            "v29"
+          ],
+          "language": "fa"
+        },
+        "source": {
+          "type": "dataset",
+          "title": "xPool Persian latest query for anti-execution mobilization",
+          "uri": "xpool://query-jobs/573bc048-5c90-4920-8909-3884d207b09b/result",
+          "raw_path": "raw/xpool-anti-execution-v29.json",
+          "publisher": "xPool / X SearchTimeline",
+          "language": "fa",
+          "published_at": "2026-05-02T03:12:00Z"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "xpool query",
+            "observed_at": "2026-05-02T03:12:00Z",
+            "job_id": "573bc048-5c90-4920-8909-3884d207b09b",
+            "query": "(\"نه_به_اعدام\" OR \"نه به اعدام\" OR \"لغو_فوری_اعدام\" OR \"قیام_جواب_اعدام\") (اعتصاب OR تجمع OR خانواده OR دانشجو OR کارگر OR زندان OR اوین OR قزلحصار OR اصفهان OR مرودشت OR طبری OR آزادوار) since:2026-04-28 lang:fa",
+            "target_items": 160,
+            "max_pages": 8,
+            "items_emitted": 160
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_hrana_daneshvarkar_family_repression",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": [
+            "iran-cracks"
+          ],
+          "subjects": [
+            "Iran",
+            "Akram Daneshvarkar",
+            "Azam Daneshvarkar",
+            "Qarchak Prison"
+          ],
+          "tags": [
+            "family-repression",
+            "execution",
+            "dadkhahi",
+            "hrana",
+            "persian",
+            "v29"
+          ],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "HRANA report on Akram and Azam Daneshvarkar transfer to Qarchak",
+          "uri": "https://www.hra-news.org/2026/hranews/a-58077/",
+          "publisher": "HRANA",
+          "language": "fa",
+          "published_at": "2026-05-01T07:16:53Z"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search",
+            "observed_at": "2026-05-02T03:04:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_hrana_azhini_incommunicado",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": [
+            "iran-cracks"
+          ],
+          "subjects": [
+            "Iran",
+            "Masoumeh Azhini",
+            "Gorgan",
+            "1988 executions"
+          ],
+          "tags": [
+            "family-repression",
+            "incommunicado",
+            "execution",
+            "hrana",
+            "persian",
+            "v29"
+          ],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "HRANA report on Masoumeh Azhini's incommunicado detention",
+          "uri": "https://www.hra-news.org/2026/hranews/a-58078/",
+          "publisher": "HRANA",
+          "language": "fa",
+          "published_at": "2026-05-01T07:34:22Z"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search",
+            "observed_at": "2026-05-02T03:04:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_mehr_ejei_no_leniency",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": [
+            "iran-cracks"
+          ],
+          "subjects": [
+            "Iran",
+            "Gholamhossein Mohseni Ejei",
+            "Judiciary"
+          ],
+          "tags": [
+            "judiciary",
+            "execution",
+            "official",
+            "persian",
+            "v29"
+          ],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "Ejei says rapid and fair punishment of enemy foot soldiers is a public demand",
+          "uri": "https://www.mehrnews.com/news/6815878/",
+          "publisher": "Mehr News",
+          "language": "fa",
+          "published_at": "2026-04-30T07:32:44Z"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search",
+            "observed_at": "2026-05-02T03:01:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "src_iranwire_urmia_transfer_followup",
+      "row": {
+        "kind": "source",
+        "scope": {
+          "collections": [
+            "iran-cracks"
+          ],
+          "subjects": [
+            "Iran",
+            "Orumiyeh Prison",
+            "Naser Bakerzadeh",
+            "Mehrab Abdollahzadeh",
+            "Yaghoub Karimpour"
+          ],
+          "tags": [
+            "execution",
+            "death-row",
+            "orumiyeh",
+            "iranwire",
+            "persian",
+            "v29"
+          ],
+          "language": "fa"
+        },
+        "source": {
+          "type": "article",
+          "title": "IranWire report on three Orumiyeh death-row prisoners transferred to an unknown location",
+          "uri": "https://iranwire.com/fa/news-1/151846-انتقال-سه-زندانی-سیاسی-محکوم-به-اعدام-در-ارومیه-به-مکانی-نامعلوم/",
+          "publisher": "IranWire",
+          "language": "fa",
+          "published_at": "2026-04-30T00:00:00Z"
+        },
+        "provenance": {
+          "acquisition": {
+            "method": "exa-cli search",
+            "observed_at": "2026-05-02T03:09:00Z"
+          }
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_family_repression_after_executions_v29",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": [
+            "iran-cracks"
+          ],
+          "subjects": [
+            "Iran",
+            "execution families",
+            "dadkhahi"
+          ],
+          "tags": [
+            "family-repression",
+            "execution",
+            "dadkhahi",
+            "qarchak",
+            "v29"
+          ]
+        },
+        "identity": {
+          "claim_key": "iran-cracks|execution-families|daneshvarkar-azhini-family-repression|2026-05-01",
+          "novelty": "new"
+        },
+        "claim": {
+          "statement": "On 1 May 2026, HRANA reported two family-repression cases around execution grief and body retrieval: Akram and Azam Daneshvarkar, sisters of executed Akbar Daneshvarkar, were held in Qarchak after repeatedly seeking his body, while Masoumeh Azhini, sister of a 1988 execution victim, had been incommunicado for 28 days after arrest near Gorgan.",
+          "atomic": true,
+          "type": "event_cluster",
+          "subject": "relatives of executed political prisoners",
+          "predicate": "were_reported_targeted_by",
+          "object": "post-execution family repression and incommunicado detention"
+        },
+        "time": {
+          "occurred_at": "2026-05-01",
+          "precision": "day",
+          "timezone": "Asia/Tehran"
+        },
+        "provenance": {
+          "source_ids": [
+            "$src_hrana_daneshvarkar_family_repression",
+            "$src_hrana_azhini_incommunicado"
+          ],
+          "evidence": [
+            {
+              "source_id": "$src_hrana_daneshvarkar_family_repression",
+              "role": "supports",
+              "summary": "HRANA says Akram and Azam Daneshvarkar were arrested on 18 April, held for two weeks, transferred to Qarchak, and had repeatedly gone to Qezel-Hesar, forensic medicine, and judiciary offices to receive Akbar Daneshvarkar's body."
+            },
+            {
+              "source_id": "$src_hrana_azhini_incommunicado",
+              "role": "supports",
+              "summary": "HRANA says 63-year-old Masoumeh Azhini, sister of 1988 execution victim Mahmoud Azhini, had been detained for 28 days with family inquiries unanswered."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "medium",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "partial",
+            "rationale": "HRANA provides named relatives, custody locations/status, dates, and charges for one case, but official confirmation and family/lawyer primary documents were not found in this pass."
+          },
+          "importance": "high",
+          "uncertainty": "Follow for release, charges, Qarchak conditions, family confirmation, and whether body-withholding disputes spread to other execution files."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_xpool_anti_execution_mobilization_v29",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": [
+            "iran-cracks"
+          ],
+          "subjects": [
+            "Iran",
+            "anti-execution mobilization",
+            "Persian X"
+          ],
+          "tags": [
+            "xpool",
+            "social",
+            "execution",
+            "anti-execution",
+            "negative-evidence",
+            "v29"
+          ]
+        },
+        "identity": {
+          "claim_key": "iran-cracks|xpool|anti-execution-prison-family-x-heavy-no-clean-mass-cluster|2026-05-02",
+          "novelty": "update"
+        },
+        "claim": {
+          "statement": "The v29 xPool anti-execution sample emitted 160 Persian items since 28 April and showed loud anti-execution discourse, but the visible layer remained mostly named-case, prison, family, and opposition-X amplification: top-level keyword counts were execution 160, prison 57, family 23, student-worker 27, street/action 14, named cases 87, and diaspora 3, with no clean independently verified organic in-country mass workplace, student, or street cluster.",
+          "atomic": true,
+          "type": "social_signal",
+          "subject": "Persian X anti-execution discourse",
+          "predicate": "remained",
+          "object": "prison-family-opposition-X heavy rather than verified mass offline mobilization"
+        },
+        "time": {
+          "first_observed_at": "2026-05-02T03:12:00Z",
+          "precision": "instant",
+          "timezone": "UTC"
+        },
+        "provenance": {
+          "source_ids": [
+            "$src_xpool_anti_execution_v29",
+            "$src_source_notes_v29"
+          ],
+          "evidence": [
+            {
+              "source_id": "$src_xpool_anti_execution_v29",
+              "role": "supports",
+              "summary": "The saved dataset contains 160 emitted Persian X items for anti-execution terms plus family, student, worker, prison, and named-case terms."
+            },
+            {
+              "source_id": "$src_source_notes_v29",
+              "role": "supports",
+              "summary": "The notes record bounded keyword counts and manual inspection: dense Sasan/PMOI/opposition amplification, family-arrest chatter, some May Day worker co-framing, and no clean verified organic mass cluster."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "low",
+          "information_depth": {
+            "level": "partial",
+            "rationale": "Counts are reproducible for the saved bounded sample, but xPool is not representative and is biased by blackout, organized amplification, and keyword choice."
+          },
+          "importance": "medium"
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_official_no_leniency_after_un_pressure_v29",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": [
+            "iran-cracks"
+          ],
+          "subjects": [
+            "Iran",
+            "Judiciary",
+            "executions"
+          ],
+          "tags": [
+            "judiciary",
+            "execution",
+            "official",
+            "deterrence",
+            "v29"
+          ]
+        },
+        "identity": {
+          "claim_key": "iran-cracks|judiciary|ejei-no-leniency-fast-punishment-after-international-pressure|2026-04-30",
+          "novelty": "update"
+        },
+        "claim": {
+          "statement": "On 30 April 2026, Judiciary head Gholamhossein Mohseni Ejei publicly reinforced the no-leniency execution line, framing rapid and exact punishment of enemy foot soldiers as a public demand and dismissing foreign pressure against executions.",
+          "atomic": true,
+          "type": "official_statement",
+          "subject": "Iranian Judiciary leadership",
+          "predicate": "reinforced",
+          "object": "rapid punishment and no-leniency framing for security-case executions"
+        },
+        "time": {
+          "occurred_at": "2026-04-30",
+          "precision": "day",
+          "timezone": "Asia/Tehran"
+        },
+        "provenance": {
+          "source_ids": [
+            "$src_mehr_ejei_no_leniency",
+            "src:iran-cracks:20260502:44341244"
+          ],
+          "evidence": [
+            {
+              "source_id": "$src_mehr_ejei_no_leniency",
+              "role": "supports",
+              "summary": "Mehr reported Ejei's line that rapid, exact, and fair punishment of enemy foot soldiers is a rightful public demand."
+            },
+            {
+              "source_id": "src:iran-cracks:20260502:44341244",
+              "role": "supports",
+              "summary": "The existing AsrIran source in KNB carries the same 30 April judiciary no-leniency framing."
+            },
+            {
+              "source_id": "$src_source_notes_v29",
+              "role": "context",
+              "summary": "The notes record that VOA and UN-context searches framed the statement as rejecting international calls for restraint."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "strong",
+            "rationale": "The line is an official judiciary/media signal repeated across domestic outlets and consistent with earlier KNB execution-deterrence rows."
+          },
+          "importance": "high"
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "claim_urmia_no_confirmed_execution_followup_v29",
+      "row": {
+        "kind": "claim",
+        "scope": {
+          "collections": [
+            "iran-cracks"
+          ],
+          "subjects": [
+            "Iran",
+            "Orumiyeh Prison",
+            "death-row prisoners"
+          ],
+          "tags": [
+            "execution",
+            "death-row",
+            "orumiyeh",
+            "negative-evidence",
+            "v29"
+          ]
+        },
+        "identity": {
+          "claim_key": "iran-cracks|orumiyeh|no-confirmed-execution-found-after-transfer-warning|2026-05-02",
+          "novelty": "update"
+        },
+        "claim": {
+          "statement": "Follow-up searches on 2 May 2026 did not find confirmed executions of Naser Bakerzadeh, Mehrab Abdollahzadeh, or Yaghoub Karimpour after their late-April transfer from Orumiyeh Prison to unknown locations; the open status remains imminent-risk/unknown rather than resolved.",
+          "atomic": true,
+          "type": "negative_evidence",
+          "subject": "three Orumiyeh death-row political prisoners",
+          "predicate": "had_no_confirmed_execution_found_in",
+          "object": "2 May follow-up searches"
+        },
+        "time": {
+          "occurred_at": "2026-05-02",
+          "precision": "day",
+          "timezone": "America/Denver"
+        },
+        "provenance": {
+          "source_ids": [
+            "$src_source_notes_v29",
+            "$src_iranwire_urmia_transfer_followup",
+            "src:iran-cracks:20260502:ccb0faf6"
+          ],
+          "evidence": [
+            {
+              "source_id": "$src_source_notes_v29",
+              "role": "supports",
+              "summary": "The notes record name-based Orumiyeh follow-up searches that surfaced transfer warnings but no confirmed executions by 2 May."
+            },
+            {
+              "source_id": "$src_iranwire_urmia_transfer_followup",
+              "role": "context",
+              "summary": "IranWire repeated the transfer-to-unknown-location warning for the same three prisoners."
+            },
+            {
+              "source_id": "src:iran-cracks:20260502:ccb0faf6",
+              "role": "context",
+              "summary": "The existing KHRN source originally reported the late-April transfer and imminent-risk status."
+            }
+          ]
+        },
+        "assessment": {
+          "confidence": "medium",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "partial",
+            "rationale": "This is bounded negative evidence from current searches, not proof of safety; executions can be delayed, hidden, or reported later."
+          },
+          "importance": "high",
+          "uncertainty": "Requires continued monitoring of KHRN, HRANA, IranWire, family/lawyer statements, and judiciary announcements."
+        }
+      }
+    },
+    {
+      "op": "add",
+      "as": "synth_v29_anti_execution_family_prison",
+      "row": {
+        "kind": "synthesis",
+        "scope": {
+          "collections": [
+            "iran-cracks"
+          ],
+          "subjects": [
+            "Iran"
+          ],
+          "tags": [
+            "overview",
+            "synthesis",
+            "v29",
+            "execution",
+            "anti-execution",
+            "family-repression"
+          ]
+        },
+        "synthesis": {
+          "title": "Cracks in the Islamic Republic, v29 - anti-execution stays prison/family-heavy",
+          "summary": "The twenty-ninth pass does not overturn v19/v26; it sharpens the anti-execution mobilization question. Judiciary leadership is still publicly signaling no leniency, with Ejei casting rapid punishment of enemy foot soldiers as a public demand and dismissing foreign pressure. Sasan Azadvar, Orumiyeh, Tehran Branch 26, and Shiraz/Marvdasht remain the named-case spine. Searches did not find confirmed executions of the three Orumiyeh prisoners by 2 May, so that file remains imminent-risk rather than resolved. The main new crack is family repression: HRANA reports Akram and Azam Daneshvarkar in Qarchak after trying to retrieve Akbar Daneshvarkar's body, and Masoumeh Azhini incommunicado after a Gorgan arrest. xPool shows a loud anti-execution layer, but the visible discourse is still mostly named-case, prison, family, and opposition-X amplification, with some May Day worker co-framing and no clean verified organic workplace, student, or street cluster. Net: executions are not producing silence; they are producing martyr/family amplification. But under blackout and repression, visible anti-execution mobilization has not yet escaped the prison-family-X channel in a verified way.",
+          "basis": {
+            "claim_ids": [
+              "$claim_family_repression_after_executions_v29",
+              "$claim_xpool_anti_execution_mobilization_v29",
+              "$claim_official_no_leniency_after_un_pressure_v29",
+              "$claim_urmia_no_confirmed_execution_followup_v29",
+              "claim:iran-cracks:20260502:a9fc4948",
+              "claim:iran-cracks:20260502:e292a2c4",
+              "claim:iran-cracks:20260502:81c2e6a9",
+              "claim:iran-cracks:20260502:17e172e9",
+              "claim:iran-cracks:20260502:c23ec1a7",
+              "claim:iran-cracks:20260502:ffb29fa5"
+            ],
+            "question_ids": [
+              "q:iran-cracks:20260502:b2560e89",
+              "q:iran-cracks:20260502:12f1079c",
+              "q:iran-cracks:20260501:6094f3f5",
+              "q:iran-cracks:20260501:7592e1b8"
+            ],
+            "source_ids": [
+              "$src_source_notes_v29",
+              "$src_xpool_anti_execution_v29",
+              "$src_hrana_daneshvarkar_family_repression",
+              "$src_hrana_azhini_incommunicado",
+              "$src_mehr_ejei_no_leniency",
+              "$src_iranwire_urmia_transfer_followup",
+              "src:iran-cracks:20260502:3cd2975c",
+              "src:iran-cracks:20260502:13329c40",
+              "src:iran-cracks:20260502:3b9a97cd",
+              "src:iran-cracks:20260502:ccb0faf6"
+            ]
+          },
+          "limitations": "The family-repression cases rely on HRANA until direct family/lawyer or official records are found. xPool is discourse evidence only and is especially vulnerable to organized amplification. Negative evidence on Orumiyeh is search-bounded and cannot be treated as safety. The next decisive signals are week 119 campaign text, transfer/execution confirmation, releases or charges for family members, and source-near workplace/student/family actions.",
+          "status": "active"
+        },
+        "assessment": {
+          "confidence": "high",
+          "source_reliability": "medium",
+          "information_depth": {
+            "level": "strong",
+            "rationale": "The pass combines domestic Persian rights reporting, official judiciary reporting, a saved xPool sample, direct follow-up on open Orumiyeh names, and existing KNB execution rows."
+          },
+          "importance": "high"
+        }
+      }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_family_repression_after_executions_v29",
+      "to_id": "q:iran-cracks:20260502:b2560e89",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "Family arrests after body-retrieval efforts show anti-execution fallout crossing from prison execution files into family/dadkhahi networks.",
+      "scope": {
+        "collections": [
+          "iran-cracks"
+        ]
+      }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_xpool_anti_execution_mobilization_v29",
+      "to_id": "q:iran-cracks:20260502:b2560e89",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "The bounded xPool sample directly tests whether the anti-execution campaign is escaping prison/diaspora/X channels into broader mobilization.",
+      "scope": {
+        "collections": [
+          "iran-cracks"
+        ]
+      }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_official_no_leniency_after_un_pressure_v29",
+      "to_id": "q:iran-cracks:20260501:7592e1b8",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "The official no-leniency line is a direct input into whether deterrent repression escalates or cracks under pressure.",
+      "scope": {
+        "collections": [
+          "iran-cracks"
+        ]
+      }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_official_no_leniency_after_un_pressure_v29",
+      "to_id": "claim:iran-cracks:20260502:17e172e9",
+      "rel": "context_for",
+      "strength": "high",
+      "rationale": "The 30 April Ejei statement is a current official continuation of the earlier judiciary execution-deterrence framing.",
+      "scope": {
+        "collections": [
+          "iran-cracks"
+        ]
+      }
+    },
+    {
+      "op": "relate",
+      "from_id": "$claim_urmia_no_confirmed_execution_followup_v29",
+      "to_id": "q:iran-cracks:20260502:12f1079c",
+      "rel": "context_for",
+      "strength": "medium",
+      "rationale": "The negative follow-up narrows the Orumiyeh status to still-imminent/unknown rather than confirmed execution by this pass.",
+      "scope": {
+        "collections": [
+          "iran-cracks"
+        ]
+      }
+    },
+    {
+      "op": "supersede",
+      "target_ids": [
+        "synth:iran-cracks:20260502:dc89fde0"
+      ],
+      "replacement_id": "$synth_v29_anti_execution_family_prison",
+      "reason": "v29 shifts the active read from labor/unemployment containment to the current anti-execution/family-repression question: official no-leniency, Orumiyeh follow-up, HRANA family-repression cases, and a bounded xPool mobilization check."
+    }
+  ]
+}
