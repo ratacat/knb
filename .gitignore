@@ -5,3 +5,10 @@ dist/
 coverage/
 knb/views/*.tmp
 knb/indexes/*.tmp
+
+# Local/generated KNB research workspaces
+xnb/
+knowledgebase-research/
+weather/
+days/*/*/.knb/
+days/*/*/knb/
