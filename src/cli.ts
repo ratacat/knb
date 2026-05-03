@@ -1,8 +1,16 @@
 import { readFile as fsReadFile } from "node:fs/promises";
 
-import type { ApplyRequest, DraftRow, KnbRowKind } from "./core/contract";
+import type { DraftRow, KnbRowKind } from "./core/contract";
 import { fromUnknown, knbError } from "./core/errors";
-import { openKnb, type Knb, type OpenKnbOptions } from "./core/knb";
+import {
+  ROW_KINDS,
+  openKnb,
+  type ApplyRequest,
+  type CollectionStatusRequest,
+  type Knb,
+  type LogRequest,
+  type OpenKnbOptions,
+} from "./core/knb";
 import {
   failure,
   render,
@@ -14,14 +22,17 @@ import {
 import type { CandidateClaim } from "./core/novelty";
 import type { ContextRequest } from "./core/context";
 import type { GetRequest, QueryRequest } from "./core/query";
-import type { RenderRequest } from "./core/projections";
+import type { RenderAllRequest, RenderRequest } from "./core/projections";
 
-type FlagMap = Map<string, string | boolean>;
+type FlagValue = string | boolean | Array<string | boolean>;
+type FlagMap = Map<string, FlagValue>;
 
 const COMMANDS = new Set([
   "init",
   "status",
+  "collections",
   "schema",
+  "log",
   "apply",
   "add",
   "get",
@@ -109,11 +120,7 @@ async function runFacadeCommand(
     if (command === "status") {
       const collection = stringFlag(flags, "collection");
       if (collection) {
-        const maxQuestions = numberFlag(flags, "max-questions");
-        const request = maxQuestions === undefined
-          ? { collection }
-          : { collection, max_questions: maxQuestions };
-        const result = await knb.collectionStatus(request);
+        const result = await knb.collectionStatus(collectionStatusRequestFromFlags(flags, collection));
         return renderResult(
           success("status", result, {
             ...baseMeta(),
@@ -123,8 +130,16 @@ async function runFacadeCommand(
           outputOptions,
         );
       }
-      const result = await knb.status();
+      const result = await knb.status({ detailed: booleanFlag(flags, "detailed") });
       return renderResult(success("status", result, baseMeta()), outputOptions);
+    }
+
+    if (command === "collections") {
+      const result = await knb.collections();
+      return renderResult(
+        success("collections", result, { ...baseMeta(), rows_returned: result.collections.length }),
+        outputOptions,
+      );
     }
 
     if (command === "schema") {
@@ -134,6 +149,23 @@ async function runFacadeCommand(
           workspace_root: knb.workspace.root,
           elapsed_ms: Date.now() - start,
         }),
+        outputOptions,
+      );
+    }
+
+    if (command === "log") {
+      const request: LogRequest = {};
+      const logActor = stringFlag(flags, "actor");
+      const since = stringFlag(flags, "since");
+      const until = stringFlag(flags, "until");
+      const limit = numberFlag(flags, "limit");
+      if (logActor !== undefined) request.actor = logActor;
+      if (since !== undefined) request.since = since;
+      if (until !== undefined) request.until = until;
+      if (limit !== undefined) request.limit = limit;
+      const result = await knb.log(request);
+      return renderResult(
+        success("log", result, { ...baseMeta(), rows_returned: result.total_returned }),
         outputOptions,
       );
     }
@@ -174,37 +206,12 @@ async function runFacadeCommand(
           outputOptions,
         );
       }
-      const getRequest: Omit<GetRequest, "ids"> = {};
-      if (booleanFlag(flags, "include-history") || booleanFlag(flags, "history")) {
-        getRequest.includeHistory = true;
-      }
-      if (booleanFlag(flags, "explain")) getRequest.explain = true;
-      const result = await knb.get(positionals, getRequest);
+      const result = await knb.get(positionals, getRequestFromFlags(flags));
       return renderResult(success("get", result, baseMeta()), outputOptions);
     }
 
     if (command === "query") {
-      const request: QueryRequest = {};
-      const kindFlag = stringFlag(flags, "kind");
-      if (kindFlag) request.kinds = [kindFlag as KnbRowKind];
-      const collection = stringFlag(flags, "collection");
-      if (collection) request.collection = collection;
-      const subject = stringFlag(flags, "subject");
-      if (subject) request.subject = subject;
-      const tag = stringFlag(flags, "tag");
-      if (tag) request.tag = tag;
-      const text = stringFlag(flags, "text");
-      if (text) request.text = text;
-      const claimKey = stringFlag(flags, "claim-key");
-      if (claimKey) request.claim_key = claimKey;
-      const citing = stringFlag(flags, "citing");
-      if (citing) request.citing = citing;
-      const limit = numberFlag(flags, "limit");
-      if (limit !== undefined) request.limit = limit;
-      if (booleanFlag(flags, "history") || booleanFlag(flags, "include-history")) {
-        request.includeHistory = true;
-      }
-      if (booleanFlag(flags, "full")) request.full = true;
+      const request = queryRequestFromFlags(flags);
       const result = await knb.query(request);
       return renderResult(
         success("query", result, { ...baseMeta(), rows_returned: result.total_returned }),
@@ -213,16 +220,7 @@ async function runFacadeCommand(
     }
 
     if (command === "context") {
-      const request: ContextRequest = {};
-      const collection = stringFlag(flags, "collection");
-      if (collection) request.collection = collection;
-      const subject = stringFlag(flags, "subject");
-      if (subject) request.subject = subject;
-      const tag = stringFlag(flags, "tag");
-      if (tag) request.tag = tag;
-      const maxTokens = numberFlag(flags, "max-tokens");
-      if (maxTokens !== undefined) request.max_tokens = maxTokens;
-      if (booleanFlag(flags, "no-warnings")) request.include_warnings = false;
+      const request = contextRequestFromFlags(flags);
       const result = await knb.context(request);
       return renderResult(success("context", result, baseMeta()), outputOptions);
     }
@@ -237,6 +235,7 @@ async function runFacadeCommand(
     if (command === "render") {
       const renderAll = booleanFlag(flags, "all");
       const collection = stringFlag(flags, "collection");
+      const asOf = stringFlag(flags, "as-of");
       if (renderAll && collection) {
         return renderResult(
           failure(
@@ -259,7 +258,9 @@ async function runFacadeCommand(
       }
       const format = stringFlag(flags, "format") as RenderRequest["format"] | undefined;
       if (renderAll) {
-        const request = format ? { format } : {};
+        const request: RenderAllRequest = {};
+        if (format) request.format = format;
+        if (asOf !== undefined) request.asOf = asOf;
         const result = await knb.renderAll(request);
         return renderResult(
           success("render", result, {
@@ -284,6 +285,7 @@ async function runFacadeCommand(
       const out = stringFlag(flags, "out");
       if (out) request.out = out;
       if (format) request.format = format;
+      if (asOf !== undefined) request.asOf = asOf;
       const result = await knb.render(request);
       return renderResult(
         success("render", result, { ...baseMeta(), bytes_written: result.bytes_written }),
@@ -342,36 +344,192 @@ function parseFlags(args: string[], positionals: string[]): FlagMap {
 
     const equalsIndex = arg.indexOf("=");
     if (equalsIndex > -1) {
-      flags.set(arg.slice(2, equalsIndex), arg.slice(equalsIndex + 1));
+      setFlag(flags, arg.slice(2, equalsIndex), arg.slice(equalsIndex + 1));
       continue;
     }
 
     const key = arg.slice(2);
     const next = args[index + 1];
     if (next && !next.startsWith("--")) {
-      flags.set(key, next);
+      setFlag(flags, key, next);
       index += 1;
     } else {
-      flags.set(key, true);
+      setFlag(flags, key, true);
     }
   }
   return flags;
 }
 
+function setFlag(flags: FlagMap, key: string, value: string | boolean): void {
+  const existing = flags.get(key);
+  if (existing === undefined) {
+    flags.set(key, value);
+    return;
+  }
+  if (Array.isArray(existing)) {
+    existing.push(value);
+    return;
+  }
+  flags.set(key, [existing, value]);
+}
+
+function collectionStatusRequestFromFlags(flags: FlagMap, collection: string): CollectionStatusRequest {
+  const request: CollectionStatusRequest = { collection };
+  const maxQuestions = numberFlag(flags, "max-questions");
+  if (maxQuestions !== undefined) request.maxQuestions = maxQuestions;
+  return request;
+}
+
+function getRequestFromFlags(flags: FlagMap): Omit<GetRequest, "ids"> {
+  const request: Omit<GetRequest, "ids"> = {};
+  const asOf = stringFlag(flags, "as-of");
+  if (asOf !== undefined) request.asOf = asOf;
+  if (booleanFlag(flags, "include-history") || booleanFlag(flags, "history")) {
+    request.includeHistory = true;
+  }
+  if (booleanFlag(flags, "explain")) request.explain = true;
+  return request;
+}
+
+function queryRequestFromFlags(flags: FlagMap): QueryRequest {
+  const request: QueryRequest = {};
+  const asOf = stringFlag(flags, "as-of");
+  if (asOf !== undefined) request.asOf = asOf;
+  const kindFlag = stringFlag(flags, "kind");
+  if (kindFlag) {
+    if (!(ROW_KINDS as readonly string[]).includes(kindFlag)) {
+      throw knbError("invalid_arguments", `Invalid --kind value: ${kindFlag}`, { kind: kindFlag });
+    }
+    request.kinds = [kindFlag as KnbRowKind];
+  }
+  const collection = stringFlag(flags, "collection");
+  if (collection) request.collection = collection;
+  const subject = stringFlag(flags, "subject");
+  if (subject) request.subject = subject;
+  const tag = stringFlag(flags, "tag");
+  if (tag) request.tag = tag;
+  const text = stringFlag(flags, "text");
+  if (text) request.text = text;
+  const claimKey = stringFlag(flags, "claim-key");
+  if (claimKey) request.claimKey = claimKey;
+  const claimType = stringFlag(flags, "claim-type");
+  if (claimType) request.claimType = claimType;
+  const predicate = stringFlag(flags, "predicate");
+  if (predicate) request.predicate = predicate;
+  const qualifiers = parseQualifierFlags(flags);
+  if (qualifiers !== undefined) request.qualifiers = qualifiers;
+  const externalRefs = parseExternalRefFlags(flags);
+  if (externalRefs !== undefined) request.externalRefs = externalRefs;
+  const citing = stringFlag(flags, "citing");
+  if (citing) request.citing = citing;
+  const limit = numberFlag(flags, "limit");
+  if (limit !== undefined) request.limit = limit;
+  if (booleanFlag(flags, "history") || booleanFlag(flags, "include-history")) {
+    request.includeHistory = true;
+  }
+  if (booleanFlag(flags, "full")) request.full = true;
+  return request;
+}
+
+function contextRequestFromFlags(flags: FlagMap): ContextRequest {
+  const request: ContextRequest = {};
+  const asOf = stringFlag(flags, "as-of");
+  if (asOf !== undefined) request.asOf = asOf;
+  const collection = stringFlag(flags, "collection");
+  if (collection) request.collection = collection;
+  const subject = stringFlag(flags, "subject");
+  if (subject) request.subject = subject;
+  const tag = stringFlag(flags, "tag");
+  if (tag) request.tag = tag;
+  const claimType = stringFlag(flags, "claim-type");
+  if (claimType) request.claimType = claimType;
+  const predicate = stringFlag(flags, "predicate");
+  if (predicate) request.predicate = predicate;
+  const qualifiers = parseQualifierFlags(flags);
+  if (qualifiers !== undefined) request.qualifiers = qualifiers;
+  const externalRefs = parseExternalRefFlags(flags);
+  if (externalRefs !== undefined) request.externalRefs = externalRefs;
+  const maxTokens = numberFlag(flags, "max-tokens");
+  if (maxTokens !== undefined) request.maxTokens = maxTokens;
+  const recencyWindowDays = numberFlag(flags, "recency-window-days");
+  if (recencyWindowDays !== undefined) request.recencyWindowDays = recencyWindowDays;
+  if (booleanFlag(flags, "no-warnings")) request.includeWarnings = false;
+  return request;
+}
+
 function stringFlag(flags: FlagMap, key: string): string | undefined {
   const value = flags.get(key);
+  if (Array.isArray(value)) {
+    for (let index = value.length - 1; index >= 0; index -= 1) {
+      const entry = value[index];
+      if (typeof entry === "string" && entry.length > 0) return entry;
+    }
+    return undefined;
+  }
   return typeof value === "string" && value.length > 0 ? value : undefined;
 }
 
 function booleanFlag(flags: FlagMap, key: string): boolean {
-  return flags.get(key) === true;
+  const value = flags.get(key);
+  if (Array.isArray(value)) return value.includes(true);
+  return value === true;
 }
 
 function numberFlag(flags: FlagMap, key: string): number | undefined {
-  const value = flags.get(key);
-  if (typeof value !== "string") return undefined;
+  if (!flags.has(key)) return undefined;
+  const value = stringFlag(flags, key);
+  if (value === undefined) {
+    throw knbError("invalid_arguments", `Invalid --${key} value; expected a number`, {
+      flag: `--${key}`,
+      value: String(flags.get(key)),
+    });
+  }
   const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : undefined;
+  if (!Number.isFinite(parsed)) {
+    throw knbError("invalid_arguments", `Invalid --${key} value; expected a number`, {
+      flag: `--${key}`,
+      value,
+    });
+  }
+  return parsed;
+}
+
+function stringFlags(flags: FlagMap, key: string): string[] {
+  const value = flags.get(key);
+  if (Array.isArray(value)) return value.filter((entry): entry is string => typeof entry === "string" && entry.length > 0);
+  if (typeof value === "string" && value.length > 0) return [value];
+  return [];
+}
+
+function parseQualifierFlags(flags: FlagMap): Record<string, string> | undefined {
+  const entries = stringFlags(flags, "qualifier");
+  if (entries.length === 0) return undefined;
+  const qualifiers: Record<string, string> = {};
+  for (const entry of entries) {
+    const equalsIndex = entry.indexOf("=");
+    if (equalsIndex <= 0 || equalsIndex === entry.length - 1) {
+      throw knbError("invalid_arguments", "Invalid --qualifier value; expected key=value", { qualifier: entry });
+    }
+    const key = entry.slice(0, equalsIndex).trim();
+    const value = entry.slice(equalsIndex + 1);
+    if (!/^[A-Za-z0-9_.-]+$/.test(key)) {
+      throw knbError("invalid_arguments", "Invalid --qualifier key; expected letters, numbers, dot, underscore, or dash", { qualifier: entry });
+    }
+    qualifiers[key] = value;
+  }
+  return qualifiers;
+}
+
+function parseExternalRefFlags(flags: FlagMap): Array<{ system: string; id: string }> | undefined {
+  const entries = stringFlags(flags, "external-ref");
+  if (entries.length === 0) return undefined;
+  return entries.map((entry) => {
+    const colonIndex = entry.indexOf(":");
+    if (colonIndex <= 0 || colonIndex === entry.length - 1) {
+      throw knbError("invalid_arguments", "Invalid --external-ref value; expected system:id", { external_ref: entry });
+    }
+    return { system: entry.slice(0, colonIndex), id: entry.slice(colonIndex + 1) };
+  });
 }
 
 async function readJsonPayload(flags: FlagMap): Promise<unknown> {
@@ -459,26 +617,31 @@ Typical workflows:
 
 Usage:
   knb init    [--root <dir>] [--config <path>] [--ledger <path>] [--actor <name>] [--force] [--json|--pretty|--ndjson|--text|--quiet]
-  knb status  [--root <dir>] [--collection <c>] [--max-questions N] [--json|--pretty|--ndjson|--text|--quiet]
+  knb status  [--root <dir>] [--collection <c>] [--max-questions N] [--detailed] [--json|--pretty|--ndjson|--text|--quiet]
+  knb collections [--root <dir>] [--json|--pretty|--ndjson|--text|--quiet]
   knb schema  [--json|--pretty|--ndjson|--text|--quiet]
+  knb log     [--actor <a>] [--since <date>] [--until <date>] [--limit N] [--json|--pretty|--ndjson|--text|--quiet]
   knb apply   (--file ops.json | --json '{...}' | --stdin) [--atomic] [--dedupe] [--dry-run]
   knb add     (--file row.json | --json '{...}' | --stdin)
-  knb get     <id> [<id>...] [--include-history] [--explain]
-  knb query   [--kind <kind>] [--collection <c>] [--subject <s>] [--tag <t>] [--text <q>] [--claim-key <k>] [--citing <uri>] [--limit N] [--history] [--full]
-  knb context [--collection <c>] [--subject <s>] [--tag <t>] [--max-tokens 3000] [--no-warnings]
+  knb get     <id> [<id>...] [--as-of <iso>] [--include-history] [--explain]
+  knb query   [--as-of <iso>] [--kind <kind>] [--collection <c>] [--subject <s>] [--tag <t>] [--text <q>] [--claim-key <k>] [--claim-type <t>] [--predicate <p>] [--qualifier k=v] [--external-ref system:id] [--citing <uri>] [--limit N] [--history] [--full]
+  knb context [--as-of <iso>] [--collection <c>] [--subject <s>] [--tag <t>] [--claim-type <t>] [--predicate <p>] [--qualifier k=v] [--external-ref system:id] [--max-tokens 3000] [--recency-window-days N] [--no-warnings]
   knb novelty (--file candidates.json | --json '{...}' | --stdin)
-  knb render  (--collection <c> [--out path] | --all) [--format md]
+  knb render  (--collection <c> [--out path] | --all) [--as-of <iso>] [--format md]
   knb check   [--json]
   knb index   [--rebuild]
 
 Commands:
   init      Create workspace config, ledger, schema, views, and indexes.
-  status    Cheap orientation packet: workspace, ledger, counts, projection freshness; with --collection, latest synthesis and open questions.
+  status    Cheap orientation packet: workspace, ledger, counts, projection freshness; with --collection, latest synthesis and open questions; with --detailed, corpus-health stats.
+  collections
+            List active collections with active row counts and latest active row timestamp.
   schema    Print row and operation contracts plus the JSON Schema.
+  log       Show recent apply run manifests from .knb/runs, optionally filtered by actor and time.
   apply     Apply an atomic batch of operations through the apply pipeline; use --dry-run to preview without writing.
   add       Convenience wrapper for one add operation; identical envelope to apply.
   get       Fetch full rows by id; default returns only active rows.
-  query     Search active rows by kind/scope/text/source URI citation. Use --history to include inactive.
+  query     Search active rows by kind, scope, text, citation, and generic structured claim fields. Use --history to include inactive.
   context   Build a token-budgeted context packet for a scope.
   novelty   Classify candidate claims against active claims (no writes).
   render    Generate Markdown view(s) for one collection or every active collection.

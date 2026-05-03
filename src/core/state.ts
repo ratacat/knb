@@ -14,6 +14,8 @@ import type {
   Relation,
   SynthesisRow,
 } from "./contract";
+import { knbError } from "./errors";
+import { matchesRowSelector, type RowSelector } from "./selectors";
 
 export type EffectiveStatus =
   | "active"
@@ -29,7 +31,8 @@ export type StateWarningCode =
   | "relation_endpoint_missing"
   | "patch_target_missing"
   | "supersede_replacement_inactive"
-  | "merge_canonical_inactive";
+  | "merge_canonical_inactive"
+  | "synthesis_target_stale";
 
 export type StateWarning = {
   code: StateWarningCode;
@@ -109,11 +112,16 @@ export type EffectiveState = {
   warnings: StateWarning[];
 };
 
+export type StateOptions = {
+  asOf?: string;
+};
+
 type InternalRow = EffectiveRow & {
   line: number;
 };
 
-export function buildEffectiveState(loaded: LoadedRow[]): EffectiveState {
+export function buildEffectiveState(loaded: LoadedRow[], options: StateOptions = {}): EffectiveState {
+  const projectedRows = filterRowsAsOf(loaded, options.asOf);
   const idMap = new Map<string, InternalRow>();
   const order: string[] = [];
   const warnings: StateWarning[] = [];
@@ -124,7 +132,7 @@ export function buildEffectiveState(loaded: LoadedRow[]): EffectiveState {
   const patchAudit = new Map<string, StatePatchAuditEntry[]>();
   const canonicalIdByDuplicate = new Map<string, string>();
 
-  for (const item of loaded) {
+  for (const item of projectedRows) {
     const row = item.row;
     if (typeof row.id !== "string" || row.id.length === 0) continue;
     if (idMap.has(row.id)) continue;
@@ -146,7 +154,7 @@ export function buildEffectiveState(loaded: LoadedRow[]): EffectiveState {
     order.push(row.id);
   }
 
-  for (const item of loaded) {
+  for (const item of projectedRows) {
     const row = item.row;
     if (row.kind === "change") continue;
     const relationsList = (row as { relations?: Relation[] }).relations;
@@ -178,7 +186,7 @@ export function buildEffectiveState(loaded: LoadedRow[]): EffectiveState {
     }
   }
 
-  for (const item of loaded) {
+  for (const item of projectedRows) {
     const row = item.row;
     if (row.kind !== "change") continue;
     const change = (row as ChangeRow).change;
@@ -361,6 +369,8 @@ export function buildEffectiveState(loaded: LoadedRow[]): EffectiveState {
     }
   }
 
+  addSynthesisTargetFreshnessWarnings(idMap, warnings);
+
   const graph: RelationGraph = {
     all(): EffectiveRelation[] {
       return [...relations];
@@ -425,6 +435,88 @@ export function buildEffectiveState(loaded: LoadedRow[]): EffectiveState {
   };
 
   return state;
+}
+
+function addSynthesisTargetFreshnessWarnings(
+  idMap: Map<string, InternalRow>,
+  warnings: StateWarning[],
+): void {
+  const activeRows = [...idMap.values()].filter((row) => row.status === "active");
+  const activeSyntheses = activeRows.filter((row): row is InternalRow & { row: SynthesisRow } => {
+    return row.row.kind === "synthesis" && (row.row as SynthesisRow).synthesis.status === "active";
+  });
+
+  for (const synthesis of activeSyntheses) {
+    const selector = synthesis.row.synthesis.target_selector;
+    if (selector === undefined) continue;
+
+    const newerMatchingIds: string[] = [];
+    for (const candidate of activeRows) {
+      if (candidate.row.id === synthesis.row.id) continue;
+      if (candidate.row.kind === "change" && !selectorIncludesChangeRows(selector)) continue;
+      if (compareCreatedAt(candidate.row.created_at, synthesis.row.created_at) <= 0) continue;
+      if (!matchesRowSelector(candidate.row, selector)) continue;
+      if (isRepresentedByNewerSynthesis(candidate.row, synthesis.row, activeSyntheses)) continue;
+      newerMatchingIds.push(candidate.row.id);
+    }
+
+    if (newerMatchingIds.length === 0) continue;
+    warnings.push({
+      code: "synthesis_target_stale",
+      message: `Synthesis ${synthesis.row.id} target_selector has newer matching row(s): ${newerMatchingIds.join(", ")}`,
+      target_id: synthesis.row.id,
+      line: synthesis.line,
+    });
+  }
+}
+
+function selectorIncludesChangeRows(selector: RowSelector): boolean {
+  return Array.isArray(selector.kinds) && selector.kinds.includes("change");
+}
+
+function isRepresentedByNewerSynthesis(
+  candidate: KnbRow,
+  current: SynthesisRow,
+  activeSyntheses: Array<InternalRow & { row: SynthesisRow }>,
+): boolean {
+  for (const synthesis of activeSyntheses) {
+    if (synthesis.row.id === current.id) continue;
+    if (compareCreatedAt(synthesis.row.created_at, current.created_at) <= 0) continue;
+    if (compareCreatedAt(candidate.created_at, synthesis.row.created_at) > 0) continue;
+    if (synthesisBasisIncludes(synthesis.row, candidate.id)) return true;
+    const selector = synthesis.row.synthesis.target_selector;
+    if (selector !== undefined && matchesRowSelector(candidate, selector)) return true;
+  }
+  return false;
+}
+
+function synthesisBasisIncludes(synthesis: SynthesisRow, id: string): boolean {
+  const basis = synthesis.synthesis.basis;
+  return (
+    basis.claim_ids?.includes(id) === true ||
+    basis.question_ids?.includes(id) === true ||
+    basis.source_ids?.includes(id) === true
+  );
+}
+
+function compareCreatedAt(a: string, b: string): number {
+  const aTime = Date.parse(a);
+  const bTime = Date.parse(b);
+  if (!Number.isNaN(aTime) && !Number.isNaN(bTime)) return aTime - bTime;
+  return a.localeCompare(b);
+}
+
+function filterRowsAsOf(loaded: LoadedRow[], asOf: string | undefined): LoadedRow[] {
+  if (asOf === undefined) return loaded;
+  const cutoff = Date.parse(asOf);
+  if (Number.isNaN(cutoff)) {
+    throw knbError("invalid_arguments", "Invalid asOf timestamp", { asOf });
+  }
+  return loaded.filter((item) => {
+    const createdAt = Date.parse(item.row.created_at);
+    if (Number.isNaN(createdAt)) return true;
+    return createdAt <= cutoff;
+  });
 }
 
 function resolveCanonicalId(id: string, canonicalIdByDuplicate: Map<string, string>): string {

@@ -18,10 +18,12 @@ import {
   operationSamples,
   rowSamples,
   type ApplyOperation,
-  type ApplyRequest,
+  type ApplyRequest as CoreApplyRequest,
+  type ClaimRow,
   type DraftRow,
   type KnbRow,
   type QuestionRow,
+  type SourceRow,
   type SynthesisRow,
   type ValidationIssue,
 } from "./contract";
@@ -33,6 +35,11 @@ import {
   type NoveltyResult,
 } from "./novelty";
 import {
+  profileSamples,
+  profileSchema,
+  type KnbProfileFile,
+} from "./profiles";
+import {
   JsonProjectionArtifactStore,
   type FreshnessReport,
   type IndexResult,
@@ -41,6 +48,7 @@ import {
   type RenderRequest,
   type RenderResult,
 } from "./projections";
+import { readRunManifests, type RunManifest } from "./run-manifests";
 import {
   executeGet,
   executeQuery,
@@ -53,9 +61,13 @@ import {
   readSnapshot,
   type KnbReadSnapshot,
   type ProjectionFreshness,
+  type ReadSnapshotOptions,
 } from "./read-snapshot";
 import { buildEffectiveState, type EffectiveState, type StateWarning } from "./state";
+import { rowSelectorSamples, rowSelectorSchema, type RowSelector } from "./selectors";
 import { openWorkspace, type KnbWorkspace, type OpenWorkspaceOptions } from "./workspace";
+
+export { ROW_KINDS } from "./contract";
 
 export type KnbRuntime = {
   clock: () => Date;
@@ -85,11 +97,43 @@ export type KnbStatus = {
   active_counts_by_kind: Record<string, number>;
   inactive_counts_by_status: Record<string, number>;
   projection_freshness: ProjectionFreshness;
+  detailed?: DetailedStatus;
+};
+
+export type StatusOptions = {
+  detailed?: boolean;
+};
+
+export type DuplicateSourceUriCluster = {
+  uri: string;
+  count: number;
+  source_ids: string[];
+};
+
+export type DuplicateClaimKeyCluster = {
+  claim_key: string;
+  count: number;
+  claim_ids: string[];
+};
+
+export type EvidenceDepthStats = {
+  count: number;
+  p50: number;
+  p90: number;
+  max: number;
+};
+
+export type DetailedStatus = {
+  duplicate_source_uri_clusters: DuplicateSourceUriCluster[];
+  duplicate_claim_key_clusters: DuplicateClaimKeyCluster[];
+  evidence_depth: EvidenceDepthStats;
+  novelty_active_distribution: Record<string, number>;
+  syntheses_per_collection: Record<string, number>;
 };
 
 export type CollectionStatusRequest = {
   collection: string;
-  max_questions?: number;
+  maxQuestions?: number;
 };
 
 export type CollectionStatusResult = {
@@ -113,9 +157,23 @@ export type CollectionStatusResult = {
   }>;
 };
 
+export type CollectionSummary = {
+  collection: string;
+  active_counts_by_kind: Record<string, number>;
+  latest_created_at?: string;
+};
+
+export type CollectionsResult = {
+  collections: CollectionSummary[];
+};
+
 export type SchemaResult = {
   schema_version: "knb.v1";
   json_schema: object;
+  selector_schema: object;
+  profile_schema: object;
+  selector_samples: RowSelector[];
+  profile_samples: KnbProfileFile[];
   row_samples: KnbRow[];
   operation_samples: ApplyOperation[];
 };
@@ -146,20 +204,39 @@ export type NoveltyRequest = {
   candidates: CandidateClaim[];
 };
 
+export type ApplyRequest = Omit<CoreApplyRequest, "run_id"> & {
+  runId?: string;
+};
+
 export type NoveltyBatchResult = {
   results: NoveltyResult[];
+};
+
+export type LogRequest = {
+  actor?: string;
+  since?: string;
+  until?: string;
+  limit?: number;
+};
+
+export type LogResult = {
+  entries: RunManifest[];
+  total_matched: number;
+  total_returned: number;
 };
 
 export type Knb = {
   workspace: KnbWorkspace;
   runtime: KnbRuntime;
   init(options?: InitOptions): Promise<InitResult>;
-  status(): Promise<KnbStatus>;
+  status(options?: StatusOptions): Promise<KnbStatus>;
   collectionStatus(request: CollectionStatusRequest): Promise<CollectionStatusResult>;
+  collections(): Promise<CollectionsResult>;
   schema(): Promise<SchemaResult>;
   apply(request: ApplyRequest): Promise<ApplyResult>;
   previewApply(request: ApplyRequest): Promise<ApplyResult>;
   add(row: DraftRow): Promise<ApplyResult>;
+  log(request?: LogRequest): Promise<LogResult>;
   get(ids: string[], options?: Omit<GetRequest, "ids">): Promise<GetResult>;
   query(request: QueryRequest): Promise<QueryResult>;
   context(request: ContextRequest): Promise<ContextResult>;
@@ -208,20 +285,25 @@ function makeKnb(workspace: KnbWorkspace, runtime: KnbRuntime): Knb {
     async init(initOptions: InitOptions = {}): Promise<InitResult> {
       return performInit(workspace, initOptions);
     },
-    async status(): Promise<KnbStatus> {
+    async status(options: StatusOptions = {}): Promise<KnbStatus> {
       const snapshot = await readSnapshot({ workspace, freshness: projectionFreshness });
-      return statusFromSnapshot(workspace, snapshot);
+      return statusFromSnapshot(workspace, snapshot, options);
     },
     async collectionStatus(request: CollectionStatusRequest): Promise<CollectionStatusResult> {
       const snapshot = await readSnapshot({ workspace, freshness: false });
       const state = requireState(snapshot, "collectionStatus");
       return collectionStatusFromState(state, request);
     },
+    async collections(): Promise<CollectionsResult> {
+      const snapshot = await readSnapshot({ workspace, freshness: false });
+      const state = requireState(snapshot, "collections");
+      return collectionsFromState(state);
+    },
     async schema(): Promise<SchemaResult> {
       return buildSchemaResult();
     },
     async apply(request: ApplyRequest): Promise<ApplyResult> {
-      return applyOperations(request, {
+      return applyOperations(toCoreApplyRequest(request), {
         workspace,
         runtime,
         actor: workspace.actor,
@@ -229,7 +311,7 @@ function makeKnb(workspace: KnbWorkspace, runtime: KnbRuntime): Knb {
       });
     },
     async previewApply(request: ApplyRequest): Promise<ApplyResult> {
-      return previewApplyOperations(request, {
+      return previewApplyOperations(toCoreApplyRequest(request), {
         workspace,
         runtime,
         actor: workspace.actor,
@@ -240,8 +322,11 @@ function makeKnb(workspace: KnbWorkspace, runtime: KnbRuntime): Knb {
       const operation = { op: "add", row } as ApplyOperation;
       return facade.apply({ operations: [operation] });
     },
+    async log(request: LogRequest = {}): Promise<LogResult> {
+      return buildLog(workspace, request);
+    },
     async get(ids: string[], getOptions: Omit<GetRequest, "ids"> = {}): Promise<GetResult> {
-      const snapshot = await readSnapshot({ workspace, freshness: false });
+      const snapshot = await readSnapshot(readSnapshotOptions(workspace, false, getOptions.asOf));
       const state = requireState(snapshot, "get");
       const request: GetRequest = { ids };
       if (getOptions.includeHistory !== undefined) request.includeHistory = getOptions.includeHistory;
@@ -249,12 +334,12 @@ function makeKnb(workspace: KnbWorkspace, runtime: KnbRuntime): Knb {
       return executeGet(state, request);
     },
     async query(request: QueryRequest): Promise<QueryResult> {
-      const snapshot = await readSnapshot({ workspace, freshness: false });
+      const snapshot = await readSnapshot(readSnapshotOptions(workspace, false, request.asOf));
       const state = requireState(snapshot, "query");
       return executeQuery(state, request);
     },
     async context(request: ContextRequest): Promise<ContextResult> {
-      const snapshot = await readSnapshot({ workspace, freshness: false });
+      const snapshot = await readSnapshot(readSnapshotOptions(workspace, false, request.asOf));
       const state = requireState(snapshot, "context");
       return buildContext(state, request);
     },
@@ -266,12 +351,12 @@ function makeKnb(workspace: KnbWorkspace, runtime: KnbRuntime): Knb {
       return { results };
     },
     async render(request: RenderRequest): Promise<RenderResult> {
-      const snapshot = await readSnapshot({ workspace, freshness: false });
+      const snapshot = await readSnapshot(readSnapshotOptions(workspace, false, request.asOf));
       const state = requireState(snapshot, "render");
       return projectionArtifacts.renderCollection(state, snapshot.fingerprint, request);
     },
     async renderAll(request: RenderAllRequest = {}): Promise<RenderAllResult> {
-      const snapshot = await readSnapshot({ workspace, freshness: false });
+      const snapshot = await readSnapshot(readSnapshotOptions(workspace, false, request.asOf));
       const state = requireState(snapshot, "renderAll");
       return projectionArtifacts.renderAllCollections(state, snapshot.fingerprint, request);
     },
@@ -286,6 +371,80 @@ function makeKnb(workspace: KnbWorkspace, runtime: KnbRuntime): Knb {
     },
   };
   return facade;
+}
+
+function toCoreApplyRequest(request: ApplyRequest): CoreApplyRequest {
+  const { runId, ...rest } = request;
+  const coreRequest: CoreApplyRequest = { ...rest };
+  if (runId !== undefined) coreRequest.run_id = runId;
+  return coreRequest;
+}
+
+function readSnapshotOptions(
+  workspace: KnbWorkspace,
+  freshness: Exclude<ReadSnapshotOptions["freshness"], undefined>,
+  asOf: string | undefined,
+): ReadSnapshotOptions {
+  const options: ReadSnapshotOptions = { workspace, freshness };
+  if (asOf !== undefined) options.asOf = asOf;
+  return options;
+}
+
+async function buildLog(workspace: KnbWorkspace, request: LogRequest): Promise<LogResult> {
+  const manifests = await readRunManifests(workspace);
+  const actor = stringOption(request.actor);
+  const since = parseLogDate(request.since, "since");
+  const until = parseLogDate(request.until, "until");
+
+  const filtered = manifests
+    .filter((manifest) => actor === undefined || manifest.actor === actor)
+    .filter((manifest) => {
+      const completed = logTime(manifest.completed_at);
+      if (!Number.isFinite(completed)) return false;
+      if (since !== undefined && completed < since) return false;
+      if (until !== undefined && completed > until) return false;
+      return true;
+    })
+    .sort((a, b) => {
+      const byTime = logTime(b.completed_at) - logTime(a.completed_at);
+      if (byTime !== 0) return byTime;
+      return a.run_id.localeCompare(b.run_id);
+    });
+
+  const limit = normalizeLogLimit(request.limit);
+  const entries = filtered.slice(0, limit);
+  return {
+    entries,
+    total_matched: filtered.length,
+    total_returned: entries.length,
+  };
+}
+
+function normalizeLogLimit(limit: number | undefined): number {
+  if (limit === undefined) return 20;
+  if (!Number.isFinite(limit)) return 20;
+  return Math.max(0, Math.trunc(limit));
+}
+
+function parseLogDate(value: string | undefined, field: "since" | "until"): number | undefined {
+  const trimmed = stringOption(value);
+  if (trimmed === undefined) return undefined;
+  const parsed = Date.parse(trimmed);
+  if (Number.isNaN(parsed)) {
+    throw knbError("validation_failed", `Invalid log ${field} timestamp`, { [field]: value });
+  }
+  return parsed;
+}
+
+function logTime(value: string): number {
+  const parsed = Date.parse(value);
+  return Number.isNaN(parsed) ? Number.NEGATIVE_INFINITY : parsed;
+}
+
+function stringOption(value: string | undefined): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
 }
 
 const noveltyBridge: NonNullable<Parameters<typeof applyOperations>[1]["classifyNovelty"]> = (
@@ -368,7 +527,11 @@ async function performInit(workspace: KnbWorkspace, options: InitOptions): Promi
   };
 }
 
-function statusFromSnapshot(workspace: KnbWorkspace, snapshot: KnbReadSnapshot): KnbStatus {
+function statusFromSnapshot(
+  workspace: KnbWorkspace,
+  snapshot: KnbReadSnapshot,
+  options: StatusOptions = {},
+): KnbStatus {
   const activeCounts: Record<string, number> = {};
   if (snapshot.state) {
     const activeRows = snapshot.state.rows({ includeChanges: true });
@@ -398,7 +561,7 @@ function statusFromSnapshot(workspace: KnbWorkspace, snapshot: KnbReadSnapshot):
   const validationWarningCount = snapshot.validation.issues.filter((issue) => issue.level === "warning").length;
   const stateWarningCount = snapshot.state?.warnings.length ?? 0;
 
-  return {
+  const result: KnbStatus = {
     workspace_root: workspace.root,
     ledger_path: workspace.paths.ledger,
     schema_version: "knb.v1",
@@ -412,6 +575,127 @@ function statusFromSnapshot(workspace: KnbWorkspace, snapshot: KnbReadSnapshot):
     inactive_counts_by_status: inactiveCounts,
     projection_freshness: snapshot.projectionFreshness,
   };
+  if (options.detailed === true && snapshot.state !== undefined) {
+    result.detailed = detailedStatusFromState(snapshot.state);
+  }
+  return result;
+}
+
+function collectionsFromState(state: EffectiveState): CollectionsResult {
+  const byCollection = new Map<string, CollectionSummary>();
+  for (const er of state.rows({ includeChanges: true })) {
+    const collections = er.row.scope.collections ?? [];
+    for (const rawCollection of collections) {
+      const collection = rawCollection.trim();
+      if (collection.length === 0) continue;
+      const summary = byCollection.get(collection) ?? {
+        collection,
+        active_counts_by_kind: {},
+      };
+      incrementCount(summary.active_counts_by_kind, er.row.kind);
+      if (summary.latest_created_at === undefined || er.row.created_at > summary.latest_created_at) {
+        summary.latest_created_at = er.row.created_at;
+      }
+      byCollection.set(collection, summary);
+    }
+  }
+  return {
+    collections: [...byCollection.values()].sort((a, b) => a.collection.localeCompare(b.collection)),
+  };
+}
+
+function detailedStatusFromState(state: EffectiveState): DetailedStatus {
+  const active = state.rows({ includeChanges: true }).map((er) => er.row);
+  const activeSources = active.filter((row): row is SourceRow => row.kind === "source");
+  const activeClaims = active.filter((row): row is ClaimRow => row.kind === "claim");
+  const collections = collectionsFromState(state).collections;
+
+  return {
+    duplicate_source_uri_clusters: duplicateSourceUriClusters(activeSources),
+    duplicate_claim_key_clusters: duplicateClaimKeyClusters(activeClaims),
+    evidence_depth: evidenceDepthStats(activeClaims),
+    novelty_active_distribution: noveltyDistribution(activeClaims),
+    syntheses_per_collection: synthesesPerCollection(collections),
+  };
+}
+
+function duplicateSourceUriClusters(rows: SourceRow[]): DuplicateSourceUriCluster[] {
+  const byUri = new Map<string, string[]>();
+  for (const row of rows) {
+    const uri = typeof row.source.uri === "string" ? row.source.uri.trim() : "";
+    if (uri.length === 0) continue;
+    const ids = byUri.get(uri) ?? [];
+    ids.push(row.id);
+    byUri.set(uri, ids);
+  }
+  return [...byUri.entries()]
+    .filter(([, ids]) => ids.length > 1)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([uri, ids]) => ({ uri, count: ids.length, source_ids: ids }));
+}
+
+function duplicateClaimKeyClusters(rows: ClaimRow[]): DuplicateClaimKeyCluster[] {
+  const byKey = new Map<string, string[]>();
+  for (const row of rows) {
+    const key = typeof row.identity.claim_key === "string" ? row.identity.claim_key.trim() : "";
+    if (key.length === 0) continue;
+    const ids = byKey.get(key) ?? [];
+    ids.push(row.id);
+    byKey.set(key, ids);
+  }
+  return [...byKey.entries()]
+    .filter(([, ids]) => ids.length > 1)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([claim_key, ids]) => ({ claim_key, count: ids.length, claim_ids: ids }));
+}
+
+function evidenceDepthStats(rows: ClaimRow[]): EvidenceDepthStats {
+  const depths = rows.map(evidenceDepth).sort((a, b) => a - b);
+  if (depths.length === 0) return { count: 0, p50: 0, p90: 0, max: 0 };
+  return {
+    count: depths.length,
+    p50: percentileNearestRank(depths, 0.5),
+    p90: percentileNearestRank(depths, 0.9),
+    max: depths[depths.length - 1] as number,
+  };
+}
+
+function evidenceDepth(row: ClaimRow): number {
+  const sourceIds = new Set<string>();
+  for (const id of row.provenance.source_ids ?? []) {
+    if (typeof id === "string" && id.length > 0) sourceIds.add(id);
+  }
+  for (const evidence of row.provenance.evidence ?? []) {
+    if (typeof evidence.source_id === "string" && evidence.source_id.length > 0) {
+      sourceIds.add(evidence.source_id);
+    }
+  }
+  return sourceIds.size;
+}
+
+function percentileNearestRank(sortedAscending: number[], percentile: number): number {
+  if (sortedAscending.length === 0) return 0;
+  const rank = Math.max(1, Math.ceil(percentile * sortedAscending.length));
+  return sortedAscending[Math.min(rank - 1, sortedAscending.length - 1)] as number;
+}
+
+function noveltyDistribution(rows: ClaimRow[]): Record<string, number> {
+  const distribution: Record<string, number> = {};
+  for (const row of rows) {
+    const novelty = row.identity.novelty;
+    if (typeof novelty !== "string" || novelty.length === 0) continue;
+    incrementCount(distribution, novelty);
+  }
+  return sortedRecord(distribution);
+}
+
+function synthesesPerCollection(collections: CollectionSummary[]): Record<string, number> {
+  const counts: Record<string, number> = {};
+  for (const entry of collections) {
+    const count = entry.active_counts_by_kind.synthesis ?? 0;
+    if (count > 0) counts[entry.collection] = count;
+  }
+  return counts;
 }
 
 function collectionStatusFromState(
@@ -428,7 +712,7 @@ function collectionStatusFromState(
   const activeRows = state.rows({ collection, includeChanges: true });
   const activeCounts: Record<string, number> = {};
   for (const er of activeRows) {
-    activeCounts[er.row.kind] = (activeCounts[er.row.kind] ?? 0) + 1;
+    incrementCount(activeCounts, er.row.kind);
   }
 
   const inactiveCounts: Record<string, number> = {};
@@ -449,8 +733,8 @@ function collectionStatusFromState(
     .sort(byQuestionPriorityThenCreated);
 
   const maxQuestions =
-    typeof request.max_questions === "number" && Number.isFinite(request.max_questions)
-      ? Math.max(0, Math.floor(request.max_questions))
+    typeof request.maxQuestions === "number" && Number.isFinite(request.maxQuestions)
+      ? Math.max(0, Math.floor(request.maxQuestions))
       : 12;
 
   const result: CollectionStatusResult = {
@@ -482,6 +766,16 @@ function collectionStatusFromState(
   }
 
   return result;
+}
+
+function incrementCount(counts: Record<string, number>, key: string): void {
+  counts[key] = (counts[key] ?? 0) + 1;
+}
+
+function sortedRecord(record: Record<string, number>): Record<string, number> {
+  const sorted: Record<string, number> = {};
+  for (const key of Object.keys(record).sort()) sorted[key] = record[key] as number;
+  return sorted;
 }
 
 function byQuestionPriorityThenCreated(a: QuestionRow, b: QuestionRow): number {
@@ -524,6 +818,10 @@ function buildSchemaResult(): SchemaResult {
   return {
     schema_version: "knb.v1",
     json_schema: jsonSchema(),
+    selector_schema: rowSelectorSchema(),
+    profile_schema: profileSchema(),
+    selector_samples: rowSelectorSamples(),
+    profile_samples: profileSamples(),
     row_samples: [samples.source, samples.claim, samples.question, samples.synthesis, samples.change],
     operation_samples: [ops.add, ops.retract, ops.supersede, ops.merge, ops.relate, ops.patch],
   };

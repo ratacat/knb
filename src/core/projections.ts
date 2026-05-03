@@ -22,10 +22,12 @@ export type RenderRequest = {
   collection: string;
   format?: RenderFormat;
   out?: string;
+  asOf?: string;
 };
 
 export type RenderAllRequest = {
   format?: RenderFormat;
+  asOf?: string;
 };
 
 export type ProjectionKind = "view" | "index";
@@ -108,6 +110,16 @@ export type ProjectionArtifactStore = {
   checkFreshness(ledger_fingerprint: LedgerFingerprint): Promise<FreshnessReport>;
 };
 
+export type ClaimKeyCluster = {
+  claim_key: string;
+  claims: ClaimRow[];
+};
+
+export type ClaimKeyClusters = {
+  keyed: ClaimKeyCluster[];
+  unkeyed: ClaimRow[];
+};
+
 export const V1_INDEX_NAMES = [
   "active-by-id",
   "active-by-collection",
@@ -180,7 +192,7 @@ export async function renderCollection(
     kind: "view",
     target: workspaceRelative(workspace, outPath),
     ledger: ledgerMeta(ledger_fingerprint),
-    options: { collection, format },
+    options: projectionOptions({ collection, format, asOf: request.asOf }),
     generated_at: projectionTimestamp(options),
   };
   const metadataPath = `${outPath}.meta.json`;
@@ -211,7 +223,9 @@ export async function renderAllCollections(
   const collections = activeCollectionNames(state);
   const rendered: RenderResult[] = [];
   for (const collection of collections) {
-    rendered.push(await renderCollection(state, workspace, ledger_fingerprint, { collection, format }, options));
+    const renderRequest: RenderRequest = { collection, format };
+    if (request.asOf !== undefined) renderRequest.asOf = request.asOf;
+    rendered.push(await renderCollection(state, workspace, ledger_fingerprint, renderRequest, options));
   }
 
   return {
@@ -314,6 +328,35 @@ export async function checkFreshness(request: FreshnessRequest): Promise<Freshne
   return { entries: [...indexEntries, ...viewEntries] };
 }
 
+export function buildClaimKeyClusters(rows: Iterable<EffectiveRow>): ClaimKeyClusters {
+  const keyed = new Map<string, ClaimRow[]>();
+  const unkeyed: ClaimRow[] = [];
+  for (const effective of rows) {
+    if (effective.row.kind !== "claim") continue;
+    const claim = effective.row as ClaimRow;
+    const claimKey = claim.identity?.claim_key?.trim();
+    if (claimKey === undefined || claimKey.length === 0) {
+      unkeyed.push(claim);
+      continue;
+    }
+    const claims = keyed.get(claimKey) ?? [];
+    claims.push(claim);
+    keyed.set(claimKey, claims);
+  }
+
+  const clusters: ClaimKeyCluster[] = [];
+  for (const claimKey of [...keyed.keys()].sort((a, b) => a.localeCompare(b))) {
+    clusters.push({
+      claim_key: claimKey,
+      claims: [...(keyed.get(claimKey) ?? [])].sort(byCreatedAscThenId),
+    });
+  }
+  return {
+    keyed: clusters,
+    unkeyed: [...unkeyed].sort(byCreatedAscThenId),
+  };
+}
+
 function resolveViewPath(workspace: KnbWorkspace, collection: string, out: string | undefined): string {
   const viewsRoot = resolve(workspace.paths.views);
   if (out === undefined || out === null || out.length === 0) {
@@ -369,6 +412,14 @@ function projectionTimestamp(options: ProjectionWriteOptions): string {
   return (options.clock ?? (() => new Date()))().toISOString();
 }
 
+function projectionOptions(options: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(options)) {
+    if (value !== undefined) out[key] = value;
+  }
+  return out;
+}
+
 function buildMarkdown(
   state: EffectiveState,
   collection: string,
@@ -384,12 +435,13 @@ function buildMarkdown(
   const claims = active
     .map((er) => er.row)
     .filter((row): row is ClaimRow => row.kind === "claim")
-    .sort(byCreatedAsc);
+    .sort(byCreatedAscThenId);
+  const claimClusters = buildClaimKeyClusters(active);
 
   const questions = active
     .map((er) => er.row)
     .filter((row): row is QuestionRow => row.kind === "question" && row.question.status === "open")
-    .sort(byCreatedAsc);
+    .sort(byCreatedAscThenId);
 
   const citedSourceIds = new Set<string>();
   for (const synthesis of syntheses) {
@@ -407,7 +459,7 @@ function buildMarkdown(
   const sources = active
     .map((er) => er.row)
     .filter((row): row is SourceRow => row.kind === "source" && citedSourceIds.has(row.id))
-    .sort(byCreatedAsc);
+    .sort(byCreatedAscThenId);
   const sourceCitationIndex = buildSourceCitationIndex(state);
 
   const title = titleize(collection);
@@ -418,44 +470,65 @@ function buildMarkdown(
     "",
   );
 
-  lines.push("## Current Synthesis", "");
+  lines.push("## Contents {#contents}", "");
+  lines.push("- [Current Synthesis](#current-synthesis)");
+  lines.push("- [Key Claims](#key-claims)");
+  lines.push("  - [Claim Key Clusters](#claim-key-clusters)");
+  lines.push("  - [Unkeyed Claims](#unkeyed-claims)");
+  lines.push("- [Open Questions](#open-questions)");
+  lines.push("- [Sources](#sources)", "");
+
+  lines.push("## Current Synthesis {#current-synthesis}", "");
   if (syntheses.length === 0) {
     lines.push("No active synthesis rows.", "");
   } else {
     for (const synthesis of syntheses) {
-      lines.push(`### ${synthesis.synthesis.title}`, "", synthesis.synthesis.summary, "");
+      lines.push(`### ${synthesis.synthesis.title} {#${rowAnchorId(synthesis)}}`, "", synthesis.synthesis.summary, "");
       if (synthesis.synthesis.limitations) {
         lines.push(`Limitations: ${synthesis.synthesis.limitations}`, "");
       }
     }
   }
 
-  lines.push("## Key Claims", "");
+  lines.push("## Key Claims {#key-claims}", "");
   if (claims.length === 0) {
     lines.push("No active claim rows.", "");
   } else {
-    for (const claim of claims) {
-      lines.push(`- ${claim.claim.statement}`);
-      if (claim.assessment.confidence) lines.push(`  - Confidence: ${claim.assessment.confidence}`);
-      const observed = claim.time.valid_at ?? claim.time.occurred_at ?? claim.time.first_observed_at;
-      if (observed) lines.push(`  - Time: ${observed}`);
-      const depth = claim.assessment.information_depth?.level;
-      if (depth) lines.push(`  - Depth: ${depth}`);
+    lines.push("### Claim Key Clusters {#claim-key-clusters}", "");
+    if (claimClusters.keyed.length === 0) {
+      lines.push("No keyed claim rows.", "");
+    } else {
+      for (const cluster of claimClusters.keyed) {
+        lines.push(`#### ${cluster.claim_key} {#${claimKeyAnchorId(cluster.claim_key)}}`, "");
+        for (const claim of cluster.claims) {
+          pushClaimLines(lines, claim);
+        }
+        lines.push("");
+      }
     }
-    lines.push("");
+
+    lines.push("### Unkeyed Claims {#unkeyed-claims}", "");
+    if (claimClusters.unkeyed.length === 0) {
+      lines.push("No unkeyed claim rows.", "");
+    } else {
+      for (const claim of claimClusters.unkeyed) {
+        pushClaimLines(lines, claim);
+      }
+      lines.push("");
+    }
   }
 
-  lines.push("## Open Questions", "");
+  lines.push("## Open Questions {#open-questions}", "");
   if (questions.length === 0) {
     lines.push("No open question rows.", "");
   } else {
     for (const question of questions) {
-      lines.push(`- ${question.question.text}`);
+      lines.push(`- ${question.question.text} {#${rowAnchorId(question)}}`);
     }
     lines.push("");
   }
 
-  lines.push("## Sources", "");
+  lines.push("## Sources {#sources}", "");
   if (sources.length === 0) {
     lines.push("No cited sources.", "");
   } else {
@@ -464,12 +537,37 @@ function buildMarkdown(
       const uri = source.source.uri;
       const citationCount = typeof uri === "string" ? sourceCitationIndex[uri]?.length ?? 0 : 0;
       const citationSuffix = citationCount > 0 ? ` (Cited by ${citationCount} ${citationCount === 1 ? "claim" : "claims"})` : "";
-      lines.push(`- ${publisher}${source.source.title}${citationSuffix}`);
+      lines.push(`- ${publisher}${source.source.title}${citationSuffix} {#${rowAnchorId(source)}}`);
     }
     lines.push("");
   }
 
   return `${lines.join("\n").trimEnd()}\n`;
+}
+
+function pushClaimLines(lines: string[], claim: ClaimRow): void {
+  lines.push(`- ${claim.claim.statement} {#${rowAnchorId(claim)}}`);
+  if (claim.assessment.confidence) lines.push(`  - Confidence: ${claim.assessment.confidence}`);
+  const observed = claim.time.valid_at ?? claim.time.occurred_at ?? claim.time.first_observed_at;
+  if (observed) lines.push(`  - Time: ${observed}`);
+  const depth = claim.assessment.information_depth?.level;
+  if (depth) lines.push(`  - Depth: ${depth}`);
+}
+
+function rowAnchorId(row: KnbRow): string {
+  return sanitizeAnchor(row.id);
+}
+
+function claimKeyAnchorId(claimKey: string): string {
+  return `claim-key-${sanitizeAnchor(claimKey)}`;
+}
+
+function sanitizeAnchor(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
 
 function addCanonicalSourceIds(
@@ -514,17 +612,11 @@ function buildActiveByCollection(rows: EffectiveRow[]): Record<string, string[]>
   return out;
 }
 
-function buildActiveClaimsByKey(rows: EffectiveRow[]): Record<string, string> {
-  const entries: Array<[string, string]> = [];
-  for (const effective of rows) {
-    if (effective.row.kind !== "claim") continue;
-    const key = (effective.row as ClaimRow).identity?.claim_key;
-    if (typeof key !== "string" || key.length === 0) continue;
-    entries.push([key, effective.row.id]);
+function buildActiveClaimsByKey(rows: EffectiveRow[]): Record<string, string[]> {
+  const out: Record<string, string[]> = {};
+  for (const cluster of buildClaimKeyClusters(rows).keyed) {
+    out[cluster.claim_key] = cluster.claims.map((claim) => claim.id);
   }
-  entries.sort(([a], [b]) => a.localeCompare(b));
-  const out: Record<string, string> = {};
-  for (const [key, value] of entries) out[key] = value;
   return out;
 }
 
@@ -656,8 +748,17 @@ async function classifySidecar(sidecarPath: string, expectedHash: string): Promi
     baseEntry.state = "missing";
     return baseEntry;
   }
+  if (kind === "view" && hasAsOfOption(meta.options)) {
+    baseEntry.state = "stale";
+    return baseEntry;
+  }
   baseEntry.state = ledgerHash === expectedHash ? "fresh" : "stale";
   return baseEntry;
+}
+
+function hasAsOfOption(options: unknown): boolean {
+  if (options === null || typeof options !== "object" || Array.isArray(options)) return false;
+  return typeof (options as { asOf?: unknown }).asOf === "string";
 }
 
 function indexNameFromTarget(target: string): V1IndexName | undefined {
@@ -686,6 +787,10 @@ function isMissing(error: unknown): boolean {
 
 function byCreatedAsc(a: KnbRow, b: KnbRow): number {
   return a.created_at.localeCompare(b.created_at);
+}
+
+function byCreatedAscThenId(a: KnbRow, b: KnbRow): number {
+  return byCreatedAsc(a, b) || a.id.localeCompare(b.id);
 }
 
 function byImportanceThenCreatedDesc(a: SynthesisRow, b: SynthesisRow): number {

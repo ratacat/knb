@@ -21,6 +21,7 @@ import { isKnbError } from "../src/core/errors";
 import { openWorkspace } from "../src/core/workspace";
 import { defaultProjectState, readSnapshot } from "../src/core/read-snapshot";
 import { V1_INDEX_NAMES } from "../src/core/projections";
+import type { RunManifest } from "../src/core/run-manifests";
 
 let workDir: string;
 
@@ -54,6 +55,34 @@ async function seedLedger(text: string): Promise<string> {
 
 function jsonl(rows: object[]): string {
   return `${rows.map((row) => JSON.stringify(row)).join("\n")}\n`;
+}
+
+async function seedRunManifests(manifests: RunManifest[]): Promise<void> {
+  const runsDir = join(workDir, ".knb", "runs");
+  await mkdir(runsDir, { recursive: true });
+  for (const manifest of manifests) {
+    await writeFile(join(runsDir, `${manifest.run_id}.json`), `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
+  }
+}
+
+function manifest(
+  run_id: string,
+  actor: string,
+  completed_at: string,
+  row_ids: string[],
+  intent?: string,
+): RunManifest {
+  const result: RunManifest = {
+    schema_version: "knb.run.v1",
+    run_id,
+    actor,
+    started_at: completed_at,
+    completed_at,
+    rows_appended: row_ids.length,
+    row_ids,
+  };
+  if (intent !== undefined) result.intent = intent;
+  return result;
 }
 
 function freshSourceRow(id = "src:facade:20260501:aaaa1111"): SourceRow {
@@ -127,7 +156,9 @@ describe("openKnb", () => {
       "init",
       "status",
       "collectionStatus",
+      "collections",
       "schema",
+      "log",
       "apply",
       "previewApply",
       "add",
@@ -518,6 +549,120 @@ describe("Knb.status", () => {
     await seedLedger(jsonl([freshSourceRow()]));
     expect((await knb.status()).row_count).toBe(1);
   });
+
+  test("default status does not include detailed stats", async () => {
+    const source = freshSourceRow();
+    await seedLedger(jsonl([source]));
+    const knb = await openKnb(makeOpenOptions());
+    const baseline = await knb.status();
+    const explicitDefault = await knb.status({ detailed: false });
+    expect(explicitDefault).toEqual(baseline);
+    expect("detailed" in baseline).toBe(false);
+  });
+
+  test("detailed status returns empty corpus-health stats on an empty workspace", async () => {
+    const knb = await openKnb(makeOpenOptions());
+    const status = await knb.status({ detailed: true });
+    expect(status.detailed).toEqual({
+      duplicate_source_uri_clusters: [],
+      duplicate_claim_key_clusters: [],
+      evidence_depth: { count: 0, p50: 0, p90: 0, max: 0 },
+      novelty_active_distribution: {},
+      syntheses_per_collection: {},
+    });
+  });
+
+  test("detailed status computes mixed dup-heavy stats from EffectiveState and ignores stale indexes", async () => {
+    const sourceA = freshSourceRow("src:detail:20260501:sourcea1");
+    sourceA.scope = { collections: ["alpha"] };
+    sourceA.source.uri = "https://example.com/shared-source";
+    const sourceB = freshSourceRow("src:detail:20260501:sourceb2");
+    sourceB.scope = { collections: ["beta"] };
+    sourceB.source.uri = "https://example.com/shared-source";
+    const sourceC = freshSourceRow("src:detail:20260501:sourcec3");
+    sourceC.scope = { collections: ["beta"] };
+    sourceC.source.uri = "https://example.com/unique-source";
+
+    const claimA = freshClaimRow(sourceA.id, "claim:detail:20260501:claimaaa");
+    claimA.scope = { collections: ["alpha"] };
+    claimA.identity = { claim_key: "detail|shared", novelty: "duplicate" };
+    claimA.provenance = {
+      evidence: [{ source_id: sourceA.id, role: "supports", summary: "A" }],
+    };
+    const claimB = freshClaimRow(sourceA.id, "claim:detail:20260501:claimbbb");
+    claimB.scope = { collections: ["alpha", "beta"] };
+    claimB.identity = { claim_key: "detail|shared", novelty: "duplicate" };
+    claimB.provenance = {
+      source_ids: [sourceA.id, sourceB.id],
+      evidence: [
+        { source_id: sourceA.id, role: "supports", summary: "A" },
+        { source_id: sourceB.id, role: "supports", summary: "B" },
+      ],
+    };
+    const claimC = freshClaimRow(sourceC.id, "claim:detail:20260501:claimccc");
+    claimC.scope = { collections: ["beta"] };
+    claimC.identity = { claim_key: "detail|unique", novelty: "correction" };
+    claimC.provenance = {
+      evidence: [{ source_id: sourceC.id, role: "supports", summary: "C" }],
+    };
+
+    const synthesisA: SynthesisRow = {
+      schema_version: "knb.v1",
+      id: "synth:detail:20260501:syntha11",
+      kind: "synthesis",
+      created_at: "2026-05-01T15:00:00.000Z",
+      created_by: "agent:test",
+      scope: { collections: ["alpha"] },
+      synthesis: { title: "Alpha", summary: "Alpha summary", basis: { claim_ids: [claimA.id] }, status: "active" },
+    };
+    const synthesisB: SynthesisRow = {
+      ...synthesisA,
+      id: "synth:detail:20260501:synthb22",
+      scope: { collections: ["beta"] },
+      synthesis: { title: "Beta", summary: "Beta summary", basis: { claim_ids: [claimB.id] }, status: "active" },
+    };
+    const archivedSynthesis: SynthesisRow = {
+      ...synthesisA,
+      id: "synth:detail:20260501:synthold",
+      scope: { collections: ["alpha"] },
+      synthesis: { title: "Archived", summary: "Old", basis: { claim_ids: [claimA.id] }, status: "archived" },
+    };
+
+    await seedLedger(jsonl([
+      sourceA,
+      sourceB,
+      sourceC,
+      claimA,
+      claimB,
+      claimC,
+      synthesisA,
+      synthesisB,
+      archivedSynthesis,
+    ]));
+    await mkdir(join(workDir, "knb", "indexes"), { recursive: true });
+    await writeFile(join(workDir, "knb", "indexes", "active-by-id.json"), JSON.stringify({ stale: true }), "utf8");
+
+    const knb = await openKnb(makeOpenOptions());
+    const status = await knb.status({ detailed: true });
+
+    expect(status.detailed?.duplicate_source_uri_clusters).toEqual([
+      {
+        uri: "https://example.com/shared-source",
+        count: 2,
+        source_ids: [sourceA.id, sourceB.id],
+      },
+    ]);
+    expect(status.detailed?.duplicate_claim_key_clusters).toEqual([
+      {
+        claim_key: "detail|shared",
+        count: 2,
+        claim_ids: [claimA.id, claimB.id],
+      },
+    ]);
+    expect(status.detailed?.evidence_depth).toEqual({ count: 3, p50: 1, p90: 2, max: 2 });
+    expect(status.detailed?.novelty_active_distribution).toEqual({ correction: 1, duplicate: 2 });
+    expect(status.detailed?.syntheses_per_collection).toEqual({ alpha: 1, beta: 1 });
+  });
 });
 
 describe("Knb.schema", () => {
@@ -530,6 +675,28 @@ describe("Knb.schema", () => {
     expect(result.operation_samples.length).toBe(6);
     const samples = rowSamples();
     expect(result.row_samples[0]).toEqual(samples.source);
+  });
+
+  test("exposes selector and profile contracts with generic samples", async () => {
+    const knb = await openKnb(makeOpenOptions());
+    const result = await knb.schema();
+
+    expect(result.json_schema).toEqual(jsonSchema());
+    expect(result.selector_schema).toMatchObject({
+      schema_version: "knb.selector.v1",
+      type: "object",
+    });
+    expect(result.profile_schema).toMatchObject({
+      schema_version: "knb.profile.v1",
+      type: "object",
+    });
+    expect(result.profile_samples[0]).toMatchObject({
+      profile_version: "knb.profile.v1",
+      select: { kinds: ["claim"] },
+    });
+    expect(JSON.stringify(result.profile_samples)).toContain("measurement");
+    expect(JSON.stringify(result.profile_samples)).not.toContain("weather");
+    expect(JSON.stringify(result.selector_samples)).not.toContain("weather");
   });
 
   test("json_schema has the expected top-level keys ($schema, $id, type, allOf, $defs)", async () => {
@@ -595,6 +762,20 @@ describe("Knb facade methods on empty workspace", () => {
     expect(contextResult.sources).toEqual([]);
     expect(typeof contextResult.token_estimate).toBe("number");
     expect(contextResult.meta.counts.claims).toBe(0);
+  });
+
+  test("log returns an empty result when .knb/runs is missing", async () => {
+    const knb = await openKnb(makeOpenOptions());
+    const result = await knb.log({});
+    expect(result.entries).toEqual([]);
+    expect(result.total_matched).toBe(0);
+    expect(result.total_returned).toBe(0);
+  });
+
+  test("collections returns empty list on an empty workspace", async () => {
+    const knb = await openKnb(makeOpenOptions());
+    const result = await knb.collections();
+    expect(result).toEqual({ collections: [] });
   });
 
   test("get with an unknown id throws KnbError with code not_found", async () => {
@@ -680,7 +861,7 @@ describe("Knb facade methods on empty workspace", () => {
     await seedLedger(jsonl([source, oldSynthesis, latestSynthesis, lowQuestion, highQuestion]));
     const knb = await openKnb(makeOpenOptions());
 
-    const result = await knb.collectionStatus({ collection: "facade", max_questions: 1 });
+    const result = await knb.collectionStatus({ collection: "facade", maxQuestions: 1 });
 
     expect(result.collection).toBe("facade");
     expect(result.active_counts_by_kind.source).toBe(1);
@@ -714,6 +895,177 @@ describe("Knb facade methods on empty workspace", () => {
     // Fingerprint is exposed even on empty.
     expect(result.fingerprint).toBeDefined();
     expect(typeof result.fingerprint.content_hash).toBe("string");
+  });
+
+  test("check and context warn when a targeted synthesis has newer matching claims", async () => {
+    const source = freshSourceRow("src:targeted:20260501:aaaa1111");
+    const oldClaim: ClaimRow = {
+      ...freshClaimRow(source.id, "claim:targeted:20260501:bbbb2222"),
+      created_at: "2026-05-01T12:01:00Z",
+      scope: { collections: ["targeted"] },
+      claim: {
+        statement: "Initial latency measurement exists.",
+        atomic: true,
+        type: "measurement",
+        qualifiers: { metric: "latency" },
+      },
+    };
+    const synthesis: SynthesisRow = {
+      schema_version: "knb.v1",
+      id: "synth:targeted:20260501:cccc3333",
+      kind: "synthesis",
+      created_at: "2026-05-01T12:02:00Z",
+      created_by: "agent:test",
+      scope: { collections: ["targeted"] },
+      synthesis: {
+        title: "Latency synthesis",
+        summary: "Initial latency summary.",
+        basis: { claim_ids: [oldClaim.id] },
+        target_selector: {
+          kinds: ["claim"],
+          scope: { collections: ["targeted"] },
+          where: [
+            { path: "claim.type", eq: "measurement" },
+            { path: "claim.qualifiers.metric", eq: "latency" },
+          ],
+        },
+        status: "active",
+      } as SynthesisRow["synthesis"],
+    };
+    const newerClaim: ClaimRow = {
+      ...freshClaimRow(source.id, "claim:targeted:20260501:dddd4444"),
+      created_at: "2026-05-01T12:03:00Z",
+      scope: { collections: ["targeted"] },
+      claim: {
+        statement: "Newer latency measurement exists.",
+        atomic: true,
+        type: "measurement",
+        qualifiers: { metric: "latency" },
+      },
+    };
+    await seedLedger(jsonl([source, oldClaim, synthesis, newerClaim]));
+    const knb = await openKnb(makeOpenOptions());
+
+    const check = await knb.check();
+    const stateWarning = check.state_warnings.find((warning) => warning.code === "synthesis_target_stale");
+    expect(stateWarning).toBeDefined();
+    expect(stateWarning?.target_id).toBe(synthesis.id);
+    expect(stateWarning?.message).toContain(newerClaim.id);
+
+    const context = await knb.context({ collection: "targeted" });
+    const contextWarning = context.warnings.find((warning) => warning.code === "state_synthesis_target_stale");
+    expect(contextWarning?.message).toContain(newerClaim.id);
+  });
+
+  test("check accepts syntheses without target_selector and rejects invalid target selectors", async () => {
+    const source = freshSourceRow("src:targetless:20260501:aaaa1111");
+    const claim = freshClaimRow(source.id, "claim:targetless:20260501:bbbb2222");
+    const laterClaim = {
+      ...freshClaimRow(source.id, "claim:targetless:20260501:dddd4444"),
+      created_at: "2026-05-01T12:03:00Z",
+    };
+    const targetless: SynthesisRow = {
+      schema_version: "knb.v1",
+      id: "synth:targetless:20260501:cccc3333",
+      kind: "synthesis",
+      created_at: "2026-05-01T12:02:00Z",
+      created_by: "agent:test",
+      scope: { collections: ["facade"] },
+      synthesis: {
+        title: "Untargeted synthesis",
+        summary: "A synthesis that uses only basis ids.",
+        basis: { claim_ids: [claim.id] },
+        status: "active",
+      },
+    };
+    await seedLedger(jsonl([source, claim, targetless, laterClaim]));
+    const clean = await openKnb(makeOpenOptions());
+    const cleanCheck = await clean.check();
+    expect(cleanCheck.validation_issues).toEqual([]);
+    expect(cleanCheck.state_warnings.some((warning) => warning.code === "synthesis_target_stale")).toBe(false);
+
+    const invalidTargeted: SynthesisRow = {
+      ...targetless,
+      id: "synth:targetless:20260501:dddd4444",
+      synthesis: {
+        ...targetless.synthesis,
+        target_selector: {
+          kinds: ["claim"],
+          where: [{ path: "claim.unknown", eq: "x" }],
+        },
+      } as SynthesisRow["synthesis"],
+    };
+    await seedLedger(jsonl([source, claim, invalidTargeted]));
+    const invalid = await openKnb(makeOpenOptions());
+    const issue = (await invalid.check()).validation_issues.find(
+      (candidate) => candidate.code === "synthesis_target_selector_invalid",
+    );
+    expect(issue).toBeDefined();
+    expect(issue?.path).toBe("synthesis.target_selector.where[0].path");
+  });
+
+  test("targeted synthesis freshness is satisfied by a newer covering synthesis", async () => {
+    const source = freshSourceRow("src:covered:20260501:aaaa1111");
+    const oldClaim: ClaimRow = {
+      ...freshClaimRow(source.id, "claim:covered:20260501:bbbb2222"),
+      created_at: "2026-05-01T12:01:00Z",
+      scope: { collections: ["covered"] },
+      claim: {
+        statement: "Initial latency measurement exists.",
+        atomic: true,
+        type: "measurement",
+        qualifiers: { metric: "latency" },
+      },
+    };
+    const targetSelector: SynthesisRow["synthesis"]["target_selector"] = {
+      kinds: ["claim"],
+      scope: { collections: ["covered"] },
+      where: [
+        { path: "claim.type", eq: "measurement" },
+        { path: "claim.qualifiers.metric", eq: "latency" },
+      ],
+    };
+    const firstSynthesis: SynthesisRow = {
+      schema_version: "knb.v1",
+      id: "synth:covered:20260501:cccc3333",
+      kind: "synthesis",
+      created_at: "2026-05-01T12:02:00Z",
+      created_by: "agent:test",
+      scope: { collections: ["covered"] },
+      synthesis: {
+        title: "Latency synthesis",
+        summary: "Initial latency summary.",
+        basis: { claim_ids: [oldClaim.id] },
+        target_selector: targetSelector,
+        status: "active",
+      } as SynthesisRow["synthesis"],
+    };
+    const newerClaim: ClaimRow = {
+      ...freshClaimRow(source.id, "claim:covered:20260501:dddd4444"),
+      created_at: "2026-05-01T12:03:00Z",
+      scope: { collections: ["covered"] },
+      claim: {
+        statement: "Newer latency measurement exists.",
+        atomic: true,
+        type: "measurement",
+        qualifiers: { metric: "latency" },
+      },
+    };
+    const coveringSynthesis: SynthesisRow = {
+      ...firstSynthesis,
+      id: "synth:covered:20260501:eeee5555",
+      created_at: "2026-05-01T12:04:00Z",
+      synthesis: {
+        ...firstSynthesis.synthesis,
+        title: "Updated latency synthesis",
+        summary: "Updated latency summary.",
+        basis: { claim_ids: [oldClaim.id, newerClaim.id] },
+      } as SynthesisRow["synthesis"],
+    };
+    await seedLedger(jsonl([source, oldClaim, firstSynthesis, newerClaim, coveringSynthesis]));
+    const knb = await openKnb(makeOpenOptions());
+
+    expect((await knb.check()).state_warnings.some((warning) => warning.code === "synthesis_target_stale")).toBe(false);
   });
 
   test("rebuildIndex returns IndexResult with all V1 indexes and writes them to disk", async () => {
@@ -826,6 +1178,99 @@ describe("Knb facade methods on empty workspace", () => {
     expect(result.meta.bytes_written).toBeGreaterThan(0);
     expect(result.warnings).toBeDefined();
     expect(Array.isArray(result.novelty)).toBe(true);
+  });
+});
+
+describe("Knb.collections", () => {
+  test("summarizes active collections from EffectiveState, not generated indexes", async () => {
+    const sourceA = freshSourceRow("src:alpha:20260501:aaaa1111");
+    sourceA.scope = { collections: ["alpha"] };
+    sourceA.created_at = "2026-05-01T10:00:00.000Z";
+    const sourceB = freshSourceRow("src:beta:20260501:bbbb2222");
+    sourceB.scope = { collections: ["beta"] };
+    sourceB.created_at = "2026-05-01T11:00:00.000Z";
+    const claim = freshClaimRow(sourceA.id, "claim:shared:20260501:cccc3333");
+    claim.scope = { collections: ["alpha", "beta"] };
+    claim.created_at = "2026-05-01T12:00:00.000Z";
+    const question: QuestionRow = {
+      schema_version: "knb.v1",
+      id: "q:beta:20260501:dddd4444",
+      kind: "question",
+      created_at: "2026-05-01T13:00:00.000Z",
+      created_by: "agent:test",
+      scope: { collections: ["beta"] },
+      question: { text: "What next?", status: "open" },
+    };
+    const archivedQuestion: QuestionRow = {
+      ...question,
+      id: "q:alpha:20260501:eeee5555",
+      created_at: "2026-05-01T14:00:00.000Z",
+      scope: { collections: ["alpha"] },
+      question: { text: "Archived?", status: "archived" },
+    };
+    await seedLedger(jsonl([sourceA, sourceB, claim, question, archivedQuestion]));
+    await mkdir(join(workDir, "knb", "indexes"), { recursive: true });
+    await writeFile(
+      join(workDir, "knb", "indexes", "active-by-collection.json"),
+      JSON.stringify({ stale: ["wrong"] }),
+      "utf8",
+    );
+
+    const knb = await openKnb(makeOpenOptions());
+    const result = await knb.collections();
+
+    expect(result.collections).toEqual([
+      {
+        collection: "alpha",
+        active_counts_by_kind: { source: 1, claim: 1 },
+        latest_created_at: "2026-05-01T12:00:00.000Z",
+      },
+      {
+        collection: "beta",
+        active_counts_by_kind: { source: 1, claim: 1, question: 1 },
+        latest_created_at: "2026-05-01T13:00:00.000Z",
+      },
+    ]);
+  });
+});
+
+describe("Knb.log", () => {
+  test("sorts manifests by completed_at desc and run_id tie-break with default limit", async () => {
+    await seedRunManifests([
+      manifest("run_a", "agent:alpha", "2026-05-01T10:00:00.000Z", ["row:a"], "old"),
+      manifest("run_b", "agent:beta", "2026-05-02T09:00:00.000Z", ["row:b"], "middle"),
+      manifest("run_e", "agent:alpha", "2026-05-02T12:00:00.000Z", ["row:e"], "tie e"),
+      manifest("run_d", "agent:beta", "2026-05-03T00:00:00.000Z", ["row:d"], "newest"),
+      manifest("run_c", "agent:alpha", "2026-05-02T12:00:00.000Z", ["row:c"], "tie c"),
+    ]);
+
+    const knb = await openKnb(makeOpenOptions());
+    const result = await knb.log({});
+    expect(result.entries.map((entry) => entry.run_id)).toEqual(["run_d", "run_c", "run_e", "run_b", "run_a"]);
+    expect(result.total_matched).toBe(5);
+    expect(result.total_returned).toBe(5);
+  });
+
+  test("filters manifests by actor, since, until, and limit", async () => {
+    await seedRunManifests([
+      manifest("run_a", "agent:alpha", "2026-05-01T10:00:00.000Z", ["row:a"]),
+      manifest("run_b", "agent:beta", "2026-05-02T09:00:00.000Z", ["row:b"]),
+      manifest("run_c", "agent:alpha", "2026-05-02T12:00:00.000Z", ["row:c"]),
+      manifest("run_d", "agent:beta", "2026-05-03T00:00:00.000Z", ["row:d"]),
+      manifest("run_e", "agent:alpha", "2026-05-02T13:00:00.000Z", ["row:e"]),
+    ]);
+
+    const knb = await openKnb(makeOpenOptions());
+    const result = await knb.log({
+      actor: "agent:alpha",
+      since: "2026-05-02T00:00:00.000Z",
+      until: "2026-05-02T23:59:59.999Z",
+      limit: 1,
+    });
+
+    expect(result.entries.map((entry) => entry.run_id)).toEqual(["run_e"]);
+    expect(result.total_matched).toBe(2);
+    expect(result.total_returned).toBe(1);
   });
 });
 

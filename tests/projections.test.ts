@@ -16,6 +16,7 @@ import { isKnbError } from "../src/core/errors";
 import type { LedgerFingerprint } from "../src/core/ledger";
 import { canonicalContentHash } from "../src/core/ledger";
 import {
+  buildClaimKeyClusters,
   JsonProjectionArtifactStore,
   V1_INDEX_NAMES,
   checkFreshness,
@@ -123,6 +124,142 @@ function fixtureRows(): KnbRow[] {
   return [src1, src2, srcUnused, claim1, claim2, question1, synth1];
 }
 
+function iranFixtureRows(): KnbRow[] {
+  const src1 = makeSource("src:iran:20260501:source01", {
+    scope: { collections: ["iran-cracks"] },
+    source: {
+      type: "web_page",
+      title: "Dispatch One",
+      uri: "https://example.com/dispatch-one",
+      publisher: "Signals Desk",
+    },
+  });
+  const src2 = makeSource("src:iran:20260501:source02", {
+    scope: { collections: ["iran-cracks"] },
+    source: {
+      type: "web_page",
+      title: "Dispatch Two",
+      uri: "https://example.com/dispatch-two",
+      publisher: "Signals Desk",
+    },
+  });
+  const src3 = makeSource("src:iran:20260501:source03", {
+    scope: { collections: ["iran-cracks"] },
+    source: {
+      type: "article",
+      title: "Market Note",
+      uri: "https://example.com/market-note",
+      publisher: "Market Desk",
+    },
+  });
+  const src4 = makeSource("src:iran:20260501:source04", {
+    scope: { collections: ["iran-cracks"] },
+    source: {
+      type: "raw_note",
+      title: "Archive Note",
+      uri: "https://example.com/archive-note",
+      publisher: "Archive",
+    },
+  });
+  const src5 = makeSource("src:iran:20260501:source05", {
+    scope: { collections: ["iran-cracks"] },
+    source: {
+      type: "web_page",
+      title: "Uncited Note",
+      uri: "https://example.com/uncited-note",
+      publisher: "Archive",
+    },
+  });
+  const c1 = makeClaim("claim:iran:20260501:command01", src1.id, {
+    scope: { collections: ["iran-cracks"] },
+    identity: { claim_key: "iran|command" },
+    claim: { statement: "Command channels show visible strain.", atomic: true },
+    time: { precision: "day", valid_at: "2026-04-30" },
+    assessment: { confidence: "high" },
+  });
+  const c2 = makeClaim("claim:iran:20260501:command02", src2.id, {
+    created_at: "2026-05-01T12:02:00Z",
+    scope: { collections: ["iran-cracks"] },
+    identity: { claim_key: "iran|command" },
+    claim: { statement: "Senior officials shifted bunker routines.", atomic: true },
+    time: { precision: "instant", occurred_at: "2026-05-01T08:00:00Z" },
+    assessment: { confidence: "medium" },
+  });
+  const c3 = makeClaim("claim:iran:20260501:market01", src3.id, {
+    created_at: "2026-05-01T12:03:00Z",
+    scope: { collections: ["iran-cracks"] },
+    identity: { claim_key: "iran|market" },
+    claim: { statement: "Market makers priced a short disruption window.", atomic: true },
+    assessment: { confidence: "high" },
+  });
+  const c4 = makeClaim("claim:iran:20260501:market02", src3.id, {
+    created_at: "2026-05-01T12:04:00Z",
+    scope: { collections: ["iran-cracks"] },
+    identity: { claim_key: "iran|market" },
+    claim: { statement: "Rumor desks amplified unverified succession chatter.", atomic: true },
+    assessment: { confidence: "low" },
+  });
+  const c5 = makeClaim("claim:iran:20260501:unkeyed01", src4.id, {
+    created_at: "2026-05-01T12:05:00Z",
+    scope: { collections: ["iran-cracks"] },
+    identity: {},
+    claim: { statement: "Older sanctions pressure remains unresolved.", atomic: true },
+    assessment: { confidence: "high" },
+  });
+  const c6 = makeClaim("claim:iran:20260501:unkeyed02", src1.id, {
+    created_at: "2026-05-01T12:06:00Z",
+    scope: { collections: ["iran-cracks"] },
+    identity: {},
+    claim: { statement: "Proxy channels elevated readiness.", atomic: true },
+    assessment: { confidence: "medium" },
+  });
+  const c7 = makeClaim("claim:iran:20260501:unkeyed03", src2.id, {
+    created_at: "2026-05-01T12:07:00Z",
+    scope: { collections: ["iran-cracks"] },
+    identity: {},
+    claim: { statement: "Diplomatic backchannels stayed open.", atomic: true },
+    assessment: { confidence: "medium" },
+  });
+  const c8 = makeClaim("claim:iran:20260501:unkeyed04", src3.id, {
+    created_at: "2026-05-01T12:08:00Z",
+    scope: { collections: ["iran-cracks"] },
+    identity: {},
+    claim: { statement: "Port inspections slowed on the Gulf route.", atomic: true },
+    assessment: { confidence: "low" },
+  });
+  const q1 = makeQuestion("q:iran:20260501:question01", {
+    scope: { collections: ["iran-cracks"] },
+    question: { text: "Where is the chain-of-command break?", status: "open" },
+  });
+  const q2 = makeQuestion("q:iran:20260501:question02", {
+    created_at: "2026-05-01T12:03:00Z",
+    scope: { collections: ["iran-cracks"] },
+    question: { text: "Which reports are independently corroborated?", status: "open" },
+  });
+  const synth = makeSynthesis("synth:iran:20260501:summary01", [c1.id, c2.id, c6.id], [src1.id], {
+    scope: { collections: ["iran-cracks"] },
+    synthesis: {
+      title: "Command Pressure Summary",
+      summary: "Visible stress is concentrated around command channels and readiness signals.",
+      basis: { claim_ids: [c1.id, c2.id, c6.id], source_ids: [src1.id] },
+      status: "active",
+    },
+  });
+  return [src1, src2, src3, src4, src5, c1, c2, c3, c4, c5, c6, c7, c8, q1, q2, synth];
+}
+
+function goldenFingerprint(rows: KnbRow[]): LedgerFingerprint {
+  const fingerprint: LedgerFingerprint = {
+    path: "/repo/knb/ledger.jsonl",
+    rows: rows.length,
+    bytes: 0,
+    content_hash: "sha256:golden",
+  };
+  const last = rows[rows.length - 1];
+  if (last !== undefined) fingerprint.last_row_id = last.id;
+  return fingerprint;
+}
+
 function fingerprintFor(rows: KnbRow[], path = "/repo/knb/ledger.jsonl"): LedgerFingerprint {
   const text = rows.length === 0 ? "" : `${rows.map((row) => JSON.stringify(row)).join("\n")}\n`;
   const fp: LedgerFingerprint = {
@@ -152,6 +289,8 @@ async function makeWorkspace(): Promise<KnbWorkspace> {
       schema: join(root, "knb", "schema.json"),
       views,
       indexes,
+      profiles: join(root, "knb", "profiles"),
+      runs: join(root, ".knb", "runs"),
       lock: join(root, ".knb", "ledger.lock"),
       config: join(root, ".knb", "config.json"),
     },
@@ -175,6 +314,20 @@ async function freshWorkspace(): Promise<KnbWorkspace> {
   const ws = await makeWorkspace();
   workspaces.push(ws);
   return ws;
+}
+
+function markdownSections(markdown: string): Map<string, string> {
+  const sections = new Map<string, string>();
+  const matches = [...markdown.matchAll(/^## ([^{\n]+?)(?: \{#[^}]+\})?\n/gm)];
+  for (let index = 0; index < matches.length; index += 1) {
+    const match = matches[index]!;
+    const title = match[1]!.trim();
+    const start = match.index ?? 0;
+    const next = matches[index + 1];
+    const end = next?.index ?? markdown.length;
+    sections.set(title, markdown.slice(start, end));
+  }
+  return sections;
 }
 
 describe("renderCollection", () => {
@@ -216,6 +369,175 @@ describe("renderCollection", () => {
     expect(body).toContain("Source src:x:20260501:aaaa1111");
     expect(body).not.toContain("Unused");
     expect(body.endsWith("\n")).toBe(true);
+  });
+
+  test("renders TOC links and deterministic row anchors", async () => {
+    const ws = await freshWorkspace();
+    const rows = fixtureRows();
+    const state = buildEffectiveState(load(rows));
+    const fp = fingerprintFor(rows);
+
+    const result = await renderCollection(state, ws, fp, { collection: "x" });
+    const body = await readFile(result.path, "utf8");
+
+    expect(body).toContain("## Contents {#contents}");
+    expect(body).toContain("- [Current Synthesis](#current-synthesis)");
+    expect(body).toContain("- [Key Claims](#key-claims)");
+    expect(body).toContain("- [Open Questions](#open-questions)");
+    expect(body).toContain("- [Sources](#sources)");
+    expect(body).toContain("{#synth-x-20260501-dddd1111}");
+    expect(body).toContain("{#claim-x-20260501-bbbb1111}");
+    expect(body).toContain("{#q-x-20260501-cccc1111}");
+    expect(body).toContain("{#src-x-20260501-aaaa1111}");
+  });
+
+  test("groups claims by claim_key and renders explicit unkeyed section", async () => {
+    const ws = await freshWorkspace();
+    const rows = iranFixtureRows();
+    const state = buildEffectiveState(load(rows));
+    const fp = goldenFingerprint(rows);
+
+    const result = await renderCollection(state, ws, fp, { collection: "iran-cracks" });
+    const body = await readFile(result.path, "utf8");
+
+    expect(body).toContain("### Claim Key Clusters {#claim-key-clusters}");
+    expect(body).toContain("#### iran|command {#claim-key-iran-command}");
+    expect(body).toContain("#### iran|market {#claim-key-iran-market}");
+    expect(body.indexOf("#### iran|command")).toBeLessThan(body.indexOf("#### iran|market"));
+    expect(body).toContain("### Unkeyed Claims {#unkeyed-claims}");
+    expect(body).toContain("Older sanctions pressure remains unresolved.");
+    expect(body).toContain("Proxy channels elevated readiness.");
+  });
+
+  test("claim-key cluster builder derives from active EffectiveState rows", () => {
+    const source = makeSource("src:clusters:20260501:source01", {
+      scope: { collections: ["clusters"] },
+    });
+    const activeA = makeClaim("claim:clusters:20260501:active01", source.id, {
+      scope: { collections: ["clusters"] },
+      identity: { claim_key: "clusters|a" },
+    });
+    const activeB = makeClaim("claim:clusters:20260501:active02", source.id, {
+      created_at: "2026-05-01T12:02:00Z",
+      scope: { collections: ["clusters"] },
+      identity: { claim_key: "clusters|a" },
+    });
+    const unkeyed = makeClaim("claim:clusters:20260501:active03", source.id, {
+      created_at: "2026-05-01T12:03:00Z",
+      scope: { collections: ["clusters"] },
+      identity: {},
+    });
+    const retracted = makeClaim("claim:clusters:20260501:dead0001", source.id, {
+      created_at: "2026-05-01T12:04:00Z",
+      scope: { collections: ["clusters"] },
+      identity: { claim_key: "clusters|a" },
+    });
+    const retract: KnbRow = {
+      schema_version: "knb.v1",
+      id: "chg:clusters:20260501:dead0002",
+      kind: "change",
+      created_at: "2026-05-01T13:00:00Z",
+      created_by: "agent:test",
+      scope: { collections: ["clusters"] },
+      change: { action: "retract", target_ids: [retracted.id], reason: "obsolete" },
+    };
+    const state = buildEffectiveState(load([source, activeA, activeB, unkeyed, retracted, retract]));
+
+    const clusters = buildClaimKeyClusters(state.rows({ status: "active", collection: "clusters", includeChanges: false }));
+
+    expect(clusters.keyed).toEqual([
+      {
+        claim_key: "clusters|a",
+        claims: [activeA, activeB],
+      },
+    ]);
+    expect(clusters.unkeyed).toEqual([unkeyed]);
+  });
+
+  test("Iran fixture render matches golden Markdown and stays byte-identical on re-render", async () => {
+    const ws = await freshWorkspace();
+    const rows = iranFixtureRows();
+    const state = buildEffectiveState(load(rows));
+    const fp = goldenFingerprint(rows);
+    const expected = await readFile(join(process.cwd(), "tests", "static", "iran-fixture.expected.md"), "utf8");
+
+    const first = await renderCollection(state, ws, fp, { collection: "iran-cracks" });
+    const firstBody = await readFile(first.path, "utf8");
+    const second = await renderCollection(state, ws, fp, { collection: "iran-cracks" });
+    const secondBody = await readFile(second.path, "utf8");
+
+    expect(firstBody).toBe(expected);
+    expect(secondBody).toBe(firstBody);
+  });
+
+  test("adding a claim-keyed row changes only the Key Claims section when no new source is cited", async () => {
+    const ws = await freshWorkspace();
+    const rows = iranFixtureRows();
+    const baseState = buildEffectiveState(load(rows));
+    const added = makeClaim("claim:iran:20260501:market03", "src:missing:20260501:none0001", {
+      created_at: "2026-05-01T12:09:00Z",
+      scope: { collections: ["iran-cracks"] },
+      identity: { claim_key: "iran|market" },
+      claim: { statement: "A new market-only row landed.", atomic: true },
+      provenance: { evidence: [] },
+      assessment: { confidence: "medium" },
+    });
+    const nextState = buildEffectiveState(load([...rows, added]));
+
+    const before = await renderCollection(baseState, ws, goldenFingerprint(rows), {
+      collection: "iran-cracks",
+      out: "before.md",
+    });
+    const after = await renderCollection(nextState, ws, goldenFingerprint([...rows, added]), {
+      collection: "iran-cracks",
+      out: "after.md",
+    });
+
+    const beforeSections = markdownSections(await readFile(before.path, "utf8"));
+    const afterSections = markdownSections(await readFile(after.path, "utf8"));
+    const changed = [...afterSections.keys()].filter((key) => beforeSections.get(key) !== afterSections.get(key));
+
+    expect(changed).toEqual(["Key Claims"]);
+    expect(afterSections.get("Key Claims")).toContain("A new market-only row landed.");
+  });
+
+  test("renders an asOf-projected state without post-cutoff rows", async () => {
+    const ws = await freshWorkspace();
+    const source = makeSource("src:x:20260501:asof1111", {
+      created_at: "2026-05-01T00:00:00Z",
+      source: { type: "web_page", title: "AsOf Projection Source", uri: "https://example.com/asof-projection" },
+    });
+    const claim = makeClaim("claim:x:20260501:asof2222", source.id, {
+      created_at: "2026-05-01T01:00:00Z",
+      claim: { statement: "As-of projection claim.", atomic: true },
+    });
+    const synthesis = makeSynthesis("synth:x:20260501:asof3333", [claim.id], [source.id], {
+      created_at: "2026-05-01T01:10:00Z",
+      synthesis: {
+        title: "AsOf Projection Synthesis",
+        summary: "Historical projection summary.",
+        basis: { claim_ids: [claim.id], source_ids: [source.id] },
+        status: "active",
+      },
+    });
+    const question = makeQuestion("q:x:20260501:asof4444", {
+      created_at: "2026-05-01T03:00:00Z",
+      question: { text: "Projection question after cutoff?", status: "open" },
+    });
+    const rows = [source, claim, synthesis, question];
+    const fp = fingerprintFor(rows);
+    const state = buildEffectiveState(load(rows), { asOf: "2026-05-01T01:30:00Z" });
+
+    const result = await renderCollection(state, ws, fp, {
+      collection: "x",
+      asOf: "2026-05-01T01:30:00Z",
+    });
+    const body = await readFile(result.path, "utf8");
+
+    expect(body).toContain("As-of projection claim.");
+    expect(body).toContain("AsOf Projection Synthesis");
+    expect(body).not.toContain("Projection question after cutoff?");
+    expect(result.metadata.options.asOf).toBe("2026-05-01T01:30:00Z");
   });
 
   test("resolves merged duplicate source citations to the canonical source", async () => {
@@ -759,8 +1081,8 @@ describe("rebuildIndexes", () => {
     await rebuildIndexes(state, ws, fp);
     const data = JSON.parse(
       await readFile(join(ws.paths.indexes, "active-claims-by-key.json"), "utf8"),
-    ) as Record<string, string>;
-    expect(data["key|claim:x:20260501:bbbb1111"]).toBe("claim:x:20260501:bbbb1111");
+    ) as Record<string, string[]>;
+    expect(data["key|claim:x:20260501:bbbb1111"]).toEqual(["claim:x:20260501:bbbb1111"]);
     expect(Object.keys(data)).not.toContain("key|claim:x:20260501:bbbb2222");
     expect(Object.keys(data).length).toBe(1);
     // Keys sorted.
@@ -893,6 +1215,20 @@ describe("checkFreshness", () => {
       expect(entry.ledger_hash).toBe(fp.content_hash);
       expect(typeof entry.generated_at === "string" || entry.generated_at === undefined).toBe(true);
     }
+  });
+
+  test("treats asOf-rendered views as stale for current projection freshness", async () => {
+    const ws = await freshWorkspace();
+    const rows = fixtureRows();
+    const state = buildEffectiveState(load(rows), { asOf: "2026-05-01T12:02:30Z" });
+    const fp = fingerprintFor(rows);
+
+    await renderCollection(state, ws, fp, { collection: "x", asOf: "2026-05-01T12:02:30Z" });
+
+    const report = await checkFreshness({ workspace: ws, ledger_fingerprint: fp });
+    const view = report.entries.find((entry) => entry.target === "knb/views/x.md");
+    expect(view?.state).toBe("stale");
+    expect(view?.ledger_hash).toBe(fp.content_hash);
   });
 
   test("freshness report sorts entries by target lexicographically within each kind", async () => {

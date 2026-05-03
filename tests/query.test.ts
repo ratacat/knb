@@ -209,6 +209,40 @@ function buildFixture(): {
 }
 
 describe("executeQuery - filtering", () => {
+  test("queries over an asOf-projected state see pre-cutoff lifecycle", () => {
+    const source = makeSource("src:alpha:20260501:asof1111", {
+      created_at: "2026-05-01T00:00:00Z",
+    });
+    const claim = makeClaim("claim:alpha:20260501:asof2222", source.id, {
+      created_at: "2026-05-01T01:00:00Z",
+      claim: { statement: "As-of query claim.", atomic: true },
+    });
+    const retract = makeChange(
+      "chg:alpha:20260501:asof3333",
+      { action: "retract", target_ids: [claim.id], reason: "later" },
+      "2026-05-01T02:00:00Z",
+    );
+    const rows = load([source, claim, retract]);
+
+    const beforeRetract = executeQuery(
+      buildEffectiveState(rows, { asOf: "2026-05-01T01:30:00Z" }),
+      { collection: "alpha", kinds: ["claim"] },
+    );
+    expect(beforeRetract.rows.map((row) => [row.id, row.status])).toEqual([[claim.id, "active"]]);
+
+    const afterRetract = executeQuery(
+      buildEffectiveState(rows, { asOf: "2026-05-01T02:30:00Z" }),
+      { collection: "alpha", kinds: ["claim"] },
+    );
+    expect(afterRetract.rows).toEqual([]);
+
+    const history = executeQuery(
+      buildEffectiveState(rows, { asOf: "2026-05-01T02:30:00Z" }),
+      { collection: "alpha", kinds: ["claim"], includeHistory: true },
+    );
+    expect(history.rows.map((row) => [row.id, row.status])).toEqual([[claim.id, "retracted"]]);
+  });
+
   test("empty request returns all active rows in ledger order with score 1, no change rows", () => {
     const fx = buildFixture();
     const state = buildEffectiveState(fx.rows);
@@ -322,7 +356,7 @@ describe("executeQuery - id and claim_key", () => {
   test("claim_key match returns the matching claim with score 90", () => {
     const fx = buildFixture();
     const state = buildEffectiveState(fx.rows);
-    const result = executeQuery(state, { claim_key: "alpha|exists" });
+    const result = executeQuery(state, { claimKey: "alpha|exists" });
     expect(result.rows.length).toBe(1);
     expect(result.rows[0]?.id).toBe(fx.claimA.id);
     expect(result.rows[0]?.score).toBe(90);
@@ -569,7 +603,7 @@ describe("executeQuery - score determinism (exact values)", () => {
     expect(executeQuery(stateForId, { ids: [idMatchClaim.id] }).rows[0]?.score).toBe(100);
 
     const stateForKey = buildEffectiveState(load([src, claimKeyClaim]));
-    expect(executeQuery(stateForKey, { claim_key: "key|target" }).rows[0]?.score).toBe(90);
+    expect(executeQuery(stateForKey, { claimKey: "key|target" }).rows[0]?.score).toBe(90);
 
     const stateForExact = buildEffectiveState(load([src, exactTextClaim]));
     expect(executeQuery(stateForExact, { text: "hello world" }).rows[0]?.score).toBe(80);
@@ -593,7 +627,7 @@ describe("executeQuery - score determinism (exact values)", () => {
     const state = buildEffectiveState(load([src, c]));
     const result = executeQuery(state, {
       ids: [c.id],
-      claim_key: "k|multi",
+      claimKey: "k|multi",
       text: "multi target",
     });
     expect(result.rows[0]?.score).toBe(100);
@@ -698,7 +732,7 @@ describe("executeQuery - score determinism (exact values)", () => {
   test("claim_key: 'unknown' returns zero rows (claim_key is a query term)", () => {
     const fx = buildFixture();
     const state = buildEffectiveState(fx.rows);
-    const result = executeQuery(state, { claim_key: "no|such|key" });
+    const result = executeQuery(state, { claimKey: "no|such|key" });
     expect(result.rows).toEqual([]);
     expect(result.total_matched).toBe(0);
   });
@@ -735,6 +769,53 @@ describe("executeQuery - tie-break stability", () => {
 });
 
 describe("executeQuery - filter combinations", () => {
+  test("structured filters compose with collection, kind, and text filters", () => {
+    const source = makeSource("src:structured:20260501:aaaa1111");
+    const match = makeClaim("claim:structured:20260501:bbbb2222", source.id, {
+      claim: {
+        statement: "Storm risk rises.",
+        atomic: true,
+        type: "prediction",
+        qualifiers: { location: "tehran" },
+      },
+    });
+    const wrongText = makeClaim("claim:structured:20260501:cccc3333", source.id, {
+      claim: {
+        statement: "Calm weather remains.",
+        atomic: true,
+        type: "prediction",
+        qualifiers: { location: "tehran" },
+      },
+    });
+    const wrongType = makeClaim("claim:structured:20260501:dddd4444", source.id, {
+      claim: {
+        statement: "Storm risk rises.",
+        atomic: true,
+        type: "observation",
+        qualifiers: { location: "tehran" },
+      },
+    });
+    const wrongQualifier = makeClaim("claim:structured:20260501:eeee5555", source.id, {
+      claim: {
+        statement: "Storm risk rises.",
+        atomic: true,
+        type: "prediction",
+        qualifiers: { location: "shiraz" },
+      },
+    });
+    const state = buildEffectiveState(load([source, match, wrongText, wrongType, wrongQualifier]));
+
+    const result = executeQuery(state, {
+      collection: "alpha",
+      kinds: ["claim"],
+      text: "storm",
+      claimType: "prediction",
+      qualifiers: { location: "tehran" },
+    });
+
+    expect(result.rows.map((row) => row.id)).toEqual([match.id]);
+  });
+
   test("collection + kind + text intersect correctly", () => {
     const fx = buildFixture();
     const state = buildEffectiveState(fx.rows);

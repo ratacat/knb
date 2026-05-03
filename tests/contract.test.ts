@@ -15,6 +15,7 @@ import {
   operationSamples,
   QUESTION_PRIORITIES,
   QUESTION_STATUSES,
+  referenceFields,
   RELATION_TYPES,
   ROW_KINDS,
   rowSamples,
@@ -1635,6 +1636,85 @@ describe("contract.scopeSlug", () => {
 
   test("slugifies", () => {
     expect(scopeSlug({ collections: ["Hello, World!"] })).toBe("hello-world");
+  });
+});
+
+describe("contract.referenceFields", () => {
+  test("walks every row-to-row reference slot with stable paths and setters", () => {
+    const samples = rowSamples();
+    const claim: ClaimRow = {
+      ...samples.claim,
+      provenance: {
+        source_ids: [samples.source.id],
+        evidence: [{ source_id: samples.source.id, role: "supports", summary: "Evidence." }],
+      },
+      relations: [{ target_id: samples.question.id, rel: "context_for" }],
+    };
+    const question: QuestionRow = {
+      ...samples.question,
+      question: { ...samples.question.question, answer_claim_id: samples.claim.id },
+      provenance: {
+        source_ids: [samples.source.id],
+        evidence: [{ source_id: samples.source.id, role: "supports", summary: "Evidence." }],
+      },
+      relations: [{ target_id: samples.claim.id, rel: "depends_on" }],
+    };
+    const synthesis: SynthesisRow = {
+      ...samples.synthesis,
+      provenance: {
+        source_ids: [samples.source.id],
+        evidence: [{ source_id: samples.source.id, role: "supports", summary: "Evidence." }],
+      },
+      relations: [{ target_id: samples.claim.id, rel: "supports" }],
+    };
+    const change: ChangeRow = {
+      ...samples.change,
+      change: {
+        action: "supersede",
+        target_ids: [samples.claim.id],
+        replacement_id: "claim:contract:20260501:replace1",
+        canonical_id: "claim:contract:20260501:canon001",
+        target_id: samples.question.id,
+        relation: { from_id: samples.claim.id, to_id: samples.question.id, rel: "context_for" },
+        reason: "Exercise all reference slots.",
+      },
+    };
+
+    const slots = [claim, question, synthesis, change].flatMap((row) =>
+      [...referenceFields(row)].map((slot) => ({
+        kind: slot.kind,
+        path: slot.path,
+        value: slot.get(),
+      })),
+    );
+
+    expect(slots).toEqual([
+      { kind: "source", path: "provenance.source_ids[0]", value: samples.source.id },
+      { kind: "source", path: "provenance.evidence[0].source_id", value: samples.source.id },
+      { kind: "any", path: "relations[0].target_id", value: samples.question.id },
+      { kind: "source", path: "provenance.source_ids[0]", value: samples.source.id },
+      { kind: "source", path: "provenance.evidence[0].source_id", value: samples.source.id },
+      { kind: "any", path: "relations[0].target_id", value: samples.claim.id },
+      { kind: "claim", path: "question.answer_claim_id", value: samples.claim.id },
+      { kind: "source", path: "provenance.source_ids[0]", value: samples.source.id },
+      { kind: "source", path: "provenance.evidence[0].source_id", value: samples.source.id },
+      { kind: "any", path: "relations[0].target_id", value: samples.claim.id },
+      { kind: "claim", path: "synthesis.basis.claim_ids[0]", value: samples.claim.id },
+      { kind: "question", path: "synthesis.basis.question_ids[0]", value: samples.question.id },
+      { kind: "source", path: "synthesis.basis.source_ids[0]", value: samples.source.id },
+      { kind: "any", path: "change.target_ids[0]", value: samples.claim.id },
+      { kind: "any", path: "change.target_id", value: samples.question.id },
+      { kind: "any", path: "change.replacement_id", value: "claim:contract:20260501:replace1" },
+      { kind: "any", path: "change.canonical_id", value: "claim:contract:20260501:canon001" },
+      { kind: "any", path: "change.relation.from_id", value: samples.claim.id },
+      { kind: "any", path: "change.relation.to_id", value: samples.question.id },
+    ]);
+
+    const evidenceSlot = [...referenceFields(claim)].find(
+      (slot) => slot.path === "provenance.evidence[0].source_id",
+    );
+    evidenceSlot?.set("src:contract:20260501:changed1");
+    expect(claim.provenance.evidence?.[0]?.source_id).toBe("src:contract:20260501:changed1");
   });
 });
 

@@ -10,7 +10,8 @@ import {
   checkFreshness as defaultCheckFreshness,
   type FreshnessReport,
 } from "./projections";
-import { buildEffectiveState, type EffectiveState } from "./state";
+import { validateProfilesForWorkspace } from "./profiles";
+import { buildEffectiveState, type EffectiveState, type StateOptions } from "./state";
 import type { KnbWorkspace } from "./workspace";
 
 export type SnapshotValidity = "loaded" | "validated" | "projected";
@@ -36,23 +37,30 @@ export type ReadSnapshotValidator = (
   parseIssues: ValidationIssue[],
 ) => ValidationResult;
 
-export type ReadSnapshotProjector = (rows: ContractLoadedRow[]) => EffectiveState;
+export type ReadSnapshotProjector = (rows: ContractLoadedRow[], options: StateOptions) => EffectiveState;
 
 export type ReadSnapshotFreshnessProbe = (
   workspace: KnbWorkspace,
   ledger_fingerprint: LedgerFingerprint,
 ) => Promise<FreshnessReport>;
 
+export type ReadSnapshotProfileValidator = (
+  workspace: KnbWorkspace,
+  rows: ContractLoadedRow[],
+) => Promise<ValidationIssue[]>;
+
 export type ReadSnapshotOptions = {
   workspace: KnbWorkspace;
   loadLedger?: ReadSnapshotLedgerLoader;
   validate?: ReadSnapshotValidator;
+  profiles?: ReadSnapshotProfileValidator | false;
   projectState?: ReadSnapshotProjector | false;
   freshness?: ReadSnapshotFreshnessProbe | false;
+  asOf?: string;
 };
 
-export function defaultProjectState(rows: ContractLoadedRow[]): EffectiveState {
-  return buildEffectiveState(rows);
+export function defaultProjectState(rows: ContractLoadedRow[], options: StateOptions = {}): EffectiveState {
+  return buildEffectiveState(rows, options);
 }
 
 export const defaultFreshness: ReadSnapshotFreshnessProbe = (workspace, ledger_fingerprint) =>
@@ -72,7 +80,15 @@ export async function readSnapshot(options: ReadSnapshotOptions): Promise<KnbRea
     line: issue.line,
   }));
 
-  const validation = validator(contractRows, parseIssues);
+  const baseValidation = validator(contractRows, parseIssues);
+  const profileIssues =
+    options.profiles === false
+      ? []
+      : await (options.profiles ?? validateProfilesForWorkspace)(options.workspace, contractRows);
+  const validation: ValidationResult = {
+    ok: baseValidation.ok && !profileIssues.some((issue) => issue.level === "error"),
+    issues: [...baseValidation.issues, ...profileIssues],
+  };
 
   const hasParseError = ledger.parseIssues.length > 0;
   const hasValidationError = validation.issues.some((issue) => issue.level === "error");
@@ -86,7 +102,9 @@ export async function readSnapshot(options: ReadSnapshotOptions): Promise<KnbRea
     validity = "validated";
   } else {
     const projector = options.projectState ?? defaultProjectState;
-    state = projector(contractRows);
+    const stateOptions: StateOptions = {};
+    if (options.asOf !== undefined) stateOptions.asOf = options.asOf;
+    state = projector(contractRows, stateOptions);
     validity = "projected";
   }
 

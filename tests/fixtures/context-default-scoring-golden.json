@@ -1,0 +1,18 @@
+{
+  "syntheses": [
+    "syn-command-cracks",
+    "syn-market-noise"
+  ],
+  "key_claims": [
+    "claim-command-rift",
+    "claim-bunker-shift",
+    "claim-militia-alert",
+    "claim-market-rumor",
+    "claim-old-sanctions"
+  ],
+  "open_questions": [
+    "question-chain-of-command",
+    "question-source-quality",
+    "question-sanctions-lag"
+  ]
+}

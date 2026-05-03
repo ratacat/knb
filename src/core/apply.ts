@@ -7,6 +7,7 @@
 import {
   completeDraftRow,
   generateId,
+  referenceFields,
   scopeSlug,
   validateApplyRequest,
   validateLedger,
@@ -17,10 +18,11 @@ import {
   type KnbRow,
   type KnbRowKind,
   type LoadedRow,
+  type Provenance,
   type Scope,
   type ValidationIssue,
 } from "./contract";
-import { knbError } from "./errors";
+import { isKnbError, knbError, type KnbErrorCode } from "./errors";
 import {
   loadLedger,
   writeLedger as defaultWriteLedger,
@@ -28,8 +30,19 @@ import {
   type LedgerSnapshot,
   type LedgerWriteResult,
 } from "./ledger";
+import { validateProfilesForWorkspace } from "./profiles";
+import { isSafeRunManifestId, writeRunManifest as defaultWriteRunManifest, type RunManifest } from "./run-manifests";
 
 const ID_COLLISION_RETRY_LIMIT = 8;
+
+export function generateRunId(
+  date: Date,
+  randomIdPart: (bytes: number) => string,
+  existingRandomPart?: string,
+): string {
+  const safeIso = date.toISOString().replace(/[:.]/g, "-");
+  return `run_${safeIso}_${existingRandomPart ?? randomIdPart(4)}`;
+}
 
 export type NoveltyClassification =
   | "new"
@@ -45,10 +58,11 @@ export type NoveltyDecision = {
 };
 
 export type ApplyDeps = {
-  workspace: { paths: { ledger: string; lock: string } };
+  workspace: { paths: { ledger: string; lock: string; profiles?: string; runs?: string } };
   runtime: { clock: () => Date; randomIdPart: (bytes: number) => string };
   actor: string;
   writeLedger?: typeof defaultWriteLedger;
+  writeRunManifest?: typeof defaultWriteRunManifest | false;
   classifyNovelty?: (candidate: KnbRow, snapshot: LedgerSnapshot) => NoveltyDecision;
 };
 
@@ -72,6 +86,7 @@ export type ApplyNoveltyEntry = {
 };
 
 export type ApplyResult = {
+  run_id: string;
   created: ApplyCreatedEntry[];
   skipped: ApplySkippedEntry[];
   warnings: string[];
@@ -117,6 +132,13 @@ type ApplyValidationIssue = ValidationIssue & {
   op_as?: string;
 };
 
+type ApplyPlanningIssue = ApplyValidationIssue & {
+  error_code: KnbErrorCode;
+  ref?: string;
+  id?: string;
+  matched_ids?: string[];
+};
+
 export async function applyOperations(
   request: ApplyRequest,
   deps: ApplyDeps,
@@ -124,9 +146,26 @@ export async function applyOperations(
   validateApplyRequestOrThrow(request);
 
   const ledgerPath = deps.workspace.paths.ledger;
+  const actor = stringOrUndef(request.actor) ?? deps.actor;
+  const clock = buildClockOrThrow(deps.runtime.clock, request.now);
+  const startedAt = clock();
+  const requestedRunId = stringOrUndef(request.run_id);
+  if (requestedRunId !== undefined && !isSafeRunManifestId(requestedRunId)) {
+    throw knbError("validation_failed", "Apply request failed validation", {
+      issues: [
+        {
+          level: "error",
+          code: "run_id_unsafe",
+          message: `run_id is not safe for manifest filename: ${requestedRunId}`,
+          path: "run_id",
+        },
+      ],
+    });
+  }
 
   if (!Array.isArray(request.operations) || request.operations.length === 0) {
     return {
+      run_id: requestedRunId ?? generateRunId(startedAt, deps.runtime.randomIdPart),
       created: [],
       skipped: [],
       warnings: [],
@@ -141,8 +180,6 @@ export async function applyOperations(
   }
 
   const writeLedger = deps.writeLedger ?? defaultWriteLedger;
-  const actor = stringOrUndef(request.actor) ?? deps.actor;
-  const clock = buildClock(deps.runtime.clock, request.now);
   const classifyNovelty = deps.classifyNovelty ?? defaultNovelty;
   const dedupe = request.dedupe === true;
 
@@ -172,6 +209,7 @@ export async function applyOperations(
       const aliasMap = new Map<string, string>();
       const appendedById = new Map<string, KnbRow>();
       const result: ApplyResult = {
+        run_id: "",
         created: [],
         skipped: [],
         warnings: [],
@@ -184,78 +222,107 @@ export async function applyOperations(
         },
       };
       const plans: Plan[] = [];
+      const planningIssues: ApplyPlanningIssue[] = [];
+      const invalidAliasRefs = new Set<string>();
 
       for (let index = 0; index < request.operations.length; index += 1) {
         const operation = request.operations[index] as ApplyOperation;
         const aliasName = operationAlias(operation);
-        if (operation.op === "add") {
-          const completed = processAdd({
-            operation,
-            index,
-            actor,
-            clock,
-            randomIdPart: deps.runtime.randomIdPart,
-            snapshotIds,
-            appendedById,
-            aliasMap,
-            snapshot,
-            classifyNovelty,
-            dedupe,
-            result,
-          });
-          if (completed.kind === "add-row") {
-            plans.push(completed);
-            const completedId = completed.row.id;
-            appendedById.set(completedId, completed.row);
-            snapshotIds.add(completedId);
-            aliasMap.set(`$op${index}`, completedId);
-            if (aliasName) aliasMap.set(`$${aliasName}`, completedId);
+        try {
+          if (operation.op === "add") {
+            const completed = processAdd({
+              operation,
+              index,
+              actor,
+              clock,
+              randomIdPart: deps.runtime.randomIdPart,
+              snapshotIds,
+              appendedById,
+              aliasMap,
+              snapshot,
+              classifyNovelty,
+              dedupe,
+              result,
+            });
+            if (completed.kind === "add-row") {
+              plans.push(completed);
+              const completedId = completed.row.id;
+              appendedById.set(completedId, completed.row);
+              snapshotIds.add(completedId);
+              aliasMap.set(`$op${index}`, completedId);
+              if (aliasName) aliasMap.set(`$${aliasName}`, completedId);
+              result.created.push({
+                op: index,
+                ...(aliasName ? { as: aliasName } : {}),
+                id: completedId,
+                kind: completed.row.kind,
+              });
+            } else {
+              plans.push(completed);
+              aliasMap.set(`$op${index}`, completed.matchedId);
+              if (aliasName) aliasMap.set(`$${aliasName}`, completed.matchedId);
+              result.skipped.push({
+                op: index,
+                reason: completed.reason,
+                ...(completed.matchedIds.length > 0 ? { matched_ids: completed.matchedIds } : {}),
+              });
+            }
+          } else {
+            const change = processLifecycle({
+              operation,
+              index,
+              actor,
+              clock,
+              randomIdPart: deps.runtime.randomIdPart,
+              snapshotIds,
+              snapshotById,
+              appendedById,
+              aliasMap,
+            });
+            plans.push(change);
+            appendedById.set(change.row.id, change.row);
+            snapshotIds.add(change.row.id);
+            aliasMap.set(`$op${index}`, change.row.id);
+            if (aliasName) aliasMap.set(`$${aliasName}`, change.row.id);
             result.created.push({
               op: index,
               ...(aliasName ? { as: aliasName } : {}),
-              id: completedId,
-              kind: completed.row.kind,
-            });
-          } else {
-            plans.push(completed);
-            aliasMap.set(`$op${index}`, completed.matchedId);
-            if (aliasName) aliasMap.set(`$${aliasName}`, completed.matchedId);
-            result.skipped.push({
-              op: index,
-              reason: completed.reason,
-              ...(completed.matchedIds.length > 0 ? { matched_ids: completed.matchedIds } : {}),
+              id: change.row.id,
+              kind: change.row.kind,
             });
           }
-        } else {
-          const change = processLifecycle({
-            operation,
-            index,
-            actor,
-            clock,
-            randomIdPart: deps.runtime.randomIdPart,
-            snapshotIds,
-            snapshotById,
-            appendedById,
-            aliasMap,
-          });
-          plans.push(change);
-          appendedById.set(change.row.id, change.row);
-          snapshotIds.add(change.row.id);
-          aliasMap.set(`$op${index}`, change.row.id);
-          if (aliasName) aliasMap.set(`$${aliasName}`, change.row.id);
-          result.created.push({
-            op: index,
-            ...(aliasName ? { as: aliasName } : {}),
-            id: change.row.id,
-            kind: change.row.kind,
-          });
+        } catch (error) {
+          markFailedAliases(index, aliasName, invalidAliasRefs);
+          if (isDependentAliasError(error, invalidAliasRefs)) continue;
+          planningIssues.push(...planningIssuesFromError(error, index, aliasName));
         }
       }
+
+      const runId = planningIssues.length === 0
+        ? requestedRunId ??
+          generateRunId(startedAt, deps.runtime.randomIdPart, randomPartFromFirstCreated(result))
+        : "";
+      if (runId !== "" && ledgerHasRunId(snapshot.rows, runId)) {
+        throw knbError("validation_failed", "Apply request failed validation", {
+          issues: [
+            {
+              level: "error",
+              code: "run_id_duplicate",
+              message: `run_id already exists in ledger provenance: ${runId}`,
+              path: "run_id",
+            },
+          ],
+        });
+      }
+      if (planningIssues.length === 0) result.run_id = runId;
 
       const appendedRows: KnbRow[] = [];
       const appendedLineToPlan = new Map<number, AppendedPlan>();
       for (const plan of plans) {
         if (plan.kind === "add-row" || plan.kind === "change-row") {
+          if (planningIssues.length === 0) {
+            plan.row = withRunProvenance(plan.row, runId, actor) as typeof plan.row;
+          }
           appendedRows.push(plan.row);
         }
       }
@@ -273,13 +340,21 @@ export async function applyOperations(
         });
       }
       const finalValidation = validateLedger(candidate, snapshot.parseIssues);
-      const finalIssues = annotateApplyValidationIssues(finalValidation.issues, appendedLineToPlan);
-      if (!finalValidation.ok) {
-        throw knbError(
-          "validation_failed",
-          "Apply produced an invalid ledger",
-          { issues: finalIssues, path: ledgerPath },
-        );
+      const profileValidationIssues = deps.workspace.paths.profiles === undefined
+        ? []
+        : await validateProfilesForWorkspace(
+            { paths: { profiles: deps.workspace.paths.profiles } },
+            candidate,
+          );
+      const candidateIssues = [...finalValidation.issues, ...profileValidationIssues];
+      const finalIssues = annotateApplyValidationIssues(candidateIssues, appendedLineToPlan);
+      const hasProfileValidationError = profileValidationIssues.some((issue) => issue.level === "error");
+      if (planningIssues.length > 0 || !finalValidation.ok || hasProfileValidationError) {
+        const allIssues = [
+          ...planningIssues.map(publicPlanningIssue),
+          ...finalIssues.filter((issue) => issue.level === "error"),
+        ];
+        throw aggregatedApplyError(planningIssues, allIssues, ledgerPath);
       }
 
       const firstAppendedLine = snapshot.rows.length + 1;
@@ -301,6 +376,30 @@ export async function applyOperations(
     ledger_path: ledgerPath,
     fingerprint_after: writeResult.fingerprintAfter,
   };
+
+  const writeRunManifest = deps.writeRunManifest ?? defaultWriteRunManifest;
+  if (writeRunManifest !== false && writeResult.rowsAppended > 0) {
+    const manifest: RunManifest = {
+      schema_version: "knb.run.v1",
+      run_id: finalResult.run_id,
+      actor,
+      started_at: startedAt.toISOString(),
+      completed_at: clock().toISOString(),
+      rows_appended: writeResult.rowsAppended,
+      row_ids: finalResult.created.map((entry) => entry.id),
+    };
+    const intent = stringOrUndef(request.intent);
+    if (intent !== undefined) manifest.intent = intent;
+
+    // Run manifests are observability sidecars. The ledger append is canonical,
+    // so a manifest write failure is reported as a warning instead of rolling
+    // back an otherwise valid apply.
+    try {
+      await writeRunManifest(deps.workspace, manifest);
+    } catch (error) {
+      finalResult.warnings.push(`run_manifest_write_failed: ${errorMessage(error)}`);
+    }
+  }
   return finalResult;
 }
 
@@ -311,6 +410,7 @@ export async function previewApplyOperations(
   const ledgerPath = deps.workspace.paths.ledger;
   const result = await applyOperations(request, {
     ...deps,
+    writeRunManifest: false,
     writeLedger: async (options, transaction) => {
       const loadOptions: Parameters<typeof loadLedger>[0] = { path: options.path };
       if (options.readFile !== undefined) loadOptions.readFile = options.readFile;
@@ -457,8 +557,14 @@ type ProcessLifecycleArgs = {
 
 function processLifecycle(args: ProcessLifecycleArgs): ResolvedChangePlan {
   const op = args.operation;
-  const change: ChangeRow["change"] = buildChangeBody(op, args);
-  const targetRows = collectTargetRows(op, change, args);
+  const rawDraft: DraftRow = {
+    kind: "change",
+    scope: {},
+    change: buildChangeBody(op),
+  } as DraftRow;
+  const resolvedDraft = resolveDraftReferences(rawDraft, args.aliasMap, args.snapshotIds, args.index);
+  const change = (resolvedDraft as { change: ChangeRow["change"] }).change;
+  const targetRows = collectTargetRows(change, args);
   const scope = op.scope ?? deriveScope(targetRows, args.index);
 
   const draft: DraftRow = {
@@ -499,35 +605,34 @@ function processLifecycle(args: ProcessLifecycleArgs): ResolvedChangePlan {
 
 function buildChangeBody(
   op: Exclude<ApplyOperation, { op: "add" }>,
-  args: ProcessLifecycleArgs,
 ): ChangeRow["change"] {
   if (op.op === "retract") {
     return {
       action: "retract",
-      target_ids: op.target_ids.map((ref) => resolveRef(ref, args.aliasMap, args.snapshotIds, args.index)),
+      target_ids: [...op.target_ids],
       reason: op.reason,
     };
   }
   if (op.op === "supersede") {
     return {
       action: "supersede",
-      target_ids: op.target_ids.map((ref) => resolveRef(ref, args.aliasMap, args.snapshotIds, args.index)),
-      replacement_id: resolveRef(op.replacement_id, args.aliasMap, args.snapshotIds, args.index),
+      target_ids: [...op.target_ids],
+      replacement_id: op.replacement_id,
       reason: op.reason,
     };
   }
   if (op.op === "merge") {
     return {
       action: "merge",
-      target_ids: op.target_ids.map((ref) => resolveRef(ref, args.aliasMap, args.snapshotIds, args.index)),
-      canonical_id: resolveRef(op.canonical_id, args.aliasMap, args.snapshotIds, args.index),
+      target_ids: [...op.target_ids],
+      canonical_id: op.canonical_id,
       reason: op.reason,
     };
   }
   if (op.op === "relate") {
     const relation: ChangeRow["change"]["relation"] = {
-      from_id: resolveRef(op.from_id, args.aliasMap, args.snapshotIds, args.index),
-      to_id: resolveRef(op.to_id, args.aliasMap, args.snapshotIds, args.index),
+      from_id: op.from_id,
+      to_id: op.to_id,
       rel: op.rel,
     };
     if (op.strength !== undefined) relation.strength = op.strength;
@@ -536,18 +641,17 @@ function buildChangeBody(
   }
   return {
     action: "patch",
-    target_id: resolveRef(op.target_id, args.aliasMap, args.snapshotIds, args.index),
+    target_id: op.target_id,
     patch: op.patch,
     reason: op.reason,
   };
 }
 
 function collectTargetRows(
-  op: Exclude<ApplyOperation, { op: "add" }>,
   change: ChangeRow["change"],
   args: ProcessLifecycleArgs,
 ): KnbRow[] {
-  const ids = collectScopeAnchorIds(op, change);
+  const ids = collectScopeAnchorIds(change);
   const rows: KnbRow[] = [];
   for (const id of ids) {
     const row = args.snapshotById.get(id) ?? args.appendedById.get(id);
@@ -556,20 +660,13 @@ function collectTargetRows(
   return rows;
 }
 
-function collectScopeAnchorIds(
-  op: Exclude<ApplyOperation, { op: "add" }>,
-  change: ChangeRow["change"],
-): string[] {
-  if (op.op === "relate") {
-    return [change.relation?.from_id, change.relation?.to_id].filter((id): id is string => typeof id === "string");
-  }
-  if (op.op === "patch") {
-    return change.target_id ? [change.target_id] : [];
-  }
-  const targets = change.target_ids ?? [];
-  if (op.op === "supersede" && change.replacement_id) return [...targets, change.replacement_id];
-  if (op.op === "merge" && change.canonical_id) return [...targets, change.canonical_id];
-  return targets;
+function collectScopeAnchorIds(change: ChangeRow["change"]): string[] {
+  const draft: DraftRow = {
+    kind: "change",
+    scope: {},
+    change,
+  } as DraftRow;
+  return [...referenceFields(draft)].map((slot) => slot.get());
 }
 
 function deriveScope(targets: KnbRow[], opIndex: number): Scope {
@@ -668,60 +765,8 @@ function resolveDraftReferences(
 ): DraftRow {
   const cloned = cloneJson(draft) as DraftRow & Record<string, unknown>;
 
-  const provenance = (cloned as { provenance?: unknown }).provenance;
-  if (provenance && typeof provenance === "object") {
-    const prov = provenance as Record<string, unknown>;
-    if (Array.isArray(prov.source_ids)) {
-      prov.source_ids = prov.source_ids.map((ref) =>
-        typeof ref === "string" ? resolveRef(ref, aliasMap, snapshotIds, opIndex) : ref,
-      );
-    }
-    if (Array.isArray(prov.evidence)) {
-      for (const item of prov.evidence) {
-        if (item && typeof item === "object") {
-          const entry = item as Record<string, unknown>;
-          if (typeof entry.source_id === "string") {
-            entry.source_id = resolveRef(entry.source_id, aliasMap, snapshotIds, opIndex);
-          }
-        }
-      }
-    }
-  }
-
-  const relations = (cloned as { relations?: unknown }).relations;
-  if (Array.isArray(relations)) {
-    for (const item of relations) {
-      if (item && typeof item === "object") {
-        const entry = item as Record<string, unknown>;
-        if (typeof entry.target_id === "string") {
-          entry.target_id = resolveRef(entry.target_id, aliasMap, snapshotIds, opIndex);
-        }
-      }
-    }
-  }
-
-  const synthesis = (cloned as { synthesis?: unknown }).synthesis;
-  if (synthesis && typeof synthesis === "object") {
-    const basis = (synthesis as { basis?: unknown }).basis;
-    if (basis && typeof basis === "object") {
-      const obj = basis as Record<string, unknown>;
-      for (const field of ["claim_ids", "question_ids", "source_ids"] as const) {
-        const value = obj[field];
-        if (Array.isArray(value)) {
-          obj[field] = value.map((ref) =>
-            typeof ref === "string" ? resolveRef(ref, aliasMap, snapshotIds, opIndex) : ref,
-          );
-        }
-      }
-    }
-  }
-
-  const question = (cloned as { question?: unknown }).question;
-  if (question && typeof question === "object") {
-    const q = question as Record<string, unknown>;
-    if (typeof q.answer_claim_id === "string") {
-      q.answer_claim_id = resolveRef(q.answer_claim_id, aliasMap, snapshotIds, opIndex);
-    }
+  for (const slot of referenceFields(cloned)) {
+    slot.set(resolveRef(slot.get(), aliasMap, snapshotIds, opIndex));
   }
 
   return cloned as DraftRow;
@@ -812,6 +857,119 @@ function annotateApplyValidationIssues(
   });
 }
 
+function markFailedAliases(index: number, aliasName: string | undefined, refs: Set<string>): void {
+  refs.add(`$op${index}`);
+  if (aliasName !== undefined) refs.add(`$${aliasName}`);
+}
+
+function isDependentAliasError(error: unknown, invalidAliasRefs: Set<string>): boolean {
+  if (!isKnbError(error)) return false;
+  if (error.code !== "broken_reference") return false;
+  const ref = error.details?.ref;
+  return typeof ref === "string" && invalidAliasRefs.has(ref);
+}
+
+function planningIssuesFromError(
+  error: unknown,
+  opIndex: number,
+  aliasName: string | undefined,
+): ApplyPlanningIssue[] {
+  if (!isKnbError(error)) throw error;
+  const details = error.details ?? {};
+  const rawIssues = Array.isArray(details.issues) ? details.issues : undefined;
+  if (rawIssues !== undefined && rawIssues.length > 0) {
+    return rawIssues.map((raw) => {
+      const source = isRecord(raw) ? raw : {};
+      return buildPlanningIssue(error.code, error.message, source, details, opIndex, aliasName);
+    });
+  }
+  return [buildPlanningIssue(error.code, error.message, {}, details, opIndex, aliasName)];
+}
+
+function buildPlanningIssue(
+  errorCode: KnbErrorCode,
+  fallbackMessage: string,
+  issueSource: Record<string, unknown>,
+  detailSource: Record<string, unknown>,
+  fallbackOpIndex: number,
+  aliasName: string | undefined,
+): ApplyPlanningIssue {
+  const code = firstString(issueSource.code, detailSource.code, errorCode);
+  const message = firstString(issueSource.message, fallbackMessage) ?? fallbackMessage;
+  const issue: ApplyPlanningIssue = {
+    level: "error",
+    code,
+    message,
+    error_code: errorCode,
+    op_index: firstNumber(issueSource.op_index, detailSource.op_index) ?? fallbackOpIndex,
+  };
+
+  const path = firstString(issueSource.path, detailSource.path);
+  if (path !== undefined) issue.path = path;
+  const opPath = firstString(issueSource.op_path, detailSource.op_path);
+  if (opPath !== undefined) issue.op_path = opPath;
+  const id = firstString(issueSource.id, detailSource.id);
+  if (id !== undefined) issue.id = id;
+  const ref = firstString(issueSource.ref, detailSource.ref);
+  if (ref !== undefined) issue.ref = ref;
+  const matchedIds = firstStringArray(issueSource.matched_ids, detailSource.matched_ids);
+  if (matchedIds !== undefined) issue.matched_ids = matchedIds;
+  if (aliasName !== undefined) issue.op_as = aliasName;
+  return issue;
+}
+
+function publicPlanningIssue(issue: ApplyPlanningIssue): ApplyValidationIssue & {
+  ref?: string;
+  matched_ids?: string[];
+} {
+  const { error_code: _errorCode, ...publicIssue } = issue;
+  return publicIssue;
+}
+
+function aggregatedApplyError(
+  planningIssues: ApplyPlanningIssue[],
+  allIssues: Array<ApplyValidationIssue | ReturnType<typeof publicPlanningIssue>>,
+  ledgerPath: string,
+): never {
+  const first = planningIssues[0];
+  const errorCode = first?.error_code ?? "validation_failed";
+  const details: Record<string, unknown> = { issues: allIssues, path: ledgerPath };
+  if (first?.code !== undefined) details.code = first.code;
+  if (first?.op_index !== undefined) details.op_index = first.op_index;
+  if (first?.op_path !== undefined) details.op_path = first.op_path;
+  if (first?.ref !== undefined) details.ref = first.ref;
+  if (first?.id !== undefined) details.id = first.id;
+  if (first?.matched_ids !== undefined) details.matched_ids = first.matched_ids;
+  throw knbError(errorCode, "Apply failed validation", details);
+}
+
+function firstString(...values: unknown[]): string | undefined {
+  for (const value of values) {
+    if (typeof value === "string" && value.length > 0) return value;
+  }
+  return undefined;
+}
+
+function firstNumber(...values: unknown[]): number | undefined {
+  for (const value of values) {
+    if (typeof value === "number" && Number.isSafeInteger(value)) return value;
+  }
+  return undefined;
+}
+
+function firstStringArray(...values: unknown[]): string[] | undefined {
+  for (const value of values) {
+    if (!Array.isArray(value)) continue;
+    const strings = value.filter((item): item is string => typeof item === "string");
+    if (strings.length === value.length) return strings;
+  }
+  return undefined;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 function operationPathForIssue(plan: AppendedPlan, issue: ValidationIssue): string {
   const prefix = `operations[${plan.index}]`;
   if (plan.kind === "add-row") {
@@ -844,11 +1002,29 @@ function operationAlias(op: ApplyOperation): string | undefined {
   return typeof op.as === "string" && op.as.length > 0 ? op.as : undefined;
 }
 
-function buildClock(base: () => Date, requestNow: string | undefined): () => Date {
+function buildClockOrThrow(base: () => Date, requestNow: string | undefined): () => Date {
   if (typeof requestNow !== "string" || requestNow.length === 0) return base;
   const parsed = new Date(requestNow);
-  if (Number.isNaN(parsed.getTime())) return base;
+  if (Number.isNaN(parsed.getTime())) {
+    throw knbError("validation_failed", "Apply request failed validation", {
+      issues: [
+        {
+          level: "error",
+          code: "now_invalid",
+          message: `now must be a valid ISO timestamp: ${requestNow}`,
+          path: "now",
+        },
+      ],
+    });
+  }
   return () => new Date(parsed.getTime());
+}
+
+function ledgerHasRunId(rows: LoadedRow[], runId: string): boolean {
+  return rows.some((loaded) => {
+    const acquisition = (loaded.row as { provenance?: { acquisition?: { run_id?: unknown } } }).provenance?.acquisition;
+    return acquisition?.run_id === runId;
+  });
 }
 
 function defaultNovelty(): NoveltyDecision {
@@ -864,8 +1040,39 @@ function emptyFingerprint(path: string): LedgerFingerprint {
   };
 }
 
+function randomPartFromFirstCreated(result: ApplyResult): string | undefined {
+  const firstId = result.created[0]?.id;
+  if (typeof firstId !== "string") return undefined;
+  const lastColon = firstId.lastIndexOf(":");
+  if (lastColon < 0) return undefined;
+  const suffix = firstId.slice(lastColon + 1);
+  return suffix.length > 0 ? suffix : undefined;
+}
+
+function withRunProvenance(row: KnbRow, runId: string, agent: string): KnbRow {
+  if (row.kind === "change") return row;
+  const current = (row as { provenance?: Provenance }).provenance ?? {};
+  const acquisition = {
+    ...(current.acquisition ?? {}),
+    run_id: runId,
+    agent,
+  };
+  return {
+    ...row,
+    provenance: {
+      ...current,
+      acquisition,
+    },
+  } as KnbRow;
+}
+
 function stringOrUndef(value: unknown): string | undefined {
   return typeof value === "string" && value.length > 0 ? value : undefined;
+}
+
+function errorMessage(error: unknown): string {
+  if (error instanceof Error && error.message.length > 0) return error.message;
+  return String(error);
 }
 
 function cloneJson<T>(value: T): T {

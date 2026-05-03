@@ -12,6 +12,7 @@ import type {
   SourceRow,
   SynthesisRow,
 } from "../src/core/contract";
+import { isKnbError } from "../src/core/errors";
 
 function load(rows: KnbRow[]): LoadedRow[] {
   return rows.map((row, index) => ({ row, line: index + 1 }));
@@ -116,6 +117,66 @@ describe("buildEffectiveState - basics", () => {
     const ids = state.rows().map((er) => er.row.id);
     expect(ids).toEqual([source.id, claim.id, synthesis.id]);
     for (const er of state.rows()) expect(er.status).toBe("active");
+  });
+});
+
+describe("buildEffectiveState - asOf", () => {
+  test("filters rows by created_at before applying lifecycle changes", () => {
+    const source = makeSource("src:test:20260501:aaaa1111", {
+      created_at: "2026-05-01T00:00:00Z",
+    });
+    const claim = makeClaim("claim:test:20260501:bbbb2222", source.id, {
+      created_at: "2026-05-01T01:00:00Z",
+    });
+    const retract = makeChange(
+      "chg:test:20260501:cccc3333",
+      {
+        action: "retract",
+        target_ids: [claim.id],
+        reason: "Bad data",
+      },
+      "2026-05-01T02:00:00Z",
+    );
+    const question = makeQuestion("q:test:20260501:dddd4444");
+    question.created_at = "2026-05-01T03:00:00Z";
+
+    const rows = load([source, claim, retract, question]);
+
+    const t0 = buildEffectiveState(rows, { asOf: "2026-05-01T00:30:00Z" });
+    expect(t0.rows({ includeChanges: true }).map((er) => er.row.id)).toEqual([source.id]);
+    expect(t0.statusOf(claim.id)).toBeUndefined();
+
+    const t1 = buildEffectiveState(rows, { asOf: "2026-05-01T01:30:00Z" });
+    expect(t1.rows({ includeChanges: true }).map((er) => er.row.id)).toEqual([source.id, claim.id]);
+    expect(t1.statusOf(claim.id)).toBe("active");
+
+    const t2 = buildEffectiveState(rows, { asOf: "2026-05-01T02:30:00Z" });
+    expect(t2.rows({ includeChanges: true }).map((er) => er.row.id)).toEqual([source.id, retract.id]);
+    expect(t2.statusOf(claim.id)).toBe("retracted");
+    expect(t2.get(claim.id, { includeHistory: true })?.by_change_id).toBe(retract.id);
+
+    const t3 = buildEffectiveState(rows, { asOf: "2026-05-01T03:30:00Z" });
+    expect(t3.rows({ includeChanges: true }).map((er) => er.row.id)).toEqual([
+      source.id,
+      retract.id,
+      question.id,
+    ]);
+    expect(t3.statusOf(question.id)).toBe("active");
+  });
+
+  test("throws invalid_arguments for invalid asOf timestamps", () => {
+    let caught: unknown;
+    try {
+      buildEffectiveState([], { asOf: "not-a-timestamp" });
+    } catch (error) {
+      caught = error;
+    }
+
+    expect(isKnbError(caught)).toBe(true);
+    if (isKnbError(caught)) {
+      expect(caught.code).toBe("invalid_arguments");
+      expect(caught.message).toContain("Invalid asOf timestamp");
+    }
   });
 });
 

@@ -80,10 +80,16 @@ const result = await knb.get(["claim:x:20260501:abc12345"], { explain: true });
 
 ### `query(request)`
 
-Deterministic retrieval over effective state. Filter by `kind`, `collection`, `subject`, `tag`, `text`, `claim_key`, etc.
+Deterministic retrieval over effective state. Filter by `kind`, `collection`, `subject`, `tag`, `text`, `claimKey`, `claimType`, `externalRefs`, etc.
 
 ```ts
-const result = await knb.query({ kind: "claim", collection: "x", limit: 20 });
+const result = await knb.query({
+  kind: "claim",
+  collection: "x",
+  claimKey: "topic|fact",
+  externalRefs: [{ system: "x", id: "123" }],
+  limit: 20,
+});
 ```
 
 ### `context(request)`
@@ -91,7 +97,15 @@ const result = await knb.query({ kind: "claim", collection: "x", limit: 20 });
 Build a token-budgeted research packet (syntheses, key claims, open questions, sources, warnings). Drops lower-value details first when over budget.
 
 ```ts
-const ctx = await knb.context({ collection: "x", maxTokens: 3000 });
+const ctx = await knb.context({
+  collection: "x",
+  maxTokens: 3000,
+  includeWarnings: true,
+  recencyWindowDays: 30,
+  scoringProfile: {
+    weights: { importance: { high: 3, medium: 2, low: 1, unknown: 0 } },
+  },
+});
 ```
 
 ### `novelty(request)`
@@ -107,6 +121,10 @@ const { results } = await knb.novelty({
 ```
 
 A candidate is a `Partial<ClaimRow>`: the statement lives at `candidate.claim.statement`, not at the top level. Provide `identity.claim_key` to anchor key-based matches (`duplicate`/`corroboration`), or `identity.dedupe_hash` for hash-based matches.
+
+## Request naming
+
+Public TypeScript facade request fields are camelCase. CLI flags are kebab-case and ledger/schema fields remain snake_case. For example, call `knb.query({ claimKey })`, pass `--claim-key` on the CLI, and persist `identity.claim_key` in ledger rows.
 
 ### `render(request)`
 
@@ -136,4 +154,4 @@ await knb.rebuildIndex();
 
 The CLI is intentionally boring: `parse args -> openKnb -> facade method -> output.render`. Tests should exercise the same seams. If you need behavior that is not on the facade, add it to the facade rather than reaching into `src/core/*`.
 
-See [docs/design/agent-first-cli.md](design/agent-first-cli.md) for the full module graph and contracts.
+See [ARCHITECTURE.md](../ARCHITECTURE.md) for the module map and naming rules, and [docs/design/agent-first-cli.md](design/agent-first-cli.md) for the full command contracts.

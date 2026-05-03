@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { appendFile, mkdtemp, rm } from "node:fs/promises";
+import { appendFile, mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { openKnb, type Knb, type OpenKnbOptions } from "../src/index";
-import type { ApplyOperation, ApplyRequest, DraftRow } from "../src/core/contract";
+import type { ApplyOperation, ApplyRequest, DraftRow, ExternalRef } from "../src/core/contract";
 import { isKnbError } from "../src/core/errors";
 import { readSnapshot, type ReadSnapshotFreshnessProbe } from "../src/core/read-snapshot";
 
@@ -54,13 +54,31 @@ function claimDraft(
   collection: string,
   statement: string,
   claimKey?: string,
-  extras: { time?: { precision: "instant" | "hour" | "day" | "month" | "year" | "range" | "unknown"; valid_at?: string }; importance?: "high" | "medium" | "low" } = {},
+  extras: {
+    time?: { precision: "instant" | "hour" | "day" | "month" | "year" | "range" | "unknown"; valid_at?: string };
+    importance?: "high" | "medium" | "low";
+    claimType?: string;
+    predicate?: string;
+    qualifiers?: Record<string, unknown>;
+    external_refs?: ExternalRef[];
+  } = {},
 ): DraftRow {
+  const claimShape: Record<string, unknown> = { statement, atomic: true };
+  if (extras.claimType !== undefined) {
+    claimShape.type = extras.claimType;
+  }
+  if (extras.predicate !== undefined) {
+    claimShape.predicate = extras.predicate;
+  }
+  if (extras.qualifiers !== undefined) {
+    claimShape.qualifiers = extras.qualifiers;
+  }
   const draft: Record<string, unknown> = {
     kind: "claim",
     scope: { collections: [collection] },
+    ...(extras.external_refs !== undefined ? { external_refs: extras.external_refs } : {}),
     identity: claimKey ? { claim_key: claimKey } : {},
-    claim: { statement, atomic: true },
+    claim: claimShape,
     time: extras.time ?? { precision: "unknown" },
     provenance: {
       source_ids: [sourceRef],
@@ -81,6 +99,14 @@ function synthDraft(collection: string, claimRef: string, title = "Synthesis", s
       basis: { claim_ids: [claimRef] },
       status: "active",
     },
+  } as DraftRow;
+}
+
+function questionDraft(collection: string, text = "What remains open?"): DraftRow {
+  return {
+    kind: "question",
+    scope: { collections: [collection] },
+    question: { text, status: "open" },
   } as DraftRow;
 }
 
@@ -245,7 +271,7 @@ describe("read-side integration: query through the facade", () => {
       ],
     });
 
-    const result = await knb.query({ claim_key: "ck|second" });
+    const result = await knb.query({ claimKey: "ck|second" });
     expect(result.total_matched).toBe(1);
     expect(result.rows[0]?.text).toBe("Second.");
   });
@@ -261,6 +287,156 @@ describe("read-side integration: query through the facade", () => {
     expect(full.rows[0]?.row).toBeDefined();
     expect(full.rows[0]?.row?.kind).toBe("source");
   });
+
+  test("query filters structured claims by claimType and qualifier without text search", async () => {
+    const knb = await openTestKnb();
+    await knb.apply({
+      operations: [
+        { op: "add", row: sourceDraft("structured"), as: "src" },
+        {
+          op: "add",
+          row: claimDraft("$src", "structured", "Prediction one.", undefined, {
+            claimType: "prediction",
+            qualifiers: { location: "tehran", date: "2026-05-03" },
+          }),
+        },
+        {
+          op: "add",
+          row: claimDraft("$src", "structured", "Prediction two.", undefined, {
+            claimType: "prediction",
+            qualifiers: { location: "shiraz", date: "2026-05-03" },
+          }),
+        },
+        {
+          op: "add",
+          row: claimDraft("$src", "structured", "Observation one.", undefined, {
+            claimType: "observation",
+            qualifiers: { location: "tehran", date: "2026-05-03" },
+          }),
+        },
+      ],
+    });
+
+    const result = await knb.query({
+      collection: "structured",
+      claimType: "prediction",
+      qualifiers: { location: "tehran" },
+    });
+
+    expect(result.rows.map((row) => row.text)).toEqual(["Prediction one."]);
+  });
+
+  test("query filters rows by external_ref", async () => {
+    const knb = await openTestKnb();
+    await knb.apply({
+      operations: [
+        { op: "add", row: sourceDraft("xref"), as: "src" },
+        {
+          op: "add",
+          row: claimDraft("$src", "xref", "External ref match.", undefined, {
+            external_refs: [{ system: "kalshi", id: "KXIRAN-20260501", type: "market" }],
+          }),
+        },
+        {
+          op: "add",
+          row: claimDraft("$src", "xref", "External ref miss.", undefined, {
+            external_refs: [{ system: "other", id: "KXIRAN-20260501", type: "market" }],
+          }),
+        },
+      ],
+    });
+
+    const result = await knb.query({
+      collection: "xref",
+      externalRefs: [{ system: "kalshi", id: "KXIRAN-20260501" }],
+    });
+
+    expect(result.rows.map((row) => row.text)).toEqual(["External ref match."]);
+  });
+});
+
+describe("read-side integration: asOf through the facade", () => {
+  test("query, get, context, and render read the same historical snapshot", async () => {
+    const knb = await openTestKnb();
+
+    const sourceBatch = await knb.apply({
+      now: "2026-05-01T00:00:00Z",
+      operations: [{ op: "add", row: sourceDraft("asof", "https://example.com/asof", "AsOf Source"), as: "src" }],
+    });
+    const sourceId = sourceBatch.created[0]?.id ?? "";
+
+    const claimBatch = await knb.apply({
+      now: "2026-05-01T01:00:00Z",
+      operations: [
+        { op: "add", row: claimDraft(sourceId, "asof", "Time-travel claim."), as: "claim" },
+        { op: "add", row: synthDraft("asof", "$claim", "AsOf Synthesis", "Historical synthesis.") },
+      ],
+    });
+    const claimId = claimBatch.created[0]?.id ?? "";
+
+    await knb.apply({
+      now: "2026-05-01T02:00:00Z",
+      operations: [{ op: "retract", target_ids: [claimId], reason: "Later correction." }],
+    });
+
+    await knb.apply({
+      now: "2026-05-01T03:00:00Z",
+      operations: [{ op: "add", row: questionDraft("asof", "Question after cutoff?") }],
+    });
+
+    const beforeClaim = await knb.get([sourceId, claimId], { asOf: "2026-05-01T00:30:00Z" });
+    expect(beforeClaim.rows.map((row) => row.id)).toEqual([sourceId]);
+    expect(beforeClaim.not_found).toEqual([claimId]);
+
+    const queryAtClaim = await knb.query({
+      collection: "asof",
+      kinds: ["claim"],
+      asOf: "2026-05-01T01:30:00Z",
+    });
+    expect(queryAtClaim.rows.map((row) => row.id)).toEqual([claimId]);
+    expect(queryAtClaim.rows[0]?.status).toBe("active");
+
+    const queryAfterRetract = await knb.query({
+      collection: "asof",
+      kinds: ["claim"],
+      includeHistory: true,
+      asOf: "2026-05-01T02:30:00Z",
+    });
+    expect(queryAfterRetract.rows.map((row) => [row.id, row.status])).toEqual([[claimId, "retracted"]]);
+
+    const contextAtClaim = await knb.context({ collection: "asof", asOf: "2026-05-01T01:30:00Z" });
+    expect(contextAtClaim.key_claims.map((claim) => claim.id)).toEqual([claimId]);
+    expect(contextAtClaim.syntheses.map((synthesis) => synthesis.title)).toEqual(["AsOf Synthesis"]);
+    expect(contextAtClaim.open_questions).toEqual([]);
+
+    const contextAfterQuestion = await knb.context({ collection: "asof", asOf: "2026-05-01T03:30:00Z" });
+    expect(contextAfterQuestion.key_claims.map((claim) => claim.id)).not.toContain(claimId);
+    expect(contextAfterQuestion.open_questions.map((question) => question.text)).toEqual(["Question after cutoff?"]);
+
+    const renderResult = await knb.render({ collection: "asof", asOf: "2026-05-01T01:30:00Z" });
+    const markdown = await readFile(renderResult.path, "utf8");
+    expect(markdown).toContain("Time-travel claim.");
+    expect(markdown).toContain("Historical synthesis.");
+    expect(markdown).not.toContain("Question after cutoff?");
+    expect(renderResult.metadata.options.asOf).toBe("2026-05-01T01:30:00Z");
+  });
+
+  test("invalid asOf from facade reads is reported as invalid_arguments", async () => {
+    const knb = await openTestKnb();
+    await knb.apply({ operations: [{ op: "add", row: sourceDraft("bad-asof") }] });
+
+    let caught: unknown;
+    try {
+      await knb.query({ asOf: "not-a-timestamp" });
+    } catch (error) {
+      caught = error;
+    }
+
+    expect(isKnbError(caught)).toBe(true);
+    if (isKnbError(caught)) {
+      expect(caught.code).toBe("invalid_arguments");
+    }
+  });
 });
 
 describe("read-side integration: context through the facade", () => {
@@ -272,7 +448,7 @@ describe("read-side integration: context through the facade", () => {
     expect(result.key_claims).toEqual([]);
   });
 
-  test("context with very small max_tokens forces truncation", async () => {
+  test("context with very small maxTokens forces truncation", async () => {
     const knb = await openTestKnb();
     await knb.apply({
       operations: [
@@ -283,7 +459,7 @@ describe("read-side integration: context through the facade", () => {
       ],
     });
 
-    const result = await knb.context({ collection: "ctx", max_tokens: 5 });
+    const result = await knb.context({ collection: "ctx", maxTokens: 5 });
     expect(result.truncated).toBe(true);
     // Truncation should have removed at least one item.
     expect(result.key_claims.length).toBeLessThan(3);

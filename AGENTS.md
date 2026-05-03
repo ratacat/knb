@@ -47,4 +47,6 @@ The CLI is a thin adapter: parse args, open a workspace, call one library method
 
 `knb/ledger.jsonl` is canonical. Generated `knb/views/` and `knb/indexes/` are disposable projections rebuilt from the ledger.
 
+See [Architecture](ARCHITECTURE.md) for the module map, vocabulary, naming boundaries, projection seams, and ADR index.
+
 See [Agent-First CLI Design](docs/design/agent-first-cli.md) for the full command surface, output envelopes, lifecycle model, and module seams. See [Library Usage](docs/library-usage.md) for `openKnb` and the facade methods host applications call.

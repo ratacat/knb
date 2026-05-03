@@ -573,8 +573,9 @@ describe("projection integration through render / rebuildIndex / check", () => {
     });
     await knb.rebuildIndex();
     const indexPath = join(workDir, "knb", "indexes", "active-claims-by-key.json");
-    const data = JSON.parse(await readFile(indexPath, "utf8")) as Record<string, string>;
+    const data = JSON.parse(await readFile(indexPath, "utf8")) as Record<string, string[]>;
     expect(Object.keys(data)).toEqual(["ckidx|a"]);
+    expect(data["ckidx|a"]?.length).toBe(1);
   });
 
   test("active-sources-by-uri index includes only sources with a source.uri", async () => {
@@ -595,7 +596,7 @@ describe("projection integration through render / rebuildIndex / check", () => {
     });
     await knb.rebuildIndex();
     const indexPath = join(workDir, "knb", "indexes", "active-sources-by-uri.json");
-    const data = JSON.parse(await readFile(indexPath, "utf8")) as Record<string, string>;
+    const data = JSON.parse(await readFile(indexPath, "utf8")) as Record<string, string[]>;
     const uris = Object.keys(data);
     expect(uris.length).toBe(1);
     expect(uris[0]).toBe("https://example.com/uridx");
@@ -621,7 +622,7 @@ describe("projection integration through render / rebuildIndex / check", () => {
     expect(byId[claimId]).toBeUndefined();
     const byKey = JSON.parse(
       await readFile(join(workDir, "knb", "indexes", "active-claims-by-key.json"), "utf8"),
-    ) as Record<string, string>;
+    ) as Record<string, string[]>;
     expect(byKey["retidx|a"]).toBeUndefined();
   });
 });

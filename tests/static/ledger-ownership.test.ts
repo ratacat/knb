@@ -9,6 +9,7 @@ import {
 
 const LEDGER_OWNER = "src/core/ledger.ts";
 const PROJECTIONS_OWNER = "src/core/projections.ts";
+const RUN_MANIFESTS_OWNER = "src/core/run-manifests.ts";
 
 const SCANNED_FILES = [
   "src/core/apply.ts",
@@ -22,6 +23,7 @@ const SCANNED_FILES = [
   "src/core/projections.ts",
   "src/core/query.ts",
   "src/core/read-snapshot.ts",
+  "src/core/run-manifests.ts",
   "src/core/state.ts",
   "src/core/workspace.ts",
   "src/cli.ts",
@@ -62,13 +64,14 @@ describe("ledger storage ownership (bd-3p4.5)", () => {
     expect(violations).toEqual([]);
   });
 
-  test("only ledger and projections modules write artifacts via writeFile in core", async () => {
+  test("only ledger, projections, and run manifest modules write artifacts via writeFile in core", async () => {
     const files = await readSourceFiles(SCANNED_FILES);
     const violations: string[] = [];
     const pattern = /\bwriteFile\s*\(/g;
     const allowed = new Set([
       LEDGER_OWNER,
       PROJECTIONS_OWNER,
+      RUN_MANIFESTS_OWNER,
       "src/core/knb.ts",
     ]);
     for (const file of files) {

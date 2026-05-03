@@ -8,6 +8,12 @@ import type {
 } from "./contract";
 import { knbError } from "./errors";
 import { normalizeStatement } from "./novelty";
+import {
+  matchesRowSelector,
+  type RowSelectorExternalRef,
+  type RowSelectorValue,
+  structuredClaimSelectorFromRequest,
+} from "./selectors";
 import { buildSourceCitationIndex } from "./source-citations";
 import type { EffectiveRow, EffectiveState, EffectiveStatus, StateExplanation } from "./state";
 
@@ -18,8 +24,13 @@ export type QueryRequest = {
   subject?: string;
   tag?: string;
   text?: string;
-  claim_key?: string;
+  claimKey?: string;
+  claimType?: string;
+  predicate?: string;
+  qualifiers?: Record<string, RowSelectorValue>;
+  externalRefs?: RowSelectorExternalRef[];
   citing?: string;
+  asOf?: string;
   status?: EffectiveStatus;
   includeHistory?: boolean;
   full?: boolean;
@@ -46,6 +57,7 @@ export type QueryResult = {
 
 export type GetRequest = {
   ids: string[];
+  asOf?: string;
   includeHistory?: boolean;
   explain?: boolean;
 };
@@ -77,11 +89,12 @@ const TEXT_FIELD_KINDS: KnbRowKind[] = ["claim", "source", "question", "synthesi
 export function executeQuery(state: EffectiveState, request: QueryRequest): QueryResult {
   const candidates = collectCandidates(state, request);
   const filtered = applyScopeFilters(candidates, request);
-  const kindFiltered = applyKindFilter(filtered, request);
+  const structuredFiltered = applyStructuredFilters(filtered, request);
+  const kindFiltered = applyKindFilter(structuredFiltered, request);
   const citationFiltered = applyCitingFilter(kindFiltered, state, request);
 
   const hasIdTerm = Array.isArray(request.ids) && request.ids.length > 0;
-  const hasClaimKeyTerm = typeof request.claim_key === "string" && request.claim_key.length > 0;
+  const hasClaimKeyTerm = typeof request.claimKey === "string" && request.claimKey.length > 0;
   const normalizedQuery = normalizeStatement(request.text ?? "");
   const hasTextTerm = normalizedQuery.length > 0;
   const hasAnyTerm = hasIdTerm || hasClaimKeyTerm || hasTextTerm;
@@ -93,7 +106,7 @@ export function executeQuery(state: EffectiveState, request: QueryRequest): Quer
     if (!effective) continue;
     const score = scoreRow(effective.row, {
       idSet,
-      claimKey: hasClaimKeyTerm ? request.claim_key : undefined,
+      claimKey: hasClaimKeyTerm ? request.claimKey : undefined,
       normalizedQuery: hasTextTerm ? normalizedQuery : undefined,
       hasAnyTerm,
     });
@@ -154,6 +167,12 @@ export function executeGet(state: EffectiveState, request: GetRequest): GetResul
   }
 
   return { rows, not_found: notFound };
+}
+
+function applyStructuredFilters(rows: EffectiveRow[], request: QueryRequest): EffectiveRow[] {
+  const selector = structuredClaimSelectorFromRequest(request);
+  if (selector === undefined) return rows;
+  return rows.filter((effective) => matchesRowSelector(effective.row, selector));
 }
 
 function collectCandidates(state: EffectiveState, request: QueryRequest): EffectiveRow[] {

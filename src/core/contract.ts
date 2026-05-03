@@ -2,6 +2,8 @@
 // validation, samples, and JSON Schema. The contract module must not read files,
 // inspect the workspace, choose clocks, or allocate randomness itself.
 
+import { validateRowSelector, type RowSelector } from "./selectors";
+
 export const KNB_SCHEMA_VERSION = "knb.v1" as const;
 
 export const ROW_KINDS = ["source", "claim", "question", "synthesis", "change"] as const;
@@ -223,9 +225,11 @@ export type SynthesisRow = KnbRowCommon & {
       question_ids?: string[];
       source_ids?: string[];
     };
+    target_selector?: RowSelector;
     limitations?: string;
     status: "active" | "archived";
   };
+  provenance?: Provenance;
   assessment?: Assessment;
   relations?: Relation[];
 };
@@ -251,6 +255,105 @@ export type Ref = string;
 type OmitCommon<T> = Omit<T, "schema_version" | "created_at" | "created_by" | "id" | "kind" | "scope">;
 type DistributeDraft<T> = T extends KnbRow ? Partial<OmitCommon<T>> & { kind: T["kind"]; id?: string; scope: Scope } : never;
 export type DraftRow = DistributeDraft<KnbRow>;
+
+export type RefSlotKind = "source" | "claim" | "question" | "any";
+
+export type RefSlot = {
+  kind: RefSlotKind;
+  path: string;
+  get(): string;
+  set(newId: string): void;
+};
+
+export function* referenceFields(row: KnbRow | DraftRow): Iterable<RefSlot> {
+  const record = row as Record<string, unknown>;
+
+  const provenance = record.provenance;
+  if (isRecord(provenance)) {
+    yield* arrayRefSlots(provenance.source_ids, "source", "provenance.source_ids");
+    const evidence = provenance.evidence;
+    if (Array.isArray(evidence)) {
+      for (let index = 0; index < evidence.length; index += 1) {
+        const item = evidence[index];
+        if (!isRecord(item)) continue;
+        const slot = objectRefSlot(item, "source_id", "source", `provenance.evidence[${index}].source_id`);
+        if (slot) yield slot;
+      }
+    }
+  }
+
+  const relations = record.relations;
+  if (Array.isArray(relations)) {
+    for (let index = 0; index < relations.length; index += 1) {
+      const relation = relations[index];
+      if (!isRecord(relation)) continue;
+      const slot = objectRefSlot(relation, "target_id", "any", `relations[${index}].target_id`);
+      if (slot) yield slot;
+    }
+  }
+
+  const question = record.question;
+  if (isRecord(question)) {
+    const slot = objectRefSlot(question, "answer_claim_id", "claim", "question.answer_claim_id");
+    if (slot) yield slot;
+  }
+
+  const synthesis = record.synthesis;
+  if (isRecord(synthesis) && isRecord(synthesis.basis)) {
+    yield* arrayRefSlots(synthesis.basis.claim_ids, "claim", "synthesis.basis.claim_ids");
+    yield* arrayRefSlots(synthesis.basis.question_ids, "question", "synthesis.basis.question_ids");
+    yield* arrayRefSlots(synthesis.basis.source_ids, "source", "synthesis.basis.source_ids");
+  }
+
+  const change = record.change;
+  if (isRecord(change)) {
+    yield* arrayRefSlots(change.target_ids, "any", "change.target_ids");
+    const targetSlot = objectRefSlot(change, "target_id", "any", "change.target_id");
+    if (targetSlot) yield targetSlot;
+    const replacementSlot = objectRefSlot(change, "replacement_id", "any", "change.replacement_id");
+    if (replacementSlot) yield replacementSlot;
+    const canonicalSlot = objectRefSlot(change, "canonical_id", "any", "change.canonical_id");
+    if (canonicalSlot) yield canonicalSlot;
+    if (isRecord(change.relation)) {
+      const fromSlot = objectRefSlot(change.relation, "from_id", "any", "change.relation.from_id");
+      if (fromSlot) yield fromSlot;
+      const toSlot = objectRefSlot(change.relation, "to_id", "any", "change.relation.to_id");
+      if (toSlot) yield toSlot;
+    }
+  }
+}
+
+function* arrayRefSlots(value: unknown, kind: RefSlotKind, basePath: string): Iterable<RefSlot> {
+  if (!Array.isArray(value)) return;
+  for (let index = 0; index < value.length; index += 1) {
+    if (typeof value[index] !== "string") continue;
+    yield {
+      kind,
+      path: `${basePath}[${index}]`,
+      get: () => value[index] as string,
+      set(newId: string): void {
+        value[index] = newId;
+      },
+    };
+  }
+}
+
+function objectRefSlot(
+  object: Record<string, unknown>,
+  key: string,
+  kind: RefSlotKind,
+  path: string,
+): RefSlot | undefined {
+  if (typeof object[key] !== "string") return undefined;
+  return {
+    kind,
+    path,
+    get: () => object[key] as string,
+    set(newId: string): void {
+      object[key] = newId;
+    },
+  };
+}
 
 export type ApplyOperation =
   | { op: "add"; row: DraftRow; as?: string }
@@ -296,6 +399,8 @@ export type ApplyRequest = {
   dedupe?: boolean;
   actor?: string;
   now?: string;
+  run_id?: string;
+  intent?: string;
 };
 
 export type ValidationIssue = {
@@ -305,6 +410,7 @@ export type ValidationIssue = {
   path?: string | undefined;
   line?: number | undefined;
   id?: string | undefined;
+  profile?: string | undefined;
 };
 
 export type ValidationResult = {
@@ -821,6 +927,11 @@ export function jsonSchema(): Record<string, unknown> {
               source_ids: { type: "array", items: { type: "string" } },
             },
           },
+          target_selector: {
+            type: "object",
+            $ref: "knb.selector.v1",
+            description: "Optional RowSelector describing the intended synthesis coverage.",
+          },
           limitations: { type: "string" },
           status: { enum: [...SYNTHESIS_STATUSES] },
         },
@@ -1241,6 +1352,19 @@ function validateSynthesis(loaded: LoadedRow & { row: SynthesisRow }, issues: Va
       message: "synthesis must include a basis id or explicit limitations note",
       path: "synthesis.basis",
     });
+  }
+  if (row.synthesis.target_selector !== undefined) {
+    const selectorValidation = validateRowSelector(row.synthesis.target_selector);
+    for (const issue of selectorValidation.issues) {
+      issues.push({
+        level: "error",
+        code: "synthesis_target_selector_invalid",
+        line: loaded.line,
+        id: loaded.row.id,
+        message: `Invalid synthesis.target_selector: ${issue.message}`,
+        path: issue.path ? `synthesis.target_selector.${issue.path}` : "synthesis.target_selector",
+      });
+    }
   }
   validateAssessment(row.assessment, loaded, issues, { requireConfidence: false });
 }

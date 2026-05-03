@@ -130,6 +130,7 @@ describe("applyOperations", () => {
     expect(result.meta.bytes_written).toBe(0);
     expect(await pathExists(ledgerPath())).toBe(false);
     expect(await pathExists(lockPath())).toBe(false);
+    expect(await pathExists(join(workDir, ".knb", "runs", `${result.run_id}.json`))).toBe(false);
   });
 
   test("previewApplyOperations catches final-ledger validation errors without mutating existing rows", async () => {
@@ -506,6 +507,88 @@ describe("applyOperations", () => {
     expect(isKnbError(thrown)).toBe(true);
     expect((thrown as { code: string }).code).toBe("broken_reference");
     expect((thrown as { details?: { ref?: string } }).details?.ref).toBe("$op2");
+    expect(await pathExists(ledgerPath())).toBe(false);
+    expect(await pathExists(lockPath())).toBe(false);
+  });
+
+  test("independent semantic errors across operations are returned in one envelope", async () => {
+    let thrown: unknown;
+    try {
+      await applyOperations(
+        {
+          operations: [
+            {
+              op: "add",
+              row: {
+                ...buildClaimDraft(),
+                provenance: {
+                  evidence: [
+                    { source_id: "src:missing", role: "supports", summary: "Missing." },
+                  ],
+                },
+              },
+            },
+            {
+              op: "add",
+              row: {
+                ...SOURCE_DRAFT,
+                scope: {},
+              },
+            },
+          ],
+        },
+        makeDeps(),
+      );
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect(isKnbError(thrown)).toBe(true);
+    expect((thrown as { code: string }).code).toBe("broken_reference");
+    const issues = (thrown as {
+      details?: { issues?: Array<{ code?: string; op_index?: number; message?: string }> };
+    }).details?.issues ?? [];
+    expect(issues.some((issue) => issue.op_index === 0 && issue.code === "broken_reference")).toBe(true);
+    expect(issues.some((issue) => issue.op_index === 1 && issue.code === "scope_anchor_required")).toBe(true);
+    expect(await pathExists(ledgerPath())).toBe(false);
+    expect(await pathExists(lockPath())).toBe(false);
+  });
+
+  test("dependent alias fallout from an earlier failed op is filtered from multi-error output", async () => {
+    let thrown: unknown;
+    try {
+      await applyOperations(
+        {
+          operations: [
+            {
+              op: "add",
+              as: "source",
+              row: {
+                ...SOURCE_DRAFT,
+                scope: {},
+              },
+            },
+            {
+              op: "add",
+              row: buildClaimDraft(),
+            },
+          ],
+        },
+        makeDeps(),
+      );
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect(isKnbError(thrown)).toBe(true);
+    expect((thrown as { code: string }).code).toBe("validation_failed");
+    const issues = (thrown as {
+      details?: { issues?: Array<{ code?: string; op_index?: number; ref?: string }> };
+    }).details?.issues ?? [];
+    expect(issues).toHaveLength(1);
+    expect(issues[0]?.op_index).toBe(0);
+    expect(issues[0]?.code).toBe("scope_anchor_required");
+    expect(issues.some((issue) => issue.ref === "$source")).toBe(false);
     expect(await pathExists(ledgerPath())).toBe(false);
     expect(await pathExists(lockPath())).toBe(false);
   });
@@ -1469,6 +1552,25 @@ describe("applyOperations", () => {
     expect(parsed.created_at).toBe(new Date(altDate).toISOString());
   });
 
+  test("invalid request.now is rejected before ledger append", async () => {
+    let caught: unknown;
+    try {
+      await applyOperations(
+        { operations: [{ op: "add", row: SOURCE_DRAFT }], now: "not-a-date" },
+        makeDeps({ randomIdPart: () => "badnow01" }),
+      );
+    } catch (error) {
+      caught = error;
+    }
+
+    expect(isKnbError(caught)).toBe(true);
+    expect((caught as { code?: string }).code).toBe("validation_failed");
+    expect((caught as { details?: { issues?: Array<{ code?: string; path?: string }> } }).details?.issues).toContainEqual(
+      expect.objectContaining({ code: "now_invalid", path: "now" }),
+    );
+    expect(await pathExists(ledgerPath())).toBe(false);
+  });
+
   test("request.actor overrides deps.actor for created_by", async () => {
     const result = await applyOperations(
       { operations: [{ op: "add", row: SOURCE_DRAFT }], actor: "agent:override" },
@@ -1477,6 +1579,277 @@ describe("applyOperations", () => {
     expect(result.created).toHaveLength(1);
     const parsed = JSON.parse((await readLedgerText()).trim()) as SourceRow;
     expect(parsed.created_by).toBe("agent:override");
+  });
+
+  test("apply generates a run_id without consuming the row id random suffix", async () => {
+    const parts = ["row00001"];
+    let index = 0;
+    const result = await applyOperations(
+      { operations: [{ op: "add", row: SOURCE_DRAFT }] },
+      makeDeps({ randomIdPart: () => parts[index++] as string }),
+    );
+
+    expect(result.created[0]?.id).toBe("src:example:20260501:row00001");
+    expect(result.run_id).toBe("run_2026-05-01T12-00-00-000Z_row00001");
+    expect(index).toBe(1);
+  });
+
+  test("caller supplied run_id is honored on ApplyResult", async () => {
+    const result = await applyOperations(
+      {
+        run_id: "run_custom_001",
+        intent: "manual import",
+        operations: [{ op: "add", row: SOURCE_DRAFT }],
+      },
+      makeDeps(),
+    );
+
+    expect(result.run_id).toBe("run_custom_001");
+  });
+
+  test("caller supplied unsafe run_id is rejected before ledger append", async () => {
+    let caught: unknown;
+    try {
+      await applyOperations(
+        {
+          run_id: "run/bad",
+          operations: [{ op: "add", row: SOURCE_DRAFT }],
+        },
+        makeDeps(),
+      );
+    } catch (error) {
+      caught = error;
+    }
+
+    expect(isKnbError(caught)).toBe(true);
+    expect((caught as { code?: string }).code).toBe("validation_failed");
+    expect((caught as { details?: { issues?: Array<{ code?: string; path?: string }> } }).details?.issues).toContainEqual(
+      expect.objectContaining({
+        code: "run_id_unsafe",
+        path: "run_id",
+      }),
+    );
+    expect(await pathExists(ledgerPath())).toBe(false);
+    expect(await pathExists(join(workDir, ".knb", "runs", "run/bad.json"))).toBe(false);
+  });
+
+  test("caller supplied duplicate run_id is rejected before appending a second batch", async () => {
+    await applyOperations(
+      {
+        run_id: "same_run",
+        actor: "agent:first",
+        operations: [{ op: "add", row: SOURCE_DRAFT }],
+      },
+      makeDeps({ randomIdPart: () => "firstrun" }),
+    );
+    const before = await readLedgerText();
+
+    let caught: unknown;
+    try {
+      await applyOperations(
+        {
+          run_id: "same_run",
+          actor: "agent:second",
+          operations: [
+            {
+              op: "add",
+              row: {
+                ...SOURCE_DRAFT,
+                source: { ...SOURCE_DRAFT.source, uri: "https://example.com/second-run" },
+              },
+            },
+          ],
+        },
+        makeDeps({ randomIdPart: () => "secondrn" }),
+      );
+    } catch (error) {
+      caught = error;
+    }
+
+    expect(isKnbError(caught)).toBe(true);
+    expect((caught as { code?: string }).code).toBe("validation_failed");
+    expect((caught as { details?: { issues?: Array<{ code?: string; path?: string }> } }).details?.issues).toContainEqual(
+      expect.objectContaining({ code: "run_id_duplicate", path: "run_id" }),
+    );
+    expect(await readLedgerText()).toBe(before);
+    const manifest = JSON.parse(await readFile(join(workDir, ".knb", "runs", "same_run.json"), "utf8")) as { actor: string; row_ids: string[] };
+    expect(manifest.actor).toBe("agent:first");
+    expect(manifest.row_ids).toEqual(["src:example:20260501:firstrun"]);
+  });
+
+  test("apply populates run provenance on knowledge rows without overwriting acquisition metadata", async () => {
+    const ids = ["srcprov1", "clmprov2", "qstprov3", "synprov4"];
+    let index = 0;
+    const result = await applyOperations(
+      {
+        run_id: "run_provenance_test",
+        actor: "agent:run",
+        operations: [
+          {
+            op: "add",
+            as: "source",
+            row: {
+              ...SOURCE_DRAFT,
+              provenance: {
+                acquisition: {
+                  method: "manual",
+                  query: "keep me",
+                },
+              },
+            },
+          },
+          { op: "add", as: "cl", row: buildClaimDraft() },
+          {
+            op: "add",
+            as: "q",
+            row: {
+              kind: "question",
+              scope: { collections: ["example"] },
+              question: { text: "Open?", status: "open" },
+            },
+          },
+          {
+            op: "add",
+            row: {
+              kind: "synthesis",
+              scope: { collections: ["example"] },
+              synthesis: {
+                title: "S",
+                summary: "Summary",
+                basis: { claim_ids: ["$cl"], question_ids: ["$q"], source_ids: ["$source"] },
+                status: "active",
+              },
+            },
+          },
+        ],
+      },
+      makeDeps({ randomIdPart: () => ids[index++] as string }),
+    );
+
+    expect(result.run_id).toBe("run_provenance_test");
+    const rows = (await loadLedger({ path: ledgerPath() })).rows.map((loaded) => loaded.row);
+    expect(rows.map((row) => row.kind)).toEqual(["source", "claim", "question", "synthesis"]);
+    for (const row of rows) {
+      const provenance = (row as { provenance?: { acquisition?: { run_id?: string; agent?: string } } }).provenance;
+      expect(provenance?.acquisition?.run_id).toBe("run_provenance_test");
+      expect(provenance?.acquisition?.agent).toBe("agent:run");
+    }
+    const source = rows[0] as SourceRow;
+    expect(source.provenance.acquisition?.method).toBe("manual");
+    expect(source.provenance.acquisition?.query).toBe("keep me");
+  });
+
+  test("apply writes a run manifest including change rows while ChangeRow stays manifest-traced only", async () => {
+    const ids = ["srcmani1", "chgmani2"];
+    let index = 0;
+    const result = await applyOperations(
+      {
+        run_id: "run_manifest_test",
+        intent: "test manifest",
+        actor: "agent:manifest",
+        operations: [
+          { op: "add", as: "source", row: SOURCE_DRAFT },
+          { op: "retract", target_ids: ["$source"], reason: "exercise change rows" },
+        ],
+      },
+      makeDeps({ randomIdPart: () => ids[index++] as string }),
+    );
+
+    expect(result.run_id).toBe("run_manifest_test");
+    const manifestPath = join(workDir, ".knb", "runs", "run_manifest_test.json");
+    expect(await pathExists(manifestPath)).toBe(true);
+    const manifest = JSON.parse(await readFile(manifestPath, "utf8")) as {
+      schema_version: string;
+      run_id: string;
+      actor: string;
+      intent?: string;
+      started_at: string;
+      completed_at: string;
+      rows_appended: number;
+      row_ids: string[];
+    };
+    expect(manifest.schema_version).toBe("knb.run.v1");
+    expect(manifest.run_id).toBe("run_manifest_test");
+    expect(manifest.actor).toBe("agent:manifest");
+    expect(manifest.intent).toBe("test manifest");
+    expect(manifest.started_at).toBe(FIXED_DATE.toISOString());
+    expect(manifest.completed_at).toBe(FIXED_DATE.toISOString());
+    expect(manifest.rows_appended).toBe(2);
+    expect(manifest.row_ids).toEqual([
+      "src:example:20260501:srcmani1",
+      "chg:example:20260501:chgmani2",
+    ]);
+
+    const rows = (await loadLedger({ path: ledgerPath() })).rows.map((loaded) => loaded.row);
+    const change = rows.find((row): row is ChangeRow => row.kind === "change");
+    expect(change).toBeDefined();
+    expect((change as { provenance?: unknown } | undefined)?.provenance).toBeUndefined();
+  });
+
+  test("two applies by different actors produce distinct run manifests", async () => {
+    const ids = ["actorone", "actortwo"];
+    let index = 0;
+    const first = await applyOperations(
+      {
+        actor: "agent:one",
+        operations: [{ op: "add", row: SOURCE_DRAFT }],
+      },
+      makeDeps({ randomIdPart: () => ids[index++] as string }),
+    );
+    const second = await applyOperations(
+      {
+        actor: "agent:two",
+        operations: [
+          {
+            op: "add",
+            row: {
+              ...SOURCE_DRAFT,
+              source: { ...SOURCE_DRAFT.source, uri: "https://example.com/two" },
+            },
+          },
+        ],
+      },
+      makeDeps({ randomIdPart: () => ids[index++] as string }),
+    );
+
+    expect(first.run_id).toBe("run_2026-05-01T12-00-00-000Z_actorone");
+    expect(second.run_id).toBe("run_2026-05-01T12-00-00-000Z_actortwo");
+    expect(first.run_id).not.toBe(second.run_id);
+
+    const firstManifest = JSON.parse(
+      await readFile(join(workDir, ".knb", "runs", `${first.run_id}.json`), "utf8"),
+    ) as { actor: string; row_ids: string[]; rows_appended: number };
+    const secondManifest = JSON.parse(
+      await readFile(join(workDir, ".knb", "runs", `${second.run_id}.json`), "utf8"),
+    ) as { actor: string; row_ids: string[]; rows_appended: number };
+
+    expect(firstManifest.actor).toBe("agent:one");
+    expect(firstManifest.rows_appended).toBe(1);
+    expect(firstManifest.row_ids).toEqual([first.created[0]!.id]);
+    expect(secondManifest.actor).toBe("agent:two");
+    expect(secondManifest.rows_appended).toBe(1);
+    expect(secondManifest.row_ids).toEqual([second.created[0]!.id]);
+  });
+
+  test("run manifest write failure warns without rolling back the ledger append", async () => {
+    const deps = makeDeps({ randomIdPart: () => "warnrun1" });
+    deps.writeRunManifest = async () => {
+      throw new Error("disk full");
+    };
+
+    const result = await applyOperations(
+      {
+        run_id: "run_warning_test",
+        operations: [{ op: "add", row: SOURCE_DRAFT }],
+      },
+      deps,
+    );
+
+    expect(result.created[0]?.id).toBe("src:example:20260501:warnrun1");
+    expect(result.warnings).toContain("run_manifest_write_failed: disk full");
+    const rows = (await loadLedger({ path: ledgerPath() })).rows.map((loaded) => loaded.row);
+    expect(rows.map((row) => row.id)).toEqual(["src:example:20260501:warnrun1"]);
+    expect(await pathExists(join(workDir, ".knb", "runs", "run_warning_test.json"))).toBe(false);
   });
 
   test("retract two claims sharing a collection: derived scope is the intersection", async () => {

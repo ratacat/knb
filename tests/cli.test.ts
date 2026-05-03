@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { chmod, mkdir, mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { appendFile, chmod, mkdir, mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { realpath } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -111,6 +111,130 @@ async function initWorkspace(): Promise<void> {
   if (initRun.code !== 0) throw new Error(`init failed: ${initRun.stderr}`);
 }
 
+type RunManifestFixture = {
+  schema_version: "knb.run.v1";
+  run_id: string;
+  actor: string;
+  intent?: string;
+  started_at: string;
+  completed_at: string;
+  rows_appended: number;
+  row_ids: string[];
+};
+
+async function seedRunManifests(manifests: RunManifestFixture[]): Promise<void> {
+  const runsDir = join(workDir, ".knb", "runs");
+  await mkdir(runsDir, { recursive: true });
+  for (const manifest of manifests) {
+    await writeFile(join(runsDir, `${manifest.run_id}.json`), `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
+  }
+}
+
+function manifest(
+  run_id: string,
+  actor: string,
+  completed_at: string,
+  row_ids: string[],
+  intent?: string,
+): RunManifestFixture {
+  const result: RunManifestFixture = {
+    schema_version: "knb.run.v1",
+    run_id,
+    actor,
+    started_at: completed_at,
+    completed_at,
+    rows_appended: row_ids.length,
+    row_ids,
+  };
+  if (intent !== undefined) result.intent = intent;
+  return result;
+}
+
+async function seedAsOfFixture(collection = "asof-cli"): Promise<{ sourceId: string; claimId: string }> {
+  await initWorkspace();
+  const sourcePayload = JSON.stringify({
+    now: "2026-05-01T00:00:00Z",
+    operations: [
+      {
+        op: "add",
+        as: "src",
+        row: {
+          kind: "source",
+          scope: { collections: [collection] },
+          source: { type: "web_page", title: "CLI AsOf Source", uri: "https://example.com/asof-cli" },
+          provenance: { acquisition: { method: "manual" } },
+        },
+      },
+    ],
+  });
+  const sourceRun = await runCliBinary(["apply", "--json", sourcePayload, "--pretty"]);
+  expect(sourceRun.code).toBe(0);
+  const sourceId = (JSON.parse(sourceRun.stdout) as { data: { created: Array<{ id: string }> } }).data.created[0]?.id ?? "";
+
+  const claimPayload = JSON.stringify({
+    now: "2026-05-01T01:00:00Z",
+    operations: [
+      {
+        op: "add",
+        as: "claim",
+        row: {
+          kind: "claim",
+          scope: { collections: [collection] },
+          identity: { claim_key: `${collection}|claim` },
+          claim: { statement: "CLI time-travel claim.", atomic: true },
+          time: { precision: "unknown" },
+          provenance: {
+            source_ids: [sourceId],
+            evidence: [{ source_id: sourceId, role: "supports", summary: "Source supports claim." }],
+          },
+          assessment: { confidence: "high" },
+        },
+      },
+      {
+        op: "add",
+        row: {
+          kind: "synthesis",
+          scope: { collections: [collection] },
+          synthesis: {
+            title: "CLI AsOf Synthesis",
+            summary: "CLI historical synthesis.",
+            basis: { claim_ids: ["$claim"] },
+            status: "active",
+          },
+        },
+      },
+    ],
+  });
+  const claimRun = await runCliBinary(["apply", "--json", claimPayload, "--pretty"]);
+  expect(claimRun.code).toBe(0);
+  const claimId = (JSON.parse(claimRun.stdout) as { data: { created: Array<{ id: string }> } }).data.created[0]?.id ?? "";
+
+  const retractPayload = JSON.stringify({
+    now: "2026-05-01T02:00:00Z",
+    operations: [{ op: "retract", target_ids: [claimId], reason: "Later correction." }],
+  });
+  const retractRun = await runCliBinary(["apply", "--json", retractPayload, "--pretty"]);
+  expect(retractRun.code).toBe(0);
+
+  const questionPayload = JSON.stringify({
+    now: "2026-05-01T03:00:00Z",
+    operations: [
+      {
+        op: "add",
+        row: {
+          kind: "question",
+          scope: { collections: [collection] },
+          question: { text: "CLI question after cutoff?", status: "open" },
+        },
+      },
+    ],
+  });
+  const questionRun = await runCliBinary(["apply", "--json", questionPayload, "--pretty"]);
+  expect(questionRun.code).toBe(0);
+
+  return { sourceId, claimId };
+}
+
 describe("cli init (spawned)", () => {
   test("init on a fresh dir creates expected paths and returns ok envelope", async () => {
     const result = await runCliBinary(["init", "--json"]);
@@ -171,12 +295,21 @@ describe("cli init (in-process)", () => {
     const data = envelope.data as {
       schema_version: string;
       json_schema: object;
+      selector_schema?: { schema_version?: string; properties?: Record<string, unknown> };
+      profile_schema?: { schema_version?: string; properties?: Record<string, unknown> };
+      selector_samples?: unknown[];
+      profile_samples?: unknown[];
       row_samples: unknown[];
       operation_samples: unknown[];
     };
     expect(data.schema_version).toBe("knb.v1");
     expect(typeof data.json_schema).toBe("object");
     expect(data.json_schema).not.toBeNull();
+    expect(data.selector_schema?.schema_version).toBe("knb.selector.v1");
+    expect(data.profile_schema?.schema_version).toBe("knb.profile.v1");
+    expect(data.profile_schema?.properties?.select).toBeDefined();
+    expect(data.profile_samples?.length).toBeGreaterThanOrEqual(1);
+    expect(data.selector_samples?.length).toBeGreaterThanOrEqual(1);
     expect(data.row_samples.length).toBeGreaterThanOrEqual(5);
     expect(data.operation_samples.length).toBeGreaterThanOrEqual(6);
   });
@@ -333,7 +466,9 @@ describe("cli help and entrypoint", () => {
     for (const cmd of [
       "init",
       "status",
+      "collections",
       "schema",
+      "log",
       "apply",
       "add",
       "get",
@@ -363,6 +498,238 @@ describe("cli help and entrypoint", () => {
     expect(text).toContain("external_dependency_failed");
     expect(text).toContain("unsafe_operation_refused");
     expect(text).toContain("internal_error");
+  });
+
+  test("help text documents context recency flag", async () => {
+    const result = await runCliBinary(["help"]);
+    expect(result.stdout).toContain("--recency-window-days");
+  });
+});
+
+describe("cli collections", () => {
+  async function seedCollectionsRows(): Promise<void> {
+    await initWorkspace();
+    const payload = JSON.stringify({
+      operations: [
+        {
+          op: "add",
+          as: "source",
+          row: {
+            kind: "source",
+            scope: { collections: ["cli-alpha"] },
+            source: { type: "web_page", title: "Alpha", uri: "https://example.com/alpha" },
+            provenance: { acquisition: { method: "manual" } },
+          },
+        },
+        {
+          op: "add",
+          row: {
+            kind: "claim",
+            scope: { collections: ["cli-alpha", "cli-beta"] },
+            identity: { claim_key: "cli|shared" },
+            claim: { statement: "Shared claim.", atomic: true },
+            time: { precision: "unknown" },
+            provenance: {
+              evidence: [{ source_id: "$source", role: "supports", summary: "Source supports claim." }],
+            },
+            assessment: { confidence: "high" },
+          },
+        },
+        {
+          op: "add",
+          row: {
+            kind: "question",
+            scope: { collections: ["cli-beta"] },
+            question: { text: "What next?", status: "open" },
+          },
+        },
+      ],
+    });
+    const applied = await runCliBinary(["apply", "--json", payload, "--pretty"]);
+    expect(applied.code).toBe(0);
+  }
+
+  test("collections --json returns empty collections on an empty workspace", async () => {
+    await initWorkspace();
+    const result = await runCliBinary(["collections", "--json"]);
+    expect(result.code).toBe(0);
+    const env = JSON.parse(result.stdout.trim()) as {
+      ok: boolean;
+      command: string;
+      data: { collections: unknown[] };
+      meta: { rows_returned: number };
+    };
+    expect(env.ok).toBe(true);
+    expect(env.command).toBe("collections");
+    expect(env.data.collections).toEqual([]);
+    expect(env.meta.rows_returned).toBe(0);
+  });
+
+  test("collections --json summarizes active rows and ignores stale indexes", async () => {
+    await seedCollectionsRows();
+    await mkdir(join(workDir, "knb", "indexes"), { recursive: true });
+    await writeFile(
+      join(workDir, "knb", "indexes", "active-by-collection.json"),
+      JSON.stringify({ "wrong-index": [{ id: "stale" }] }),
+      "utf8",
+    );
+
+    const result = await runCliBinary(["collections", "--json"]);
+    expect(result.code).toBe(0);
+    const env = JSON.parse(result.stdout.trim()) as {
+      ok: boolean;
+      data: {
+        collections: Array<{
+          collection: string;
+          active_counts_by_kind: Record<string, number>;
+          latest_created_at?: string;
+        }>;
+      };
+      meta: { rows_returned: number };
+    };
+    expect(env.ok).toBe(true);
+    expect(env.data.collections.map((entry) => entry.collection)).toEqual(["cli-alpha", "cli-beta"]);
+    expect(env.data.collections[0]?.active_counts_by_kind).toEqual({ source: 1, claim: 1 });
+    expect(env.data.collections[1]?.active_counts_by_kind).toEqual({ claim: 1, question: 1 });
+    expect(env.data.collections[0]?.latest_created_at).toBeDefined();
+    expect(env.meta.rows_returned).toBe(2);
+  });
+
+  test("collections --text renders a compact table", async () => {
+    await seedCollectionsRows();
+    const result = await runCliBinary(["collections", "--text"]);
+    expect(result.code).toBe(0);
+    expect(result.stderr).toBe("");
+    expect(result.stdout).toContain("collection\tsource\tclaim\tquestion\tsynthesis\tchange\tlatest_created_at");
+    expect(result.stdout).toContain("cli-alpha\t1\t1\t0\t0\t0\t");
+    expect(result.stdout).toContain("cli-beta\t0\t1\t1\t0\t0\t");
+  });
+});
+
+describe("cli status --detailed", () => {
+  test("plain status --json omits detailed stats", async () => {
+    await initWorkspace();
+    const result = await runCliBinary(["status", "--json"]);
+    expect(result.code).toBe(0);
+    const env = JSON.parse(result.stdout.trim()) as { ok: boolean; data: Record<string, unknown> };
+    expect(env.ok).toBe(true);
+    expect("detailed" in env.data).toBe(false);
+  });
+
+  test("status --detailed --json includes corpus-health stats", async () => {
+    await initWorkspace();
+    const payload = JSON.stringify({
+      operations: [
+        {
+          op: "add",
+          as: "source",
+          row: {
+            kind: "source",
+            scope: { collections: ["detail-cli"] },
+            source: { type: "web_page", title: "Detail", uri: "https://example.com/detail" },
+            provenance: { acquisition: { method: "manual" } },
+          },
+        },
+        {
+          op: "add",
+          row: {
+            kind: "claim",
+            scope: { collections: ["detail-cli"] },
+            identity: { claim_key: "detail-cli|claim", novelty: "duplicate" },
+            claim: { statement: "Detailed status works.", atomic: true },
+            time: { precision: "unknown" },
+            provenance: {
+              evidence: [{ source_id: "$source", role: "supports", summary: "Source supports claim." }],
+            },
+            assessment: { confidence: "high" },
+          },
+        },
+      ],
+    });
+    const applied = await runCliBinary(["apply", "--json", payload, "--pretty"]);
+    expect(applied.code).toBe(0);
+
+    const result = await runCliBinary(["status", "--detailed", "--json"]);
+    expect(result.code).toBe(0);
+    const env = JSON.parse(result.stdout.trim()) as {
+      ok: boolean;
+      data: {
+        detailed?: {
+          evidence_depth: { count: number; p50: number; p90: number; max: number };
+          novelty_active_distribution: Record<string, number>;
+          syntheses_per_collection: Record<string, number>;
+        };
+      };
+    };
+    expect(env.ok).toBe(true);
+    expect(env.data.detailed?.evidence_depth).toEqual({ count: 1, p50: 1, p90: 1, max: 1 });
+    expect(env.data.detailed?.novelty_active_distribution).toEqual({ duplicate: 1 });
+    expect(env.data.detailed?.syntheses_per_collection).toEqual({});
+  });
+});
+
+describe("cli log", () => {
+  test("log --json returns empty entries when .knb/runs is missing", async () => {
+    const result = await runCliBinary(["log", "--json"]);
+    expect(result.code).toBe(0);
+    const env = JSON.parse(result.stdout.trim()) as {
+      ok: boolean;
+      command: string;
+      data: { entries: unknown[]; total_matched: number; total_returned: number };
+      meta: { rows_returned: number };
+    };
+    expect(env.ok).toBe(true);
+    expect(env.command).toBe("log");
+    expect(env.data.entries).toEqual([]);
+    expect(env.data.total_matched).toBe(0);
+    expect(env.data.total_returned).toBe(0);
+    expect(env.meta.rows_returned).toBe(0);
+  });
+
+  test("log --json filters by actor, since, and limit", async () => {
+    await seedRunManifests([
+      manifest("run_a", "agent:alpha", "2026-05-01T10:00:00.000Z", ["row:a"], "old"),
+      manifest("run_b", "agent:beta", "2026-05-02T09:00:00.000Z", ["row:b"], "beta"),
+      manifest("run_c", "agent:alpha", "2026-05-02T12:00:00.000Z", ["row:c"], "alpha c"),
+      manifest("run_d", "agent:beta", "2026-05-03T00:00:00.000Z", ["row:d"], "newest"),
+      manifest("run_e", "agent:alpha", "2026-05-02T13:00:00.000Z", ["row:e"], "alpha e"),
+    ]);
+
+    const result = await runCliBinary([
+      "log",
+      "--actor",
+      "agent:alpha",
+      "--since",
+      "2026-05-02T00:00:00.000Z",
+      "--limit",
+      "2",
+      "--json",
+    ]);
+    expect(result.code).toBe(0);
+    const env = JSON.parse(result.stdout.trim()) as {
+      ok: boolean;
+      data: { entries: Array<{ run_id: string; actor: string; intent?: string }>; total_matched: number; total_returned: number };
+      meta: { rows_returned: number };
+    };
+    expect(env.ok).toBe(true);
+    expect(env.data.entries.map((entry) => entry.run_id)).toEqual(["run_e", "run_c"]);
+    expect(env.data.entries.every((entry) => entry.actor === "agent:alpha")).toBe(true);
+    expect(env.data.entries[0]?.intent).toBe("alpha e");
+    expect(env.data.total_matched).toBe(2);
+    expect(env.data.total_returned).toBe(2);
+    expect(env.meta.rows_returned).toBe(2);
+  });
+
+  test("log --text renders a compact table", async () => {
+    await seedRunManifests([
+      manifest("run_table", "agent:table", "2026-05-02T13:00:00.000Z", ["row:1", "row:2"], "table intent"),
+    ]);
+
+    const result = await runCliBinary(["log", "--text"]);
+    expect(result.code).toBe(0);
+    expect(result.stderr).toBe("");
+    expect(result.stdout).toContain("completed_at\tactor\trows\trun_id\tintent");
+    expect(result.stdout).toContain("2026-05-02T13:00:00.000Z\tagent:table\t2\trun_table\ttable intent");
   });
 });
 
@@ -427,6 +794,39 @@ describe("cli flag parsing", () => {
     expect(result.code).toBe(0);
     const { envelope } = parseEnvelope(result.stdout);
     expect(envelope.ok).toBe(true);
+  });
+
+  test("invalid numeric flags are rejected with invalid_arguments", async () => {
+    await initWorkspace();
+
+    const result = await runCliBinary(["query", "--limit", "not-a-number", "--json"]);
+
+    expect(result.code).toBe(2);
+    expect(result.stdout).toBe("");
+    const envelope = JSON.parse(result.stderr.trim()) as {
+      ok: boolean;
+      error: { code: string; message: string; details?: { flag?: string; value?: string } };
+    };
+    expect(envelope.ok).toBe(false);
+    expect(envelope.error.code).toBe("invalid_arguments");
+    expect(envelope.error.details?.flag).toBe("--limit");
+    expect(envelope.error.details?.value).toBe("not-a-number");
+  });
+
+  test("invalid query --kind is rejected with invalid_arguments", async () => {
+    await initWorkspace();
+
+    const result = await runCliBinary(["query", "--kind", "notakind", "--json"]);
+
+    expect(result.code).toBe(2);
+    expect(result.stdout).toBe("");
+    const envelope = JSON.parse(result.stderr.trim()) as {
+      ok: boolean;
+      error: { code: string; message: string; details?: { kind?: string } };
+    };
+    expect(envelope.ok).toBe(false);
+    expect(envelope.error.code).toBe("invalid_arguments");
+    expect(envelope.error.details?.kind).toBe("notakind");
   });
 
   test("--quiet beats --json when both are set", async () => {
@@ -671,6 +1071,70 @@ describe("cli apply / add / novelty payload sources", () => {
     const statusRun = await runCliBinary(["status", "--json"]);
     const statusEnv = JSON.parse(statusRun.stdout.trim()) as { data: { row_count: number } };
     expect(statusEnv.data.row_count).toBe(2);
+  });
+
+  test("apply --dry-run rejects profile-invalid claims without appending rows", async () => {
+    await initWorkspace();
+    await mkdir(join(workDir, "knb", "profiles"), { recursive: true });
+    await writeFile(
+      join(workDir, "knb", "profiles", "prediction.json"),
+      `${JSON.stringify({
+        profile_version: "knb.profile.v1",
+        name: "prediction-profile",
+        select: { kinds: ["claim"], where: [{ path: "claim.type", eq: "prediction" }] },
+        rules: [{ path: "claim.qualifiers.location", required: true, type: "string" }],
+      }, null, 2)}\n`,
+      "utf8",
+    );
+    const payload = JSON.stringify({
+      operations: [
+        {
+          op: "add",
+          as: "src",
+          row: {
+            kind: "source",
+            scope: { collections: ["dry-profile"] },
+            source: { type: "web_page", title: "Dry profile source", uri: "https://example.com/dry-profile" },
+            provenance: { acquisition: { method: "manual" } },
+          },
+        },
+        {
+          op: "add",
+          row: {
+            kind: "claim",
+            scope: { collections: ["dry-profile"] },
+            identity: { claim_key: "dry-profile|prediction" },
+            claim: {
+              statement: "Prediction missing location.",
+              atomic: true,
+              type: "prediction",
+            },
+            time: { precision: "unknown" },
+            provenance: {
+              evidence: [{ source_id: "$src", role: "supports", summary: "Backs prediction." }],
+            },
+            assessment: { confidence: "high" },
+          },
+        },
+      ],
+    });
+
+    const result = await runCliBinary(["apply", "--json", payload, "--dry-run", "--pretty"]);
+
+    expect(result.code).toBe(3);
+    const env = JSON.parse(result.stderr.trim()) as {
+      error: { code: string; details?: { issues?: Array<{ code?: string; op_index?: number; profile?: string }> } };
+    };
+    expect(env.error.code).toBe("validation_failed");
+    expect(env.error.details?.issues).toContainEqual(expect.objectContaining({
+      code: "profile_required_path",
+      op_index: 1,
+      profile: "prediction-profile",
+    }));
+    const statusEnv = JSON.parse((await runCliBinary(["status", "--json"])).stdout.trim()) as {
+      data: { row_count: number };
+    };
+    expect(statusEnv.data.row_count).toBe(0);
   });
 
   test("apply rejects invalid operation shapes with operation-index diagnostics", async () => {
@@ -1066,6 +1530,100 @@ describe("cli get / query / context / novelty success envelopes", () => {
     expect(env.data.rows[0]?.id).toContain("claim:cite:");
   });
 
+  test("query structured filters use --claim-type, --qualifier, and --external-ref", async () => {
+    await initWorkspace();
+    const payload = JSON.stringify({
+      operations: [
+        {
+          op: "add",
+          as: "src",
+          row: {
+            kind: "source",
+            scope: { collections: ["structured-cli"] },
+            source: { type: "web_page", title: "Structured source", uri: "https://example.com/structured-cli" },
+            provenance: { acquisition: { method: "manual" } },
+          },
+        },
+        {
+          op: "add",
+          row: {
+            kind: "claim",
+            scope: { collections: ["structured-cli"] },
+            external_refs: [{ system: "kalshi", id: "KXIRAN-20260501", type: "market" }],
+            identity: { claim_key: "structured|match" },
+            claim: {
+              statement: "Structured CLI match.",
+              atomic: true,
+              type: "prediction",
+              qualifiers: { location: "tehran", date: "2026-05-03" },
+            },
+            time: { precision: "unknown" },
+            provenance: {
+              evidence: [{ source_id: "$src", role: "supports", summary: "Backs match." }],
+            },
+            assessment: { confidence: "high" },
+          },
+        },
+        {
+          op: "add",
+          row: {
+            kind: "claim",
+            scope: { collections: ["structured-cli"] },
+            external_refs: [{ system: "kalshi", id: "KXOTHER", type: "market" }],
+            identity: { claim_key: "structured|miss" },
+            claim: {
+              statement: "Structured CLI miss.",
+              atomic: true,
+              type: "prediction",
+              qualifiers: { location: "shiraz", date: "2026-05-03" },
+            },
+            time: { precision: "unknown" },
+            provenance: {
+              evidence: [{ source_id: "$src", role: "supports", summary: "Backs miss." }],
+            },
+            assessment: { confidence: "high" },
+          },
+        },
+      ],
+    });
+    const applied = await runCliBinary(["apply", "--json", payload, "--pretty"]);
+    expect(applied.code).toBe(0);
+
+    const result = await runCliBinary([
+      "query",
+      "--collection",
+      "structured-cli",
+      "--claim-type",
+      "prediction",
+      "--qualifier",
+      "location=tehran",
+      "--qualifier",
+      "date=2026-05-03",
+      "--external-ref",
+      "kalshi:KXIRAN-20260501",
+      "--json",
+    ]);
+    expect(result.code).toBe(0);
+    const env = JSON.parse(result.stdout.trim()) as {
+      data: { rows: Array<{ text?: string; kind: string }>; total_returned: number };
+    };
+    expect(env.data.total_returned).toBe(1);
+    expect(env.data.rows.map((row) => row.text)).toEqual(["Structured CLI match."]);
+  });
+
+  test("query --qualifier with invalid syntax returns exit 2 invalid_arguments", async () => {
+    await initWorkspace();
+    const result = await runCliBinary(["query", "--qualifier", "not-a-pair", "--json"]);
+    expect(result.code).toBe(2);
+    const env = JSON.parse(result.stderr.trim()) as {
+      ok: boolean;
+      error: { code: string; message: string };
+    };
+    expect(env.ok).toBe(false);
+    expect(env.error.code).toBe("invalid_arguments");
+    expect(env.error.message).toContain("key=value");
+  });
+
   test("query --limit caps total_returned but not total_matched", async () => {
     await initWorkspace();
     for (let i = 0; i < 4; i += 1) {
@@ -1135,6 +1693,293 @@ describe("cli get / query / context / novelty success envelopes", () => {
     expect(typeof env.data.summary).toBe("string");
     expect(Array.isArray(env.data.key_claims)).toBe(true);
     expect(env.data.key_claims.length).toBeGreaterThan(0);
+  });
+
+  test("context --recency-window-days changes ranking for time-spread claims", async () => {
+    await initWorkspace();
+    const sourceAdd = await runCliBinary([
+      "apply",
+      "--json",
+      JSON.stringify({
+        now: "2026-05-01T12:00:00Z",
+        operations: [
+          {
+            op: "add",
+            row: {
+              kind: "source",
+              scope: { collections: ["ctx-recency"] },
+              source: { type: "web_page", title: "Ctx recency source", uri: "https://example.com/ctx-recency" },
+              provenance: { acquisition: { method: "manual" } },
+            },
+          },
+        ],
+      }),
+    ]);
+    expect(sourceAdd.code).toBe(0);
+    const sourceId = (JSON.parse(sourceAdd.stdout.trim()) as {
+      data: { created: Array<{ id: string }> };
+    }).data.created[0]?.id ?? "";
+
+    for (const entry of [
+      {
+        now: "2026-04-01T12:00:00Z",
+        key: "ctx-recency|old",
+        statement: "Older deeper-evidence context claim.",
+        confidence: "high",
+        evidenceCount: 2,
+      },
+      {
+        now: "2026-05-01T12:00:00Z",
+        key: "ctx-recency|recent",
+        statement: "Recent thinner-evidence context claim.",
+        confidence: "high",
+        evidenceCount: 1,
+      },
+    ] as const) {
+      const claimAdd = await runCliBinary([
+        "apply",
+        "--json",
+        JSON.stringify({
+          now: entry.now,
+          operations: [
+            {
+              op: "add",
+              row: {
+                kind: "claim",
+                scope: { collections: ["ctx-recency"] },
+                identity: { claim_key: entry.key },
+                claim: { statement: entry.statement, atomic: true },
+                time: { precision: "unknown" },
+                provenance: {
+                  source_ids: [sourceId],
+                  evidence: Array.from({ length: entry.evidenceCount }, (_, index) => ({
+                    source_id: sourceId,
+                    role: "supports",
+                    summary: `Backs claim ${index}.`,
+                  })),
+                },
+                assessment: { importance: "high", confidence: entry.confidence },
+              },
+            },
+          ],
+        }),
+      ]);
+      expect(claimAdd.code).toBe(0);
+    }
+
+    const defaultResult = await runCliBinary(["context", "--collection", "ctx-recency", "--json"]);
+    expect(defaultResult.code).toBe(0);
+    const defaultEnv = JSON.parse(defaultResult.stdout.trim()) as {
+      data: { key_claims: Array<{ statement: string }> };
+    };
+    expect(defaultEnv.data.key_claims.map((row) => row.statement)).toEqual([
+      "Older deeper-evidence context claim.",
+      "Recent thinner-evidence context claim.",
+    ]);
+
+    const recencyResult = await runCliBinary([
+      "context",
+      "--collection",
+      "ctx-recency",
+      "--recency-window-days",
+      "45",
+      "--json",
+    ]);
+    expect(recencyResult.code).toBe(0);
+    const recencyEnv = JSON.parse(recencyResult.stdout.trim()) as {
+      data: { key_claims: Array<{ statement: string }> };
+    };
+    expect(recencyEnv.data.key_claims.map((row) => row.statement)).toEqual([
+      "Recent thinner-evidence context claim.",
+      "Older deeper-evidence context claim.",
+    ]);
+  });
+
+  test("context structured filters use --claim-type, --qualifier, and --external-ref", async () => {
+    await initWorkspace();
+    const payload = JSON.stringify({
+      operations: [
+        {
+          op: "add",
+          as: "src",
+          row: {
+            kind: "source",
+            scope: { collections: ["ctx-structured"] },
+            source: { type: "web_page", title: "Context structured source", uri: "https://example.com/ctx-structured" },
+            provenance: { acquisition: { method: "manual" } },
+          },
+        },
+        {
+          op: "add",
+          row: {
+            kind: "claim",
+            scope: { collections: ["ctx-structured"] },
+            external_refs: [{ system: "kalshi", id: "KXCTX", type: "market" }],
+            identity: { claim_key: "ctx-structured|match" },
+            claim: {
+              statement: "Context structured match.",
+              atomic: true,
+              type: "prediction",
+              qualifiers: { location: "tehran", date: "2026-05-03" },
+            },
+            time: { precision: "unknown" },
+            provenance: {
+              evidence: [{ source_id: "$src", role: "supports", summary: "Backs match." }],
+            },
+            assessment: { confidence: "high" },
+          },
+        },
+        {
+          op: "add",
+          row: {
+            kind: "claim",
+            scope: { collections: ["ctx-structured"] },
+            external_refs: [{ system: "kalshi", id: "KXMISS", type: "market" }],
+            identity: { claim_key: "ctx-structured|miss" },
+            claim: {
+              statement: "Context structured miss.",
+              atomic: true,
+              type: "prediction",
+              qualifiers: { location: "shiraz", date: "2026-05-03" },
+            },
+            time: { precision: "unknown" },
+            provenance: {
+              evidence: [{ source_id: "$src", role: "supports", summary: "Backs miss." }],
+            },
+            assessment: { confidence: "high" },
+          },
+        },
+      ],
+    });
+    const applied = await runCliBinary(["apply", "--json", payload, "--pretty"]);
+    expect(applied.code).toBe(0);
+
+    const result = await runCliBinary([
+      "context",
+      "--collection",
+      "ctx-structured",
+      "--claim-type",
+      "prediction",
+      "--qualifier",
+      "location=tehran",
+      "--external-ref",
+      "kalshi:KXCTX",
+      "--json",
+    ]);
+    expect(result.code).toBe(0);
+    const env = JSON.parse(result.stdout.trim()) as {
+      data: {
+        key_claims: Array<{ id: string; statement: string; source_ids: string[] }>;
+        sources: Array<{ id: string; title: string }>;
+      };
+    };
+    expect(env.data.key_claims.map((claim) => claim.statement)).toEqual(["Context structured match."]);
+    expect(env.data.sources.map((source) => source.title)).toEqual(["Context structured source"]);
+    expect(env.data.key_claims[0]!.source_ids).toEqual([env.data.sources[0]!.id]);
+  });
+
+  test("read commands honor --as-of across query, get, context, and render", async () => {
+    const { sourceId, claimId } = await seedAsOfFixture();
+
+    const getBeforeClaim = await runCliBinary([
+      "get",
+      sourceId,
+      claimId,
+      "--as-of",
+      "2026-05-01T00:30:00Z",
+      "--json",
+    ]);
+    expect(getBeforeClaim.code).toBe(0);
+    const getEnv = JSON.parse(getBeforeClaim.stdout.trim()) as {
+      data: { rows: Array<{ id: string }>; not_found: string[] };
+    };
+    expect(getEnv.data.rows.map((row) => row.id)).toEqual([sourceId]);
+    expect(getEnv.data.not_found).toEqual([claimId]);
+
+    const queryAtClaim = await runCliBinary([
+      "query",
+      "--collection",
+      "asof-cli",
+      "--kind",
+      "claim",
+      "--as-of",
+      "2026-05-01T01:30:00Z",
+      "--json",
+    ]);
+    expect(queryAtClaim.code).toBe(0);
+    const queryEnv = JSON.parse(queryAtClaim.stdout.trim()) as {
+      data: { rows: Array<{ id: string; status: string; text?: string }> };
+    };
+    expect(queryEnv.data.rows.map((row) => row.id)).toEqual([claimId]);
+    expect(queryEnv.data.rows[0]?.status).toBe("active");
+
+    const historyQuery = await runCliBinary([
+      "query",
+      "--collection",
+      "asof-cli",
+      "--kind",
+      "claim",
+      "--history",
+      "--as-of",
+      "2026-05-01T02:30:00Z",
+      "--json",
+    ]);
+    expect(historyQuery.code).toBe(0);
+    const historyEnv = JSON.parse(historyQuery.stdout.trim()) as {
+      data: { rows: Array<{ id: string; status: string }> };
+    };
+    expect(historyEnv.data.rows.map((row) => [row.id, row.status])).toEqual([[claimId, "retracted"]]);
+
+    const contextAtClaim = await runCliBinary([
+      "context",
+      "--collection",
+      "asof-cli",
+      "--as-of",
+      "2026-05-01T01:30:00Z",
+      "--json",
+    ]);
+    expect(contextAtClaim.code).toBe(0);
+    const contextEnv = JSON.parse(contextAtClaim.stdout.trim()) as {
+      data: {
+        key_claims: Array<{ id: string }>;
+        syntheses: Array<{ title: string }>;
+        open_questions: Array<{ text: string }>;
+      };
+    };
+    expect(contextEnv.data.key_claims.map((claim) => claim.id)).toEqual([claimId]);
+    expect(contextEnv.data.syntheses.map((synthesis) => synthesis.title)).toEqual(["CLI AsOf Synthesis"]);
+    expect(contextEnv.data.open_questions).toEqual([]);
+
+    const renderAtClaim = await runCliBinary([
+      "render",
+      "--collection",
+      "asof-cli",
+      "--as-of",
+      "2026-05-01T01:30:00Z",
+      "--json",
+    ]);
+    expect(renderAtClaim.code).toBe(0);
+    const renderEnv = JSON.parse(renderAtClaim.stdout.trim()) as {
+      data: { path: string; metadata: { options: Record<string, unknown> } };
+    };
+    const markdown = await readFile(renderEnv.data.path, "utf8");
+    expect(markdown).toContain("CLI time-travel claim.");
+    expect(markdown).toContain("CLI historical synthesis.");
+    expect(markdown).not.toContain("CLI question after cutoff?");
+    expect(renderEnv.data.metadata.options.asOf).toBe("2026-05-01T01:30:00Z");
+  });
+
+  test("query --as-of with invalid timestamp returns exit 2 invalid_arguments", async () => {
+    await seedAsOfFixture("bad-asof-cli");
+    const result = await runCliBinary(["query", "--as-of", "not-a-timestamp", "--json"]);
+    expect(result.code).toBe(2);
+    const env = JSON.parse(result.stderr.trim()) as {
+      ok: boolean;
+      error: { code: string; message: string };
+    };
+    expect(env.ok).toBe(false);
+    expect(env.error.code).toBe("invalid_arguments");
+    expect(env.error.message).toContain("Invalid asOf timestamp");
   });
 
   test("novelty inline payload classifies new vs duplicate against ledger", async () => {
@@ -1323,6 +2168,68 @@ describe("cli render / check / index", () => {
     };
     expect(env.ok).toBe(true);
     expect(env.data.ok).toBe(false);
+  });
+
+  test("check --json reports profile validation failures", async () => {
+    await initWorkspace();
+    await mkdir(join(workDir, "knb", "profiles"), { recursive: true });
+    await writeFile(
+      join(workDir, "knb", "profiles", "prediction.json"),
+      `${JSON.stringify({
+        profile_version: "knb.profile.v1",
+        name: "prediction-profile",
+        select: { kinds: ["claim"], where: [{ path: "claim.type", eq: "prediction" }] },
+        rules: [{ path: "claim.qualifiers.location", required: true, type: "string" }],
+      }, null, 2)}\n`,
+      "utf8",
+    );
+    const sourcePayload = JSON.stringify({
+      kind: "source",
+      scope: { collections: ["profile-check"] },
+      source: { type: "web_page", title: "Profile check source", uri: "https://example.com/profile-check" },
+      provenance: { acquisition: { method: "manual" } },
+    });
+    const applied = await runCliBinary(["add", "--json", sourcePayload, "--json"]);
+    expect(applied.code).toBe(0);
+    const appliedEnv = JSON.parse(applied.stdout.trim()) as { data: { created: Array<{ id: string }> } };
+    const sourceId = appliedEnv.data.created[0]!.id;
+    await appendFile(
+      join(workDir, "knb", "ledger.jsonl"),
+      `${JSON.stringify({
+        schema_version: "knb.v1",
+        id: "claim:profile-check:20260501:manual01",
+        kind: "claim",
+        created_at: "2026-05-01T12:01:00Z",
+        created_by: "agent:test",
+        scope: { collections: ["profile-check"] },
+        identity: { claim_key: "profile-check|prediction" },
+        claim: {
+          statement: "Prediction missing location.",
+          atomic: true,
+          type: "prediction",
+        },
+        time: { precision: "unknown" },
+        provenance: {
+          evidence: [{ source_id: sourceId, role: "supports", summary: "Backs prediction." }],
+        },
+        assessment: { confidence: "high" },
+      })}\n`,
+      "utf8",
+    );
+
+    const result = await runCliBinary(["check", "--json"]);
+    expect(result.code).toBe(0);
+    const env = JSON.parse(result.stdout.trim()) as {
+      data: {
+        ok: boolean;
+        validation_issues: Array<{ code?: string; profile?: string; path?: string; message: string }>;
+      };
+    };
+    const issue = env.data.validation_issues.find((candidate) => candidate.code === "profile_required_path");
+    expect(env.data.ok).toBe(false);
+    expect(issue?.profile).toBe("prediction-profile");
+    expect(issue?.path).toBe("claim.qualifiers.location");
+    expect(issue?.message).toContain("prediction-profile");
   });
 
   test("index without --rebuild returns projection_freshness only", async () => {
