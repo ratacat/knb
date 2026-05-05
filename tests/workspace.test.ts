@@ -114,7 +114,6 @@ describe("openWorkspace.config precedence", () => {
     expect(ws.paths.schema).toBe(join(ROOT, "knb", "schema.json"));
     expect(ws.paths.views).toBe(join(ROOT, "knb", "views"));
     expect(ws.paths.indexes).toBe(join(ROOT, "knb", "indexes"));
-    expect(ws.paths.profiles).toBe(join(ROOT, "knb", "profiles"));
   });
 
   test("config with extra unknown fields is silently retained without affecting paths", async () => {
@@ -217,7 +216,6 @@ describe("openWorkspace.path normalization", () => {
     expect(ws.paths.schema).toBe(join(ROOT, "knb", "schema.json"));
     expect(ws.paths.views).toBe(join(ROOT, "knb", "views"));
     expect(ws.paths.indexes).toBe(join(ROOT, "knb", "indexes"));
-    expect(ws.paths.profiles).toBe(join(ROOT, "knb", "profiles"));
     expect(ws.paths.lock).toBe(join(ROOT, ".knb", "ledger.lock"));
     expect(ws.paths.config).toBe(join(ROOT, ".knb", "config.json"));
   });

@@ -296,9 +296,7 @@ describe("cli init (in-process)", () => {
       schema_version: string;
       json_schema: object;
       selector_schema?: { schema_version?: string; properties?: Record<string, unknown> };
-      profile_schema?: { schema_version?: string; properties?: Record<string, unknown> };
       selector_samples?: unknown[];
-      profile_samples?: unknown[];
       row_samples: unknown[];
       operation_samples: unknown[];
     };
@@ -306,9 +304,6 @@ describe("cli init (in-process)", () => {
     expect(typeof data.json_schema).toBe("object");
     expect(data.json_schema).not.toBeNull();
     expect(data.selector_schema?.schema_version).toBe("knb.selector.v1");
-    expect(data.profile_schema?.schema_version).toBe("knb.profile.v1");
-    expect(data.profile_schema?.properties?.select).toBeDefined();
-    expect(data.profile_samples?.length).toBeGreaterThanOrEqual(1);
     expect(data.selector_samples?.length).toBeGreaterThanOrEqual(1);
     expect(data.row_samples.length).toBeGreaterThanOrEqual(5);
     expect(data.operation_samples.length).toBeGreaterThanOrEqual(6);
@@ -1104,70 +1099,6 @@ describe("cli apply / add / novelty payload sources", () => {
     const statusRun = await runCliBinary(["status", "--json"]);
     const statusEnv = JSON.parse(statusRun.stdout.trim()) as { data: { row_count: number } };
     expect(statusEnv.data.row_count).toBe(2);
-  });
-
-  test("apply --dry-run rejects profile-invalid claims without appending rows", async () => {
-    await initWorkspace();
-    await mkdir(join(workDir, "knb", "profiles"), { recursive: true });
-    await writeFile(
-      join(workDir, "knb", "profiles", "prediction.json"),
-      `${JSON.stringify({
-        profile_version: "knb.profile.v1",
-        name: "prediction-profile",
-        select: { kinds: ["claim"], where: [{ path: "claim.type", eq: "prediction" }] },
-        rules: [{ path: "claim.qualifiers.location", required: true, type: "string" }],
-      }, null, 2)}\n`,
-      "utf8",
-    );
-    const payload = JSON.stringify({
-      operations: [
-        {
-          op: "add",
-          as: "src",
-          row: {
-            kind: "source",
-            scope: { collections: ["dry-profile"] },
-            source: { type: "web_page", title: "Dry profile source", uri: "https://example.com/dry-profile" },
-            provenance: { acquisition: { method: "manual" } },
-          },
-        },
-        {
-          op: "add",
-          row: {
-            kind: "claim",
-            scope: { collections: ["dry-profile"] },
-            identity: { claim_key: "dry-profile|prediction" },
-            claim: {
-              statement: "Prediction missing location.",
-              atomic: true,
-              type: "prediction",
-            },
-            time: { precision: "unknown" },
-            provenance: {
-              evidence: [{ source_id: "$src", role: "supports", summary: "Backs prediction." }],
-            },
-            assessment: { confidence: "high" },
-          },
-        },
-      ],
-    });
-
-    const result = await runCliBinary(["apply", "--json", payload, "--dry-run", "--pretty"]);
-
-    expect(result.code).toBe(3);
-    const env = JSON.parse(result.stderr.trim()) as {
-      error: { code: string; details?: { issues?: Array<{ code?: string; op_index?: number; profile?: string }> } };
-    };
-    expect(env.error.code).toBe("validation_failed");
-    expect(env.error.details?.issues).toContainEqual(expect.objectContaining({
-      code: "profile_required_path",
-      op_index: 1,
-      profile: "prediction-profile",
-    }));
-    const statusEnv = JSON.parse((await runCliBinary(["status", "--json"])).stdout.trim()) as {
-      data: { row_count: number };
-    };
-    expect(statusEnv.data.row_count).toBe(0);
   });
 
   test("apply rejects invalid operation shapes with operation-index diagnostics", async () => {
@@ -2246,68 +2177,6 @@ describe("cli render / check / index", () => {
     };
     expect(env.ok).toBe(true);
     expect(env.data.ok).toBe(false);
-  });
-
-  test("check --json reports profile validation failures", async () => {
-    await initWorkspace();
-    await mkdir(join(workDir, "knb", "profiles"), { recursive: true });
-    await writeFile(
-      join(workDir, "knb", "profiles", "prediction.json"),
-      `${JSON.stringify({
-        profile_version: "knb.profile.v1",
-        name: "prediction-profile",
-        select: { kinds: ["claim"], where: [{ path: "claim.type", eq: "prediction" }] },
-        rules: [{ path: "claim.qualifiers.location", required: true, type: "string" }],
-      }, null, 2)}\n`,
-      "utf8",
-    );
-    const sourcePayload = JSON.stringify({
-      kind: "source",
-      scope: { collections: ["profile-check"] },
-      source: { type: "web_page", title: "Profile check source", uri: "https://example.com/profile-check" },
-      provenance: { acquisition: { method: "manual" } },
-    });
-    const applied = await runCliBinary(["add", "--json", sourcePayload, "--json"]);
-    expect(applied.code).toBe(0);
-    const appliedEnv = JSON.parse(applied.stdout.trim()) as { data: { created: Array<{ id: string }> } };
-    const sourceId = appliedEnv.data.created[0]!.id;
-    await appendFile(
-      join(workDir, "knb", "ledger.jsonl"),
-      `${JSON.stringify({
-        schema_version: "knb.v1",
-        id: "claim:profile-check:20260501:manual01",
-        kind: "claim",
-        created_at: "2026-05-01T12:01:00Z",
-        created_by: "agent:test",
-        scope: { collections: ["profile-check"] },
-        identity: { claim_key: "profile-check|prediction" },
-        claim: {
-          statement: "Prediction missing location.",
-          atomic: true,
-          type: "prediction",
-        },
-        time: { precision: "unknown" },
-        provenance: {
-          evidence: [{ source_id: sourceId, role: "supports", summary: "Backs prediction." }],
-        },
-        assessment: { confidence: "high" },
-      })}\n`,
-      "utf8",
-    );
-
-    const result = await runCliBinary(["check", "--json"]);
-    expect(result.code).toBe(0);
-    const env = JSON.parse(result.stdout.trim()) as {
-      data: {
-        ok: boolean;
-        validation_issues: Array<{ code?: string; profile?: string; path?: string; message: string }>;
-      };
-    };
-    const issue = env.data.validation_issues.find((candidate) => candidate.code === "profile_required_path");
-    expect(env.data.ok).toBe(false);
-    expect(issue?.profile).toBe("prediction-profile");
-    expect(issue?.path).toBe("claim.qualifiers.location");
-    expect(issue?.message).toContain("prediction-profile");
   });
 
   test("index without --rebuild returns projection_freshness only", async () => {

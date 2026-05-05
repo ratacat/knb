@@ -30,7 +30,6 @@ import {
   type LedgerSnapshot,
   type LedgerWriteResult,
 } from "./ledger";
-import { validateProfilesForWorkspace } from "./profiles";
 import { isSafeRunManifestId, writeRunManifest as defaultWriteRunManifest, type RunManifest } from "./run-manifests";
 
 const ID_COLLISION_RETRY_LIMIT = 8;
@@ -58,7 +57,7 @@ export type NoveltyDecision = {
 };
 
 export type ApplyDeps = {
-  workspace: { paths: { ledger: string; lock: string; profiles?: string; runs?: string } };
+  workspace: { paths: { ledger: string; lock: string; runs?: string } };
   runtime: { clock: () => Date; randomIdPart: (bytes: number) => string };
   actor: string;
   writeLedger?: typeof defaultWriteLedger;
@@ -340,16 +339,8 @@ export async function applyOperations(
         });
       }
       const finalValidation = validateLedger(candidate, snapshot.parseIssues);
-      const profileValidationIssues = deps.workspace.paths.profiles === undefined
-        ? []
-        : await validateProfilesForWorkspace(
-            { paths: { profiles: deps.workspace.paths.profiles } },
-            candidate,
-          );
-      const candidateIssues = [...finalValidation.issues, ...profileValidationIssues];
-      const finalIssues = annotateApplyValidationIssues(candidateIssues, appendedLineToPlan);
-      const hasProfileValidationError = profileValidationIssues.some((issue) => issue.level === "error");
-      if (planningIssues.length > 0 || !finalValidation.ok || hasProfileValidationError) {
+      const finalIssues = annotateApplyValidationIssues(finalValidation.issues, appendedLineToPlan);
+      if (planningIssues.length > 0 || !finalValidation.ok) {
         const allIssues = [
           ...planningIssues.map(publicPlanningIssue),
           ...finalIssues.filter((issue) => issue.level === "error"),

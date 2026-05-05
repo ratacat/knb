@@ -289,7 +289,6 @@ async function makeWorkspace(): Promise<KnbWorkspace> {
       schema: join(root, "knb", "schema.json"),
       views,
       indexes,
-      profiles: join(root, "knb", "profiles"),
       runs: join(root, ".knb", "runs"),
       lock: join(root, ".knb", "ledger.lock"),
       config: join(root, ".knb", "config.json"),

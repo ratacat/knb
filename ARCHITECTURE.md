@@ -20,10 +20,9 @@ Rows in `knb/ledger.jsonl` are canonical events. `source`, `claim`, `question`, 
 | `src/core/ledger.ts` | Own JSONL loading, parse diagnostics, fingerprints, lock-protected append transactions, and durable flush behavior. | `loadLedger`, `writeLedger`, `LedgerFingerprint`, `LedgerSnapshot`. |
 | `src/core/novelty.ts` | Classify candidate claims against active claims for dedupe and research triage. | `classifyClaim`, `classifyMany`, `NoveltyResult`. |
 | `src/core/output.ts` | Render CLI success/failure envelopes and human text without changing domain results. | `success`, `failure`, `render`, `CommandResult`. |
-| `src/core/profiles.ts` | Load and validate optional workspace profiles that constrain row shapes. | `KnbProfile`, `validateProfilesForWorkspace`, `profileSchema`, `profileSamples`. |
 | `src/core/projections.ts` | Render Markdown views, rebuild disposable indexes, write projection metadata, and report freshness. | `ProjectionArtifactStore`, `JsonProjectionArtifactStore`, `renderCollection`, `renderAllCollections`, `rebuildIndexes`, `checkFreshness`. |
 | `src/core/query.ts` | Retrieve active or historical rows from effective state with deterministic filtering and ranking. | `executeQuery`, `executeGet`, `QueryRequest`, `GetRequest`. |
-| `src/core/read-snapshot.ts` | Build one read-side packet from ledger load, validation, state projection, profile validation, and projection freshness. | `readSnapshot`, `KnbReadSnapshot`, injected loader/validator/projector/freshness seams. |
+| `src/core/read-snapshot.ts` | Build one read-side packet from ledger load, validation, state projection, and projection freshness. | `readSnapshot`, `KnbReadSnapshot`, injected loader/validator/projector/freshness seams. |
 | `src/core/run-manifests.ts` | Persist and read per-run operation manifests for audit logs. | `RunManifest`, `runsDirFor`, facade log methods. |
 | `src/core/selectors.ts` | Validate and evaluate structured row selectors for claim type, qualifiers, and external references. | `RowSelector`, `structuredClaimSelectorFromRequest`, `matchesRowSelector`, `rowSelectorSchema`. |
 | `src/core/source-citations.ts` | Build source URI/hash to citing-claim vocabulary for reverse citation lookup. | `SourceCitationIndex`, `buildSourceCitationIndex`. |

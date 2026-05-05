@@ -10,7 +10,6 @@ import {
   checkFreshness as defaultCheckFreshness,
   type FreshnessReport,
 } from "./projections";
-import { validateProfilesForWorkspace } from "./profiles";
 import { buildEffectiveState, type EffectiveState, type StateOptions } from "./state";
 import type { KnbWorkspace } from "./workspace";
 
@@ -44,16 +43,10 @@ export type ReadSnapshotFreshnessProbe = (
   ledger_fingerprint: LedgerFingerprint,
 ) => Promise<FreshnessReport>;
 
-export type ReadSnapshotProfileValidator = (
-  workspace: KnbWorkspace,
-  rows: ContractLoadedRow[],
-) => Promise<ValidationIssue[]>;
-
 export type ReadSnapshotOptions = {
   workspace: KnbWorkspace;
   loadLedger?: ReadSnapshotLedgerLoader;
   validate?: ReadSnapshotValidator;
-  profiles?: ReadSnapshotProfileValidator | false;
   projectState?: ReadSnapshotProjector | false;
   freshness?: ReadSnapshotFreshnessProbe | false;
   asOf?: string;
@@ -80,15 +73,7 @@ export async function readSnapshot(options: ReadSnapshotOptions): Promise<KnbRea
     line: issue.line,
   }));
 
-  const baseValidation = validator(contractRows, parseIssues);
-  const profileIssues =
-    options.profiles === false
-      ? []
-      : await (options.profiles ?? validateProfilesForWorkspace)(options.workspace, contractRows);
-  const validation: ValidationResult = {
-    ok: baseValidation.ok && !profileIssues.some((issue) => issue.level === "error"),
-    issues: [...baseValidation.issues, ...profileIssues],
-  };
+  const validation = validator(contractRows, parseIssues);
 
   const hasParseError = ledger.parseIssues.length > 0;
   const hasValidationError = validation.issues.some((issue) => issue.level === "error");

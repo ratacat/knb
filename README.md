@@ -123,8 +123,6 @@ knb index   [--rebuild]
 
 `get`, `query`, `context`, and `render` accept `--as-of <iso>` for historical reads. `query` and `context` also accept generic structured-claim filters such as `--claim-type`, `--predicate`, `--qualifier key=value`, and `--external-ref system:id`.
 
-Optional profile files in `knb/profiles/*.json` can validate project-specific claim vocabularies without changing the row model. Run `knb schema --json` to inspect the row schema, RowSelector contract, profile-file contract, and examples.
-
 ## Local development
 
 For local development in this repository:

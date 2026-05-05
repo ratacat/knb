@@ -410,7 +410,6 @@ export type ValidationIssue = {
   path?: string | undefined;
   line?: number | undefined;
   id?: string | undefined;
-  profile?: string | undefined;
 };
 
 export type ValidationResult = {

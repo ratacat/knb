@@ -677,7 +677,7 @@ describe("Knb.schema", () => {
     expect(result.row_samples[0]).toEqual(samples.source);
   });
 
-  test("exposes selector and profile contracts with generic samples", async () => {
+  test("exposes selector contracts with generic samples", async () => {
     const knb = await openKnb(makeOpenOptions());
     const result = await knb.schema();
 
@@ -686,16 +686,6 @@ describe("Knb.schema", () => {
       schema_version: "knb.selector.v1",
       type: "object",
     });
-    expect(result.profile_schema).toMatchObject({
-      schema_version: "knb.profile.v1",
-      type: "object",
-    });
-    expect(result.profile_samples[0]).toMatchObject({
-      profile_version: "knb.profile.v1",
-      select: { kinds: ["claim"] },
-    });
-    expect(JSON.stringify(result.profile_samples)).toContain("measurement");
-    expect(JSON.stringify(result.profile_samples)).not.toContain("weather");
     expect(JSON.stringify(result.selector_samples)).not.toContain("weather");
   });
 

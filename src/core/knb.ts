@@ -35,11 +35,6 @@ import {
   type NoveltyResult,
 } from "./novelty";
 import {
-  profileSamples,
-  profileSchema,
-  type KnbProfileFile,
-} from "./profiles";
-import {
   JsonProjectionArtifactStore,
   type FreshnessReport,
   type IndexResult,
@@ -171,9 +166,7 @@ export type SchemaResult = {
   schema_version: "knb.v1";
   json_schema: object;
   selector_schema: object;
-  profile_schema: object;
   selector_samples: RowSelector[];
-  profile_samples: KnbProfileFile[];
   row_samples: KnbRow[];
   operation_samples: ApplyOperation[];
 };
@@ -819,9 +812,7 @@ function buildSchemaResult(): SchemaResult {
     schema_version: "knb.v1",
     json_schema: jsonSchema(),
     selector_schema: rowSelectorSchema(),
-    profile_schema: profileSchema(),
     selector_samples: rowSelectorSamples(),
-    profile_samples: profileSamples(),
     row_samples: [samples.source, samples.claim, samples.question, samples.synthesis, samples.change],
     operation_samples: [ops.add, ops.retract, ops.supersede, ops.merge, ops.relate, ops.patch],
   };
