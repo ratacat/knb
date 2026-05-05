@@ -24,17 +24,103 @@ knb help
 
 `knb` gives agents a few stable parts they can combine instead of starting from blank files:
 
-- Ledger: one append-only JSONL file, `knb/ledger.jsonl`, as the canonical store.
-- Records: small sourced units of knowledge, open questions, and synthesis.
-- Entries: lifecycle mutations for retractions, supersession, merges, links, and repairs.
+- Ledger: one append-only JSONL file at `<project-root>/knb/ledger.jsonl`, as the canonical store.
+- Records: small sourced units of knowledge, open questions, and synthesis, with changes tracked by append-only entries.
 - Profiles: named vocabularies and rules for a domain, with optional agent instructions.
-- Instances: filesystem-backed workspaces with their own config, ledger, generated views, and indexes.
-- Context packets: token-bounded output for the next agent turn.
+- Instances: filesystem-backed workspaces that load one or more profiles.
 - Views and indexes: disposable projections rebuilt from the ledger.
 
 The intended workflow: install `knb`, ask an agent to create a custom profile for the job, then let the agent write, check, query, and render structured knowledge through the same interface.
 
-## quick start
+## how to use it with an AI
+
+After installing `knb`, open your project folder with an AI coding agent and give it a prompt like this:
+
+```text
+Use knb in this project as the knowledge system for <purpose>.
+
+First inspect `knb help`, then initialize the workspace if needed.
+Design a custom profile for this purpose, including record types, link types,
+required fields, and agent_instructions.
+
+Before writing anything, ask me 3-5 questions that would change the profile.
+After I answer, create and attach the profile, then use `knb status`,
+`knb context`, `knb apply --atomic`, `knb index --rebuild`, `knb render`,
+and `knb check` to keep the knowledge base structured and auditable.
+
+Prefer small sourced records, explicit open questions, and short synthesis.
+Do not edit `<project-root>/knb/ledger.jsonl` directly.
+```
+
+`knb` is for state that needs to survive across agent turns. A good record is small, sourced, and easy to invalidate later. Agents should store the source, split the records, leave open questions, and write synthesis that a later agent can audit.
+
+The loop is usually:
+
+1. Initialize an instance in the current project folder.
+2. Create or attach a profile for the job.
+3. Read orientation with `status` and `context`.
+4. Write one atomic batch with `apply`.
+5. Render views or rebuild indexes when another agent or human needs projected output.
+6. Run `check`.
+
+The ledger is append-only on purpose. If a record is wrong, an agent writes an `entry` row that retracts or supersedes it. Later agents get the full trail instead of a silently edited note.
+
+Reads come from the effective state, not raw file scans. Queries, `context` output, renders, and profile summaries respect retractions, supersession, merges, and historical `--as-of` cutoffs.
+
+## base model
+
+`knb.v1` is the base storage model every profile builds on. It comes set up for sourced knowledge, open uncertainty, synthesis, and lifecycle history:
+
+- `source`: where knowledge came from
+- `claim`: legacy storage kind for the smallest useful proposition
+- `question`: unresolved uncertainty
+- `synthesis`: readable interpretation
+- `entry`: append-only ledger mutation for retractions, supersession, merges, links, and repairs
+
+`record` is the preferred domain term for a knowledge card. Current storage still exposes the legacy row kinds above.
+
+Only `<project-root>/knb/ledger.jsonl` is canonical. `knb/views/` and `knb/indexes/` are generated projections. Delete and rebuild them when they get stale.
+
+```text
+<project-root>/
+  .knb/
+    config.json
+    profiles/
+  knb/
+    ledger.jsonl
+    schema.json
+    views/
+    indexes/
+```
+
+## profiles and extensibility
+
+Profiles make `knb` modular. A profile can define:
+
+- `display_name` and `description`
+- `record_types` for domain-specific records
+- `link_types` for typed relationships between records
+- `required_fields` for profile-specific validation
+- `agent_instructions` that tell agents how to use the profile
+- `metadata` for local conventions
+
+One instance can attach multiple profiles, so the same workspace can hold shared sources while exposing different views for research, planning, operations, or narrative structure.
+
+Some possibilities:
+
+- `research.v1`: sources, claims, open questions, synthesis, and citation cleanup.
+- `decision_map.v1`: options, constraints, tradeoffs, risks, decisions, and reversals.
+- `workflow.v1`: tasks, dependencies, handoff notes, blockers, and verification gates.
+- `dialogue_tree.v1`: scenes, speakers, choices, conditions, and consequences.
+- `game_lore.v1`: entities, locations, quests, canon facts, contradictions, and retcons.
+- `trade_map.v1`: predictions, evidence, conditions, signals, and time-scoped assessments.
+- `incident_review.v1`: timeline events, hypotheses, evidence, mitigations, and follow-up work.
+
+The same primitive can support a knowledge base, a graph, a decision tree, or an agent workflow because the ledger stays general and the profile supplies the domain vocabulary.
+
+## cli example
+
+These are the kinds of commands an agent will run after it designs a profile.
 
 Create a workspace:
 
@@ -101,78 +187,6 @@ Rebuild outputs and check after writes:
 knb index --rebuild --json
 knb render --profile research.v1 --format md --json
 knb check --json
-```
-
-## how agents use it
-
-`knb` is for state that needs to survive across agent turns. A good record is small, sourced, and easy to invalidate later. Agents should store the source, split the records, leave open questions, and write synthesis that a later agent can audit.
-
-The loop is usually:
-
-1. Read orientation with `status` and `context`.
-2. Write one atomic batch with `apply`.
-3. Run `check`.
-4. Render views or rebuild indexes when another agent or human needs projected output.
-
-The ledger is append-only on purpose. If a record is wrong, an agent writes an `entry` row that retracts or supersedes it. Later agents get the full trail instead of a silently edited note.
-
-Reads come from the effective state, not raw file scans. Queries, context packets, renders, and profile summaries respect retractions, supersession, merges, and historical `--as-of` cutoffs.
-
-## core model
-
-The canonical model is `knb.v1`.
-
-- `source`: where knowledge came from
-- `claim`: legacy storage kind for the smallest useful proposition
-- `question`: unresolved uncertainty
-- `synthesis`: readable interpretation
-- `entry`: append-only ledger mutation for retractions, supersession, merges, links, and repairs
-
-`record` is the preferred domain term for a knowledge card. Current storage still exposes the legacy row kinds above.
-
-Only `knb/ledger.jsonl` is canonical. `knb/views/` and `knb/indexes/` are generated projections. Delete and rebuild them when they get stale.
-
-```text
-knb/
-  config.json
-  ledger.jsonl
-  schema.json
-  profiles/
-  views/
-  indexes/
-```
-
-## profiles and extensibility
-
-Profiles make `knb` modular. A profile can define:
-
-- `display_name` and `description`
-- `record_types` for domain-specific records
-- `link_types` for typed relationships between records
-- `required_fields` for profile-specific validation
-- `agent_instructions` that tell agents how to use the profile
-- `metadata` for local conventions
-
-One instance can attach multiple profiles, so the same workspace can hold shared sources while exposing different views for research, planning, operations, or narrative structure.
-
-Profile commands:
-
-```bash
-knb profile list --json
-knb profile show research.v1 --json
-knb profile create research.v1 --stdin --attach --json
-knb profile replace research.v1 --stdin --confirm research.v1 --json
-knb profile check --json
-```
-
-Instance commands:
-
-```bash
-knb instance show --json
-knb instance create ./my-kb --instance-id my-kb --profile research.v1 --json
-knb instance attach-profile research.v1 --json
-knb instance detach-profile research.v1 --json
-knb instance list --under . --json
 ```
 
 ## command surface
@@ -242,17 +256,3 @@ const result = await knb.apply({
 See [docs/library-usage.md](docs/library-usage.md) for facade methods and examples.
 
 See [docs/design/agent-first-cli.md](docs/design/agent-first-cli.md) for the full command surface, output envelopes, and lifecycle model.
-
-## profile ideas
-
-Profiles are meant to be cheap to create. A few useful shapes:
-
-- `research.v1`: sources, claims, open questions, synthesis, and citation cleanup.
-- `decision_map.v1`: options, constraints, tradeoffs, risks, decisions, and reversals.
-- `workflow.v1`: tasks, dependencies, handoff notes, blockers, and verification gates.
-- `dialogue_tree.v1`: scenes, speakers, choices, conditions, and consequences.
-- `game_lore.v1`: entities, locations, quests, canon facts, contradictions, and retcons.
-- `trade_map.v1`: predictions, evidence, conditions, signals, and time-scoped assessments.
-- `incident_review.v1`: timeline events, hypotheses, evidence, mitigations, and follow-up work.
-
-The same primitive can support a knowledge base, a graph, a decision tree, or an agent workflow because the ledger stays general and the profile supplies the domain vocabulary.
