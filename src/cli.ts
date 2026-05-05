@@ -144,6 +144,16 @@ async function runFacadeCommand(
     }
 
     if (command === "add") {
+      if (booleanFlag(flags, "dry-run")) {
+        return renderResult(
+          failure(
+            "add",
+            knbError("invalid_arguments", "knb add does not support --dry-run; use knb apply --dry-run"),
+            baseMeta(),
+          ),
+          outputOptions,
+        );
+      }
       const row = (await readWorkspaceJsonPayload(flags, knb.workspace.root)) as DraftRow;
       const result = await knb.add(row);
       return renderResult(

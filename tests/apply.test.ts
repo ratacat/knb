@@ -128,6 +128,62 @@ describe("applyOperations", () => {
     expect(await pathExists(join(workDir, ".knb", "runs", `${result.run_id}.json`))).toBe(false);
   });
 
+  test("previewApplyOperations reports snapshot fingerprint and planned rows on existing ledgers", async () => {
+    const source: SourceRow = {
+      schema_version: "knb.v1",
+      id: "src:preview:20260501:aaaa1111",
+      kind: "source",
+      created_at: "2026-05-01T12:00:00Z",
+      created_by: "agent:test",
+      scope: { collections: ["preview"] },
+      source: { type: "web_page", title: "Preview", uri: "https://example.com/preview" },
+      provenance: { acquisition: { method: "manual" } },
+    };
+    await seedLedger([source]);
+    const before = await loadLedger({ path: ledgerPath() });
+
+    const result = await previewApplyOperations(
+      {
+        operations: [
+          {
+            op: "add",
+            row: {
+              kind: "claim",
+              scope: { collections: ["preview"] },
+              identity: { claim_key: "preview|validates" },
+              claim: { statement: "Preview validates against the existing ledger.", atomic: true },
+              time: { precision: "unknown" },
+              provenance: { evidence: [{ source_id: source.id, role: "supports", summary: "Preview source." }] },
+              assessment: { confidence: "medium" },
+            },
+          },
+        ],
+      },
+      makeDeps({ randomIdPart: () => "prev0001" }),
+    );
+
+    expect(result.created.map((entry) => entry.kind)).toEqual(["claim"]);
+    expect(result.meta.dry_run).toBe(true);
+    expect(result.meta.planned_rows).toBe(1);
+    expect(result.meta.rows_appended).toBe(0);
+    expect(result.meta.bytes_written).toBe(0);
+    expect(result.meta.fingerprint_after).toEqual(before.fingerprint);
+    expect(await readLedgerText()).toBe(JSON.stringify(source) + "\n");
+    expect(await pathExists(lockPath())).toBe(false);
+  });
+
+  test("previewApplyOperations marks empty batches as dry-run without touching the ledger", async () => {
+    const result = await previewApplyOperations({ operations: [] }, makeDeps());
+
+    expect(result.created).toEqual([]);
+    expect(result.meta.dry_run).toBe(true);
+    expect(result.meta.planned_rows).toBe(0);
+    expect(result.meta.rows_appended).toBe(0);
+    expect(result.meta.bytes_written).toBe(0);
+    expect(await pathExists(ledgerPath())).toBe(false);
+    expect(await pathExists(lockPath())).toBe(false);
+  });
+
   test("previewApplyOperations catches final-ledger validation errors without mutating existing rows", async () => {
     const seed = await applyOperations(
       {

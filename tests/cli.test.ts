@@ -872,6 +872,26 @@ describe("cli apply / add / add payload sources", () => {
     expect(env.data.meta.rows_appended).toBe(1);
   });
 
+  test("add --dry-run is rejected so preview remains apply-only", async () => {
+    await initWorkspace();
+    const row = {
+      kind: "source",
+      scope: { collections: ["add-dry-run"] },
+      source: { type: "web_page", title: "Add dry run", uri: "https://example.com/add-dry-run" },
+      provenance: { acquisition: { method: "manual" } },
+    };
+
+    const result = await runCliBinary(["add", "--json", JSON.stringify(row), "--dry-run", "--pretty"]);
+    expect(result.code).toBe(2);
+    const env = JSON.parse(result.stderr.trim()) as { error: { code: string; message: string } };
+    expect(env.error.code).toBe("invalid_arguments");
+    expect(env.error.message).toContain("knb add does not support --dry-run");
+
+    const statusRun = await runCliBinary(["status", "--json"]);
+    const statusEnv = JSON.parse(statusRun.stdout.trim()) as { data: { row_count: number } };
+    expect(statusEnv.data.row_count).toBe(0);
+  });
+
   test("add --file <relative path> resolves from workspace root", async () => {
     await initWorkspace();
     await mkdir(join(workDir, "raw"), { recursive: true });
