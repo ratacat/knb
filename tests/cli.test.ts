@@ -953,6 +953,39 @@ describe("cli apply / add / novelty payload sources", () => {
     expect(env.data.meta.rows_appended).toBe(1);
   });
 
+  test("apply --file <relative path> resolves from workspace root", async () => {
+    await initWorkspace();
+    await mkdir(join(workDir, "raw"), { recursive: true });
+    const payload = {
+      operations: [
+        {
+          op: "add",
+          row: {
+            kind: "source",
+            scope: { collections: ["root-relative-file"] },
+            source: { type: "web_page", title: "Root relative", uri: "https://example.com/root-relative" },
+            provenance: { acquisition: { method: "manual" } },
+          },
+        },
+      ],
+    };
+    await writeFile(join(workDir, "raw", "ops.json"), JSON.stringify(payload), "utf8");
+
+    const result = await runCliBinary(
+      ["apply", "--root", workDir, "--file", "raw/ops.json", "--atomic", "--json"],
+      { cwd: tmpdir() },
+    );
+
+    expect(result.code).toBe(0);
+    const env = JSON.parse(result.stdout.trim()) as {
+      ok: boolean;
+      data: { created: Array<{ kind: string }>; meta: { rows_appended: number } };
+    };
+    expect(env.ok).toBe(true);
+    expect(env.data.created[0]?.kind).toBe("source");
+    expect(env.data.meta.rows_appended).toBe(1);
+  });
+
   test("apply --json '<payload>' inline JSON form is honored", async () => {
     await initWorkspace();
     const payload = JSON.stringify({
@@ -1181,6 +1214,32 @@ describe("cli apply / add / novelty payload sources", () => {
     expect(env.data.meta.rows_appended).toBe(1);
   });
 
+  test("add --file <relative path> resolves from workspace root", async () => {
+    await initWorkspace();
+    await mkdir(join(workDir, "raw"), { recursive: true });
+    const row = {
+      kind: "source",
+      scope: { collections: ["add-root-relative"] },
+      source: { type: "web_page", title: "Added root relative", uri: "https://example.com/add-root-relative" },
+      provenance: { acquisition: { method: "manual" } },
+    };
+    await writeFile(join(workDir, "raw", "row.json"), JSON.stringify(row), "utf8");
+
+    const result = await runCliBinary(
+      ["add", "--root", workDir, "--file", "raw/row.json", "--json"],
+      { cwd: tmpdir() },
+    );
+
+    expect(result.code).toBe(0);
+    const env = JSON.parse(result.stdout.trim()) as {
+      ok: boolean;
+      data: { created: Array<{ kind: string }>; meta: { rows_appended: number } };
+    };
+    expect(env.ok).toBe(true);
+    expect(env.data.created[0]?.kind).toBe("source");
+    expect(env.data.meta.rows_appended).toBe(1);
+  });
+
   test("novelty --file <path> classifies candidates from disk", async () => {
     await initWorkspace();
     const file = join(workDir, "candidates.json");
@@ -1287,6 +1346,25 @@ describe("cli apply / add / novelty payload sources", () => {
     expect(env.ok).toBe(false);
     expect(env.error.code).toBe("io_failed");
     expect(env.meta.exit_code).toBe(5);
+  });
+
+  test("apply --file with missing relative path reports input and workspace-resolved path", async () => {
+    await initWorkspace();
+
+    const result = await runCliBinary(
+      ["apply", "--root", workDir, "--file", "raw/missing.json", "--atomic", "--json"],
+      { cwd: tmpdir() },
+    );
+
+    expect(result.code).toBe(5);
+    const env = JSON.parse(result.stderr.trim()) as {
+      ok: boolean;
+      error: { code: string; details?: { input_path?: string; resolved_path?: string } };
+    };
+    expect(env.ok).toBe(false);
+    expect(env.error.code).toBe("io_failed");
+    expect(env.error.details?.input_path).toBe("raw/missing.json");
+    expect(env.error.details?.resolved_path).toBe(join(workDir, "raw", "missing.json"));
   });
 
   test("apply payload that is a JSON array (not object) returns contract diagnostics", async () => {

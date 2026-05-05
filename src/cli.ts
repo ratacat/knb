@@ -1,4 +1,5 @@
 import { readFile as fsReadFile } from "node:fs/promises";
+import { isAbsolute, join } from "node:path";
 
 import type { DraftRow, KnbRowKind } from "./core/contract";
 import { fromUnknown, knbError } from "./core/errors";
@@ -171,7 +172,7 @@ async function runFacadeCommand(
     }
 
     if (command === "apply") {
-      const request = await readApplyRequest(flags);
+      const request = await readApplyRequest(flags, knb.workspace.root);
       if (booleanFlag(flags, "dedupe")) request.dedupe = true;
       if (booleanFlag(flags, "atomic")) request.atomic = true;
       const dryRun = booleanFlag(flags, "dry-run");
@@ -187,7 +188,7 @@ async function runFacadeCommand(
     }
 
     if (command === "add") {
-      const row = (await readJsonPayload(flags)) as DraftRow;
+      const row = (await readWorkspaceJsonPayload(flags, knb.workspace.root)) as DraftRow;
       const result = await knb.add(row);
       return renderResult(
         success("add", result, { ...baseMeta(), rows_appended: result.meta.rows_appended }),
@@ -549,6 +550,26 @@ async function readJsonPayload(flags: FlagMap): Promise<unknown> {
   throw knbError("invalid_arguments", "Provide --file <path>, --json <text>, or --stdin");
 }
 
+async function readWorkspaceJsonPayload(flags: FlagMap, workspaceRoot: string): Promise<unknown> {
+  const file = stringFlag(flags, "file");
+  if (file) {
+    const resolvedPath = isAbsolute(file) ? file : join(workspaceRoot, file);
+    let raw: string;
+    try {
+      raw = await fsReadFile(resolvedPath, "utf8");
+    } catch (error) {
+      throw knbError(
+        "io_failed",
+        `Failed to read JSON file: ${file}`,
+        { input_path: file, resolved_path: resolvedPath },
+        error,
+      );
+    }
+    return parseJsonOrThrow(raw, `--file ${file}`);
+  }
+  return readJsonPayload(flags);
+}
+
 function parseJsonOrThrow(raw: string, source: string): unknown {
   try {
     return JSON.parse(raw);
@@ -563,8 +584,8 @@ function parseJsonOrThrow(raw: string, source: string): unknown {
   }
 }
 
-async function readApplyRequest(flags: FlagMap): Promise<ApplyRequest> {
-  const payload = await readJsonPayload(flags);
+async function readApplyRequest(flags: FlagMap, workspaceRoot: string): Promise<ApplyRequest> {
+  const payload = await readWorkspaceJsonPayload(flags, workspaceRoot);
   return payload as ApplyRequest;
 }
 
