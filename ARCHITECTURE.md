@@ -13,7 +13,7 @@ Terminology direction: use **record** for domain and profile language, **link** 
 ## Profiles And Instances
 
 - A **profile** is a named vocabulary and rule set layered on top of the general `knb.v1` row model. Profiles define domain record types, required profile fields, link conventions, and agent instructions. Examples: `research.v1`, `trade_map.v1`.
-- An **instance** is one concrete filesystem workspace with its own ledger, views, indexes, and config. An instance may use one profile or combine multiple profiles when a single ledger needs both vocabularies.
+- An **instance** is one concrete filesystem workspace with hidden config in `.knb/`, canonical storage in `knb/`, and its own ledger, views, indexes, and profile attachments. With no `--root`, the CLI and library use the current working directory as the instance root; they do not search parent directories for `.knb/config.json`. An instance may use one profile or combine multiple profiles when a single ledger needs both vocabularies.
 - Rows can declare profile membership through `scope.profiles`, which also supports profile-scoped reads and renders. Profile membership is not a filesystem boundary.
 - Profile-specific record data currently lives in `claim.qualifiers`, the canonical extension slot. Profile docs should name their own fields directly; agents do not need to use "qualifiers" as domain language.
 

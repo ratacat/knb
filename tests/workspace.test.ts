@@ -144,27 +144,29 @@ describe("openWorkspace.root resolution", () => {
     expect(ws.paths.ledger).toBe(join(ROOT, "knb", "ledger.jsonl"));
   });
 
-  test("walks up from cwd until it finds .knb/config.json", async () => {
+  test("implicit root is exactly cwd and does not walk up to parent .knb/config.json", async () => {
     const nested = join(ROOT, "a", "b", "c");
     const { readFile } = fileSystem({
       [join(ROOT, ".knb", "config.json")]: JSON.stringify({ ledger: "data/ledger.jsonl" }),
     });
-    const ws = await openWorkspace(makeOptions({ cwd: () => nested, readFile }));
-    expect(ws.root).toBe(ROOT);
-    expect(ws.configPath).toBe(join(ROOT, ".knb", "config.json"));
-    expect(ws.paths.ledger).toBe(join(ROOT, "data", "ledger.jsonl"));
-  });
-
-  test("falls back to cwd when walk-up finds no .knb/config.json", async () => {
-    const nested = join(ROOT, "a", "b", "c");
-    const { readFile } = fileSystem({});
     const ws = await openWorkspace(makeOptions({ cwd: () => nested, readFile }));
     expect(ws.root).toBe(nested);
     expect(ws.configPath).toBeUndefined();
     expect(ws.paths.ledger).toBe(join(nested, "knb", "ledger.jsonl"));
   });
 
-  test("explicit root suppresses walk-up", async () => {
+  test("implicit root uses cwd .knb/config.json when present", async () => {
+    const nested = join(ROOT, "a", "b", "c");
+    const { readFile } = fileSystem({
+      [join(nested, ".knb", "config.json")]: JSON.stringify({ ledger: "data/ledger.jsonl" }),
+    });
+    const ws = await openWorkspace(makeOptions({ cwd: () => nested, readFile }));
+    expect(ws.root).toBe(nested);
+    expect(ws.configPath).toBe(join(nested, ".knb", "config.json"));
+    expect(ws.paths.ledger).toBe(join(nested, "data", "ledger.jsonl"));
+  });
+
+  test("explicit root wins over cwd", async () => {
     const nested = join(ROOT, "a", "b");
     const otherRoot = `${sep}elsewhere`;
     const { readFile } = fileSystem({

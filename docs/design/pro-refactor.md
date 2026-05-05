@@ -276,7 +276,7 @@ Behavior:
 - `--ledger`
 - `KNB_CONFIG`
 - `.knb/config.json`
-- fallback current directory
+- current working directory as the default workspace root
 - ledger/schema/index/view/lock path normalization
 - actor resolution from:
   - `--actor`

@@ -802,6 +802,7 @@ Usage: knb <cmd> [--root dir] [--json|--text|--pretty|--ndjson|--quiet]
 cmds: knb init, knb status, knb schema, knb apply, knb add, knb get, knb query, knb context, knb render, knb check, knb index, knb profile, knb instance
 profile: list|show|create|replace|delete|check
 instance: show|create|list|set|attach-profile|detach-profile|delete
+root: defaults to current directory
 ${profileHelp}
 exit: 0 ok; 1 not_found; 2 invalid_arguments; 3 validation_failed; 4 duplicate_blocked; 5 io_failed; 6 lock_busy; 7 broken_reference; 8 external_dependency_failed; 9 unsafe_operation_refused; 10 internal_error
 `;

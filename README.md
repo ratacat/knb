@@ -1,6 +1,6 @@
 # knb
 
-`knb` is an AI-first knowledge base primitive: a CLI and library for turning a folder into an append-only, profile-driven knowledge base agents can audit and rebuild.
+knb is an AI native knowledge base primitive: a CLI and library for turning a folder into an append-only, profile-driven knowledge base agents can audit and rebuild.
 
 Use it when you want an agent to build a purpose-specific knowledge base or knowledge graph without inventing a storage format first. A profile can make `knb` act like a research notebook, a decision map, a dialogue tree, a workflow model, a game lore database, or another structured memory system.
 
@@ -19,6 +19,8 @@ Check the install:
 ```bash
 knb help
 ```
+
+When you run `knb init` without `--root`, it initializes the current working directory. That creates hidden project config in `<project-root>/.knb/config.json` and canonical knowledge storage in `<project-root>/knb/ledger.jsonl`.
 
 ## what it gives an agent
 
@@ -40,6 +42,8 @@ After installing `knb`, open your project folder with an AI coding agent and giv
 Use knb in this project as the knowledge system for <purpose>.
 
 First inspect `knb help`, then initialize the workspace if needed.
+Run commands from the project directory you want to use as the workspace,
+or pass `--root <dir>` explicitly.
 Design a custom profile for this purpose, including record types, link types,
 required fields, and agent_instructions.
 
@@ -52,7 +56,9 @@ Prefer small sourced records, explicit open questions, and short synthesis.
 Do not edit `<project-root>/knb/ledger.jsonl` directly.
 ```
 
-`knb` is for state that needs to survive across agent turns. A good record is small, sourced, and easy to invalidate later. Agents should store the source, split the records, leave open questions, and write synthesis that a later agent can audit.
+Knowledge bases look simple until agents start relying on them. They need provenance, uncertainty, repair paths, multiple views, and domain vocabulary. In the age of AI, those details matter more because the knowledge base is often what lets one agent hand useful structure to the next.
+
+In `knb`, a good record is small, sourced, and easy to invalidate later. Agents should store the source, split the records, leave open questions, and write synthesis that a later agent can audit.
 
 The loop is usually:
 
@@ -67,7 +73,7 @@ The ledger is append-only on purpose. If a record is wrong, an agent writes an `
 
 Reads come from the effective state, not raw file scans. Queries, `context` output, renders, and profile summaries respect retractions, supersession, merges, and historical `--as-of` cutoffs.
 
-## base model
+## base profile
 
 `knb.v1` is the base storage model every profile builds on. It comes set up for sourced knowledge, open uncertainty, synthesis, and lifecycle history:
 

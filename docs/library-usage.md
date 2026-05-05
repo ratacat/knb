@@ -8,12 +8,12 @@
 import { openKnb } from "knb";
 
 const knb = await openKnb({
-  root: process.cwd(),     // optional; defaults to cwd / KNB_ROOT
+  root: process.cwd(),     // optional; defaults to cwd
   actor: "alice@example",  // optional; defaults to git/system/unknown
 });
 ```
 
-`openKnb` resolves the workspace (`.knb/config.json`, `knb/ledger.jsonl`), the acting identity, and runtime adapters. Pass `runtime: { clock, randomIdPart }` to inject deterministic time and IDs for tests.
+`openKnb` resolves the workspace (`.knb/config.json`, `knb/ledger.jsonl`), the acting identity, and runtime adapters. With no `root`, the workspace root is exactly the current working directory; it does not walk upward to find a parent `.knb`. Pass `runtime: { clock, randomIdPart }` to inject deterministic time and IDs for tests.
 
 One workspace is one KNB instance. Rows can belong to one or more profiles through `scope.profiles`, and the facade methods accept `profile` filters for profile-scoped reads and renders.
 

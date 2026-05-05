@@ -62,6 +62,8 @@ knb/
 
 Only `knb/ledger.jsonl` is canonical. `knb/indexes/` and `knb/views/` are projections and can be rebuilt.
 
+Storage is rooted in the current working directory unless the caller passes `--root`. Running `knb init` from different directories creates separate local instances. The CLI does not walk upward to reuse a parent `.knb/config.json`.
+
 ## Workspace Module
 
 The workspace module is the first seam every command crosses. It resolves where the `knb` workspace lives and who is acting.
@@ -69,13 +71,14 @@ The workspace module is the first seam every command crosses. It resolves where 
 Interface responsibilities:
 
 - Resolve `--root`, `--config`, and `--ledger`.
+- Use `--root` as the workspace root when provided; otherwise use the exact current working directory.
 - Resolve config in this order:
 
   ```text
   --config
   KNB_CONFIG
-  .knb/config.json
-  current directory fallback
+  <workspace-root>/.knb/config.json
+  empty config
   ```
 
 - Normalize ledger, schema, index, view, and lock paths.

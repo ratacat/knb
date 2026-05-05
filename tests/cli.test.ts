@@ -225,6 +225,28 @@ describe("cli init (spawned)", () => {
     expect(envelope.meta.ledger).toBe(envelope.data.ledger_path);
   });
 
+  test("init with no --root creates .knb in cwd even when a parent has a workspace", async () => {
+    const parentRun = await runCliBinary(["init", "--json"]);
+    expect(parentRun.code).toBe(0);
+
+    const child = join(workDir, "nested", "project");
+    await mkdir(child, { recursive: true });
+    const childRun = await runCliBinary(["init", "--json"], { cwd: child });
+    expect(childRun.code).toBe(0);
+    expect(await pathExists(join(child, ".knb", "config.json"))).toBe(true);
+    expect(await pathExists(join(child, "knb", "ledger.jsonl"))).toBe(true);
+
+    const envelope = JSON.parse(childRun.stdout.trim()) as {
+      data: { workspace_root: string; config_path: string; ledger_path: string };
+      meta: { workspace_root: string; ledger: string };
+    };
+    expect(envelope.data.workspace_root).toBe(child);
+    expect(envelope.data.config_path).toBe(join(child, ".knb", "config.json"));
+    expect(envelope.data.ledger_path).toBe(join(child, "knb", "ledger.jsonl"));
+    expect(envelope.meta.workspace_root).toBe(child);
+    expect(envelope.meta.ledger).toBe(join(child, "knb", "ledger.jsonl"));
+  });
+
   test("status after init returns row_count 0 with elapsed_ms numeric", async () => {
     const initRun = await runCliBinary(["init", "--json"]);
     expect(initRun.code).toBe(0);
@@ -306,7 +328,7 @@ describe("cli init (in-process)", () => {
     expect(quiet.stderr).toBe("");
   });
 
-  test("status with no --root falls back to cwd workspace", async () => {
+  test("status with no --root uses cwd workspace", async () => {
     const { options, captured } = makeCapturingOptions("json");
     const initCode = await runCli(["init", "--root", workDir], options);
     expect(initCode).toBe(0);

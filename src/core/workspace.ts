@@ -4,7 +4,7 @@
 
 import { readFile as fsReadFile } from "node:fs/promises";
 import { userInfo } from "node:os";
-import { isAbsolute, join, normalize, resolve, sep } from "node:path";
+import { isAbsolute, join, normalize, resolve } from "node:path";
 import { execFile } from "node:child_process";
 
 import { knbError } from "./errors";
@@ -65,7 +65,7 @@ export async function openWorkspace(options: OpenWorkspaceOptions = {}): Promise
   const exec = options.exec ?? defaultExec;
   const systemUser = options.systemUser ?? defaultSystemUser;
 
-  const root = await resolveRoot(options.root, cwd, readFile);
+  const root = resolveRoot(options.root, cwd);
   const configPath = await resolveConfigPath(root, options.configPath, env, readFile);
   const config = await loadConfig(configPath, readFile);
 
@@ -90,22 +90,12 @@ export async function openWorkspace(options: OpenWorkspaceOptions = {}): Promise
   return workspace;
 }
 
-async function resolveRoot(
+function resolveRoot(
   explicit: string | undefined,
   cwd: () => string,
-  readFile: (path: string) => Promise<string>,
-): Promise<string> {
+): string {
   if (explicit) return resolve(explicit);
-  const start = resolve(cwd());
-  let current = start;
-  while (true) {
-    const candidate = join(current, ".knb", "config.json");
-    if (await exists(candidate, readFile)) return current;
-    const parent = dirOf(current);
-    if (parent === current) break;
-    current = parent;
-  }
-  return start;
+  return resolve(cwd());
 }
 
 async function resolveConfigPath(
@@ -191,13 +181,6 @@ async function runGit(
 function normalizeUnderRoot(root: string, value: string): string {
   if (isAbsolute(value)) return normalize(value);
   return normalize(join(root, value));
-}
-
-function dirOf(path: string): string {
-  const trimmed = path.endsWith(sep) && path.length > 1 ? path.slice(0, -1) : path;
-  const lastSep = trimmed.lastIndexOf(sep);
-  if (lastSep <= 0) return sep;
-  return trimmed.slice(0, lastSep);
 }
 
 async function exists(path: string, readFile: (path: string) => Promise<string>): Promise<boolean> {

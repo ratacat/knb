@@ -277,10 +277,9 @@ describe("openKnb", () => {
     expect(knb.workspace.actor).toBe("agent:from-cfg");
   });
 
-  test("openKnb with no options falls back to cwd as root", async () => {
+  test("openKnb with no root option uses cwd as root", async () => {
     const cwdProvider = () => workDir;
-    // We can't entry real process.cwd, but we can pass an empty options object
-    // and rely on env/cwd defaults. Provide cwd to keep test hermetic.
+    // Provide cwd to keep test hermetic.
     const knb = await openKnb({ env: {}, cwd: cwdProvider });
     expect(knb.workspace.root).toBe(workDir);
   });
