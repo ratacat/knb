@@ -86,7 +86,7 @@ export async function runCli(args: string[], options: OutputOptions = {}): Promi
   if (formatFromCli && options.format === undefined) outputOptions.format = formatFromCli;
 
   if (!command || command === "help" || command === "--help" || command === "-h") {
-    printHelp();
+    await printHelp(flags);
     return 0;
   }
 
@@ -791,14 +791,66 @@ async function readStdinJson(): Promise<unknown> {
   return parseJsonOrThrow(input, "--stdin");
 }
 
-function printHelp(): void {
-  console.log(`knb: append-only knowledge ledger
+async function printHelp(flags: FlagMap): Promise<void> {
+  console.log(await helpText(flags));
+}
+
+async function helpText(flags: FlagMap): Promise<string> {
+  const profileHelp = await profileHelpText(flags);
+  return `knb: append-only knowledge ledger
 Usage: knb <cmd> [--root dir] [--json|--text|--pretty|--ndjson|--quiet]
 cmds: knb init, knb status, knb schema, knb apply, knb add, knb get, knb query, knb context, knb render, knb check, knb index, knb profile, knb instance
 profile: list|show|create|replace|delete|check
 instance: show|create|list|set|attach-profile|detach-profile|delete
+${profileHelp}
 exit: 0 ok; 1 not_found; 2 invalid_arguments; 3 validation_failed; 4 duplicate_blocked; 5 io_failed; 6 lock_busy; 7 broken_reference; 8 external_dependency_failed; 9 unsafe_operation_refused; 10 internal_error
-`);
+`;
+}
+
+async function profileHelpText(flags: FlagMap): Promise<string> {
+  try {
+    const openOptions: OpenKnbOptions = {};
+    const rootFlag = stringFlag(flags, "root");
+    const configFlag = stringFlag(flags, "config");
+    const ledgerFlag = stringFlag(flags, "ledger");
+    const actorFlag = stringFlag(flags, "actor");
+    if (rootFlag !== undefined) openOptions.root = rootFlag;
+    if (configFlag !== undefined) openOptions.configPath = configFlag;
+    if (ledgerFlag !== undefined) openOptions.ledgerPath = ledgerFlag;
+    if (actorFlag !== undefined) openOptions.actor = actorFlag;
+    const knb = await openKnb(openOptions);
+    const listed = await knb.listProfiles({ attachedOnly: true });
+    if (listed.profiles.length === 0) return "profiles: none";
+
+    const maxProfiles = 5;
+    const lines: string[] = ["profiles:"];
+    for (const profile of listed.profiles.slice(0, maxProfiles)) {
+      const instruction = profile.defined ? await firstProfileInstruction(knb, profile.profile_id) : "missing definition";
+      lines.push(`  ${profile.profile_id}: ${instruction}`);
+    }
+    const remaining = listed.profiles.length - maxProfiles;
+    if (remaining > 0) lines.push(`  ... +${remaining} more`);
+    lines.push("profile instructions: knb profile show <id> --json");
+    return lines.join("\n");
+  } catch {
+    return "profiles: unavailable";
+  }
+}
+
+async function firstProfileInstruction(knb: Knb, profileId: string): Promise<string> {
+  try {
+    const shown = await knb.showProfile(profileId);
+    const first = shown.profile.agent_instructions?.find((item) => item.trim().length > 0);
+    return first ? truncateHelpLine(first, 96) : "no agent_instructions";
+  } catch {
+    return "unavailable";
+  }
+}
+
+function truncateHelpLine(value: string, maxLength: number): string {
+  const compact = value.replace(/\s+/g, " ").trim();
+  if (compact.length <= maxLength) return compact;
+  return `${compact.slice(0, Math.max(0, maxLength - 3))}...`;
 }
 
 if (import.meta.main) {

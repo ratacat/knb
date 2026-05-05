@@ -453,6 +453,31 @@ describe("cli help and entrypoint", () => {
     expect(text).toContain("internal_error");
   });
 
+  test("help text lists attached profile instructions when a workspace has profiles", async () => {
+    const init = await runCliBinary(["init", "--json"]);
+    expect(init.code).toBe(0);
+    const create = await runCliBinary(
+      ["profile", "create", "research.v1", "--stdin", "--attach", "--json"],
+      {
+        stdin: JSON.stringify({
+          display_name: "Research",
+          agent_instructions: [
+            "Use this profile for sourced research records.",
+            "Keep claims atomic and cite sources.",
+          ],
+        }),
+      },
+    );
+    expect(create.code).toBe(0);
+
+    const result = await runCliBinary(["help"]);
+
+    expect(result.code).toBe(0);
+    expect(result.stdout).toContain("profiles:");
+    expect(result.stdout).toContain("research.v1: Use this profile for sourced research records.");
+    expect(result.stdout).toContain("profile instructions: knb profile show <id> --json");
+  });
+
 });
 
 describe("cli profile and instance commands", () => {
