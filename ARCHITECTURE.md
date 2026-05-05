@@ -12,13 +12,12 @@ Rows in `knb/ledger.jsonl` are canonical events. `source`, `claim`, `question`, 
 
 | Module | Responsibility | Interface seam |
 | --- | --- | --- |
-| `src/core/apply.ts` | Validate semantic write operations, complete draft rows, dedupe candidate claims, and produce appendable rows. | `applyOperations` through the `Knb.apply` facade, with `ApplyResult` and generated `run_id`. |
+| `src/core/apply.ts` | Validate semantic write operations, complete draft rows, and produce appendable rows. | `applyOperations` through the `Knb.apply` facade, with `ApplyResult` and generated `run_id`. |
 | `src/core/context.ts` | Build token-budgeted research packets from effective state, including ranked syntheses, claims, questions, sources, and warnings. | `buildContext`, `ContextRequest`, scoring profile types, and scoring functions. |
 | `src/core/contract.ts` | Own row types, operation types, constants, validation, draft completion, samples, reference walking, and JSON Schema. | `KnbRow`, `ApplyOperation`, `validateLedger`, `validateApplyRequest`, `jsonSchema`, `referenceFields`. |
 | `src/core/errors.ts` | Define typed domain errors and map them to CLI exit codes. | `KnbErrorCode`, `knbError`, `fromUnknown`, `exitCodeForError`. |
 | `src/core/knb.ts` | Public library facade that wires workspace, ledger, read snapshots, writes, queries, context, rendering, indexes, logs, and runtime adapters. | `openKnb`, `Knb`, `OpenKnbOptions`, public request/result types. |
 | `src/core/ledger.ts` | Own JSONL loading, parse diagnostics, fingerprints, lock-protected append transactions, and durable flush behavior. | `loadLedger`, `writeLedger`, `LedgerFingerprint`, `LedgerSnapshot`. |
-| `src/core/novelty.ts` | Classify candidate claims against active claims for dedupe and research triage. | `classifyClaim`, `classifyMany`, `NoveltyResult`. |
 | `src/core/output.ts` | Render CLI success/failure envelopes and human text without changing domain results. | `success`, `failure`, `render`, `CommandResult`. |
 | `src/core/projections.ts` | Render Markdown views, rebuild disposable indexes, write projection metadata, and report freshness. | `ProjectionArtifactStore`, `JsonProjectionArtifactStore`, `renderCollection`, `renderAllCollections`, `rebuildIndexes`, `checkFreshness`. |
 | `src/core/query.ts` | Retrieve active or historical rows from effective state with deterministic filtering and ranking. | `executeQuery`, `executeGet`, `QueryRequest`, `GetRequest`. |
@@ -43,7 +42,7 @@ Rendered Markdown views are structured for skimming: a top table of contents, st
 
 - Row kinds: `source`, `claim`, `question`, `synthesis`, and `change`.
 - Change actions: `retract`, `supersede`, `merge`, `relate`, and `patch`.
-- Identity fields: `claim_key` anchors semantic claim identity; `dedupe_hash` anchors normalized duplicate detection; `external_refs` links rows to outside systems.
+- Identity fields: `claim_key` anchors semantic claim identity; `external_refs` links rows to outside systems.
 - Scope fields: `collections`, `subjects`, and `tags` filter and group rows.
 - Time precision values: `instant`, `hour`, `day`, `month`, `year`, `range`, and `unknown`.
 - `EffectiveState`: projected active/inactive row state plus lifecycle explanations, relation graph, and state warnings.

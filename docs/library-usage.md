@@ -54,7 +54,6 @@ await knb.apply({
     { op: "add", as: "src", row: { kind: "source", scope: { collections: ["x"] }, source: { type: "web_page", title: "T", uri: "https://x" }, provenance: { acquisition: { method: "manual" } } } },
     { op: "add", row: { kind: "claim", scope: { collections: ["x"] }, claim: { statement: "X is true.", atomic: true }, time: { precision: "unknown" }, provenance: { evidence: [{ source_id: "$src", role: "supports", summary: "stated" }] }, assessment: { confidence: "medium" } } },
   ],
-  dedupe: true,
 });
 ```
 
@@ -107,20 +106,6 @@ const ctx = await knb.context({
   },
 });
 ```
-
-### `novelty(request)`
-
-Classify candidate claims against active claims as `new`, `duplicate`, `corroboration`, `update`, `contradiction`, or `correction`. No writes. Same module powers `apply --dedupe`.
-
-```ts
-const { results } = await knb.novelty({
-  candidates: [
-    { claim: { statement: "X is true.", atomic: true }, scope: { collections: ["x"] } },
-  ],
-});
-```
-
-A candidate is a `Partial<ClaimRow>`: the statement lives at `candidate.claim.statement`, not at the top level. Provide `identity.claim_key` to anchor key-based matches (`duplicate`/`corroboration`), or `identity.dedupe_hash` for hash-based matches.
 
 ## Request naming
 

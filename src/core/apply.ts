@@ -1,8 +1,7 @@
 // Apply module - V1 single deep module for atomic operation batches.
 // Owns reference resolution, ID generation with collision retry, lifecycle
-// change-row construction, novelty hooks, and final candidate-ledger
-// validation. Writes only through the ledger transaction; never touches
-// the filesystem directly.
+// change-row construction, and final candidate-ledger validation. Writes only
+// through the ledger transaction; never touches the filesystem directly.
 
 import {
   completeDraftRow,
@@ -27,7 +26,6 @@ import {
   loadLedger,
   writeLedger as defaultWriteLedger,
   type LedgerFingerprint,
-  type LedgerSnapshot,
   type LedgerWriteResult,
 } from "./ledger";
 import { isSafeRunManifestId, writeRunManifest as defaultWriteRunManifest, type RunManifest } from "./run-manifests";
@@ -43,26 +41,12 @@ export function generateRunId(
   return `run_${safeIso}_${existingRandomPart ?? randomIdPart(4)}`;
 }
 
-export type NoveltyClassification =
-  | "new"
-  | "duplicate"
-  | "corroboration"
-  | "update"
-  | "contradiction"
-  | "correction";
-
-export type NoveltyDecision = {
-  classification: NoveltyClassification;
-  matched_ids: string[];
-};
-
 export type ApplyDeps = {
   workspace: { paths: { ledger: string; lock: string; runs?: string } };
   runtime: { clock: () => Date; randomIdPart: (bytes: number) => string };
   actor: string;
   writeLedger?: typeof defaultWriteLedger;
   writeRunManifest?: typeof defaultWriteRunManifest | false;
-  classifyNovelty?: (candidate: KnbRow, snapshot: LedgerSnapshot) => NoveltyDecision;
 };
 
 export type ApplyCreatedEntry = {
@@ -72,24 +56,10 @@ export type ApplyCreatedEntry = {
   kind: KnbRowKind;
 };
 
-export type ApplySkippedEntry = {
-  op: number;
-  reason: string;
-  matched_ids?: string[];
-};
-
-export type ApplyNoveltyEntry = {
-  op: number;
-  classification: string;
-  matched_ids: string[];
-};
-
 export type ApplyResult = {
   run_id: string;
   created: ApplyCreatedEntry[];
-  skipped: ApplySkippedEntry[];
   warnings: string[];
-  novelty: ApplyNoveltyEntry[];
   meta: {
     rows_appended: number;
     bytes_written: number;
@@ -107,15 +77,6 @@ type ResolvedAddPlan = {
   as?: string;
 };
 
-type ResolvedSkipPlan = {
-  kind: "skip";
-  index: number;
-  matchedId: string;
-  reason: string;
-  matchedIds: string[];
-  as?: string;
-};
-
 type ResolvedChangePlan = {
   kind: "change-row";
   index: number;
@@ -123,7 +84,7 @@ type ResolvedChangePlan = {
   as?: string;
 };
 
-type Plan = ResolvedAddPlan | ResolvedSkipPlan | ResolvedChangePlan;
+type Plan = ResolvedAddPlan | ResolvedChangePlan;
 type AppendedPlan = ResolvedAddPlan | ResolvedChangePlan;
 type ApplyValidationIssue = ValidationIssue & {
   op_index?: number;
@@ -166,9 +127,7 @@ export async function applyOperations(
     return {
       run_id: requestedRunId ?? generateRunId(startedAt, deps.runtime.randomIdPart),
       created: [],
-      skipped: [],
       warnings: [],
-      novelty: [],
       meta: {
         rows_appended: 0,
         bytes_written: 0,
@@ -179,9 +138,6 @@ export async function applyOperations(
   }
 
   const writeLedger = deps.writeLedger ?? defaultWriteLedger;
-  const classifyNovelty = deps.classifyNovelty ?? defaultNovelty;
-  const dedupe = request.dedupe === true;
-
   const writeResult: LedgerWriteResult<ApplyResult> = await writeLedger(
     { path: ledgerPath, lockPath: deps.workspace.paths.lock },
     async (snapshot) => {
@@ -210,9 +166,7 @@ export async function applyOperations(
       const result: ApplyResult = {
         run_id: "",
         created: [],
-        skipped: [],
         warnings: [],
-        novelty: [],
         meta: {
           rows_appended: 0,
           bytes_written: 0,
@@ -238,34 +192,19 @@ export async function applyOperations(
               snapshotIds,
               appendedById,
               aliasMap,
-              snapshot,
-              classifyNovelty,
-              dedupe,
-              result,
             });
-            if (completed.kind === "add-row") {
-              plans.push(completed);
-              const completedId = completed.row.id;
-              appendedById.set(completedId, completed.row);
-              snapshotIds.add(completedId);
-              aliasMap.set(`$op${index}`, completedId);
-              if (aliasName) aliasMap.set(`$${aliasName}`, completedId);
-              result.created.push({
-                op: index,
-                ...(aliasName ? { as: aliasName } : {}),
-                id: completedId,
-                kind: completed.row.kind,
-              });
-            } else {
-              plans.push(completed);
-              aliasMap.set(`$op${index}`, completed.matchedId);
-              if (aliasName) aliasMap.set(`$${aliasName}`, completed.matchedId);
-              result.skipped.push({
-                op: index,
-                reason: completed.reason,
-                ...(completed.matchedIds.length > 0 ? { matched_ids: completed.matchedIds } : {}),
-              });
-            }
+            plans.push(completed);
+            const completedId = completed.row.id;
+            appendedById.set(completedId, completed.row);
+            snapshotIds.add(completedId);
+            aliasMap.set(`$op${index}`, completedId);
+            if (aliasName) aliasMap.set(`$${aliasName}`, completedId);
+            result.created.push({
+              op: index,
+              ...(aliasName ? { as: aliasName } : {}),
+              id: completedId,
+              kind: completed.row.kind,
+            });
           } else {
             const change = processLifecycle({
               operation,
@@ -439,13 +378,9 @@ type ProcessAddArgs = {
   snapshotIds: Set<string>;
   appendedById: Map<string, KnbRow>;
   aliasMap: Map<string, string>;
-  snapshot: LedgerSnapshot;
-  classifyNovelty: (candidate: KnbRow, snapshot: LedgerSnapshot) => NoveltyDecision;
-  dedupe: boolean;
-  result: ApplyResult;
 };
 
-function processAdd(args: ProcessAddArgs): ResolvedAddPlan | ResolvedSkipPlan {
+function processAdd(args: ProcessAddArgs): ResolvedAddPlan {
   const draft = args.operation.row;
   if (draft === null || typeof draft !== "object") {
     throw knbError("validation_failed", `Operation ${args.index}: add requires a row object`, {
@@ -497,35 +432,6 @@ function processAdd(args: ProcessAddArgs): ResolvedAddPlan | ResolvedSkipPlan {
   }
 
   const candidateRow = completion.row;
-  const novelty = candidateRow.kind === "claim"
-    ? args.classifyNovelty(candidateRow, args.snapshot)
-    : ({ classification: "new", matched_ids: [] } as NoveltyDecision);
-
-  args.result.novelty.push({
-    op: args.index,
-    classification: novelty.classification,
-    matched_ids: [...novelty.matched_ids],
-  });
-
-  if (args.dedupe && novelty.classification === "duplicate") {
-    if (novelty.matched_ids.length === 1) {
-      const matchedId = novelty.matched_ids[0] as string;
-      return {
-        kind: "skip",
-        index: args.index,
-        matchedId,
-        matchedIds: [...novelty.matched_ids],
-        reason: `duplicate of ${matchedId}`,
-        ...(typeof args.operation.as === "string" ? { as: args.operation.as } : {}),
-      };
-    }
-    throw knbError(
-      "duplicate_blocked",
-      `Operation ${args.index}: duplicate detected without unambiguous canonical id`,
-      { op_index: args.index, matched_ids: novelty.matched_ids },
-    );
-  }
-
   return {
     kind: "add-row",
     index: args.index,
@@ -1016,10 +922,6 @@ function ledgerHasRunId(rows: LoadedRow[], runId: string): boolean {
     const acquisition = (loaded.row as { provenance?: { acquisition?: { run_id?: unknown } } }).provenance?.acquisition;
     return acquisition?.run_id === runId;
   });
-}
-
-function defaultNovelty(): NoveltyDecision {
-  return { classification: "new", matched_ids: [] };
 }
 
 function emptyFingerprint(path: string): LedgerFingerprint {

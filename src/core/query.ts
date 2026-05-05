@@ -7,7 +7,6 @@ import type {
   SynthesisRow,
 } from "./contract";
 import { knbError } from "./errors";
-import { normalizeStatement } from "./novelty";
 import {
   matchesRowSelector,
   type RowSelectorExternalRef,
@@ -85,6 +84,52 @@ const HISTORY_STATUSES: EffectiveStatus[] = [
 ];
 
 const TEXT_FIELD_KINDS: KnbRowKind[] = ["claim", "source", "question", "synthesis"];
+
+const RTL_FOLD: Readonly<Record<string, string>> = {
+  "آ": "ا",
+  "أ": "ا",
+  "إ": "ا",
+  "ٱ": "ا",
+  "ي": "ی",
+  "ى": "ی",
+  "ئ": "ی",
+  "ك": "ک",
+  "٠": "0",
+  "۰": "0",
+  "١": "1",
+  "۱": "1",
+  "٢": "2",
+  "۲": "2",
+  "٣": "3",
+  "۳": "3",
+  "٤": "4",
+  "۴": "4",
+  "٥": "5",
+  "۵": "5",
+  "٦": "6",
+  "۶": "6",
+  "٧": "7",
+  "۷": "7",
+  "٨": "8",
+  "۸": "8",
+  "٩": "9",
+  "۹": "9",
+};
+
+export function normalizeStatement(statement: string): string {
+  if (typeof statement !== "string") return "";
+  const straightened = statement
+    .replace(/[‘’‛′]/g, "'")
+    .replace(/[“”‟″]/g, '"')
+    .replace(/\u0640/g, "")
+    .replace(/\u200c/g, " ");
+  const lowered = straightened.toLowerCase();
+  const filtered = Array.from(lowered)
+    .map((ch) => RTL_FOLD[ch] ?? ch)
+    .map((ch) => (isKeptChar(ch) ? ch : " "))
+    .join("");
+  return filtered.replace(/\s+/g, " ").trim();
+}
 
 export function executeQuery(state: EffectiveState, request: QueryRequest): QueryResult {
   const candidates = collectCandidates(state, request);
@@ -413,4 +458,18 @@ function firstString(...values: Array<string | null | undefined>): string | unde
     if (typeof value === "string" && value.length > 0) return value;
   }
   return undefined;
+}
+
+function isKeptChar(ch: string): boolean {
+  if (ch === "-" || ch === "'") return true;
+  if (ch >= "a" && ch <= "z") return true;
+  if (ch >= "0" && ch <= "9") return true;
+  const code = ch.codePointAt(0);
+  if (code !== undefined) {
+    if (code >= 0x0600 && code <= 0x06ff) return true;
+    if (code >= 0x0750 && code <= 0x077f) return true;
+    if (code >= 0xfb50 && code <= 0xfdff) return true;
+    if (code >= 0xfe70 && code <= 0xfeff) return true;
+  }
+  return /[\p{L}\p{N}]/u.test(ch);
 }

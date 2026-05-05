@@ -1,7 +1,6 @@
 // Knb facade - V1 public library entry point.
 // Composes workspace, ledger, contract, read-snapshot, apply, query, context,
-// novelty, and projections into one object that the CLI and host applications
-// call.
+// and projections into one object that the CLI and host applications call.
 
 import { randomBytes } from "node:crypto";
 import { mkdir, stat, writeFile } from "node:fs/promises";
@@ -29,11 +28,6 @@ import {
 } from "./contract";
 import { knbError } from "./errors";
 import type { LedgerFingerprint, ParseIssue } from "./ledger";
-import {
-  classifyClaim,
-  type CandidateClaim,
-  type NoveltyResult,
-} from "./novelty";
 import {
   JsonProjectionArtifactStore,
   type FreshnessReport,
@@ -122,7 +116,6 @@ export type DetailedStatus = {
   duplicate_source_uri_clusters: DuplicateSourceUriCluster[];
   duplicate_claim_key_clusters: DuplicateClaimKeyCluster[];
   evidence_depth: EvidenceDepthStats;
-  novelty_active_distribution: Record<string, number>;
   syntheses_per_collection: Record<string, number>;
 };
 
@@ -193,16 +186,8 @@ export type CheckResult = {
   fingerprint: LedgerFingerprint;
 };
 
-export type NoveltyRequest = {
-  candidates: CandidateClaim[];
-};
-
 export type ApplyRequest = Omit<CoreApplyRequest, "run_id"> & {
   runId?: string;
-};
-
-export type NoveltyBatchResult = {
-  results: NoveltyResult[];
 };
 
 export type LogRequest = {
@@ -233,7 +218,6 @@ export type Knb = {
   get(ids: string[], options?: Omit<GetRequest, "ids">): Promise<GetResult>;
   query(request: QueryRequest): Promise<QueryResult>;
   context(request: ContextRequest): Promise<ContextResult>;
-  novelty(request: NoveltyRequest): Promise<NoveltyBatchResult>;
   render(request: RenderRequest): Promise<RenderResult>;
   renderAll(request?: RenderAllRequest): Promise<RenderAllResult>;
   check(): Promise<CheckResult>;
@@ -300,7 +284,6 @@ function makeKnb(workspace: KnbWorkspace, runtime: KnbRuntime): Knb {
         workspace,
         runtime,
         actor: workspace.actor,
-        classifyNovelty: noveltyBridge,
       });
     },
     async previewApply(request: ApplyRequest): Promise<ApplyResult> {
@@ -308,7 +291,6 @@ function makeKnb(workspace: KnbWorkspace, runtime: KnbRuntime): Knb {
         workspace,
         runtime,
         actor: workspace.actor,
-        classifyNovelty: noveltyBridge,
       });
     },
     async add(row: DraftRow): Promise<ApplyResult> {
@@ -335,13 +317,6 @@ function makeKnb(workspace: KnbWorkspace, runtime: KnbRuntime): Knb {
       const snapshot = await readSnapshot(readSnapshotOptions(workspace, false, request.asOf));
       const state = requireState(snapshot, "context");
       return buildContext(state, request);
-    },
-    async novelty(request: NoveltyRequest): Promise<NoveltyBatchResult> {
-      const snapshot = await readSnapshot({ workspace, freshness: false });
-      const state = requireState(snapshot, "novelty");
-      const candidates = Array.isArray(request?.candidates) ? request.candidates : [];
-      const results = candidates.map((candidate) => classifyClaim(candidate, state));
-      return { results };
     },
     async render(request: RenderRequest): Promise<RenderResult> {
       const snapshot = await readSnapshot(readSnapshotOptions(workspace, false, request.asOf));
@@ -439,19 +414,6 @@ function stringOption(value: string | undefined): string | undefined {
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : undefined;
 }
-
-const noveltyBridge: NonNullable<Parameters<typeof applyOperations>[1]["classifyNovelty"]> = (
-  candidate,
-  ledgerSnapshot,
-) => {
-  if (candidate.kind !== "claim") {
-    return { classification: "new", matched_ids: [] };
-  }
-  const loaded = ledgerSnapshot.rows.map(({ row, line }) => ({ row, line }));
-  const state = buildEffectiveState(loaded);
-  const result = classifyClaim(candidate as CandidateClaim, state);
-  return { classification: result.classification, matched_ids: result.matched_ids };
-};
 
 function requireState(snapshot: KnbReadSnapshot, op: string): EffectiveState {
   if (!snapshot.state) {
@@ -607,7 +569,6 @@ function detailedStatusFromState(state: EffectiveState): DetailedStatus {
     duplicate_source_uri_clusters: duplicateSourceUriClusters(activeSources),
     duplicate_claim_key_clusters: duplicateClaimKeyClusters(activeClaims),
     evidence_depth: evidenceDepthStats(activeClaims),
-    novelty_active_distribution: noveltyDistribution(activeClaims),
     syntheses_per_collection: synthesesPerCollection(collections),
   };
 }
@@ -670,16 +631,6 @@ function percentileNearestRank(sortedAscending: number[], percentile: number): n
   if (sortedAscending.length === 0) return 0;
   const rank = Math.max(1, Math.ceil(percentile * sortedAscending.length));
   return sortedAscending[Math.min(rank - 1, sortedAscending.length - 1)] as number;
-}
-
-function noveltyDistribution(rows: ClaimRow[]): Record<string, number> {
-  const distribution: Record<string, number> = {};
-  for (const row of rows) {
-    const novelty = row.identity.novelty;
-    if (typeof novelty !== "string" || novelty.length === 0) continue;
-    incrementCount(distribution, novelty);
-  }
-  return sortedRecord(distribution);
 }
 
 function synthesesPerCollection(collections: CollectionSummary[]): Record<string, number> {

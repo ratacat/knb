@@ -40,7 +40,6 @@ V1 should have these external seams:
 - Apply module: semantic write pipeline from operations to appendable rows.
 - Query module: deterministic retrieval over effective state.
 - Context module: token-budgeted research packet construction over effective state.
-- Novelty module: deterministic claim comparison shared by `novelty` and `apply --dedupe`.
 - Projection module: generated views, generated indexes, and freshness metadata.
 - Output and error modules: CLI rendering, envelopes, and exit-code mapping.
 
@@ -175,7 +174,6 @@ add
 get
 query
 context
-novelty
 render
 check
 index
@@ -204,7 +202,6 @@ Extraction rules:
 - Move rendering, indexes, metadata, and freshness checks into `src/core/projections.ts`.
 - Move deterministic retrieval into `src/core/query.ts`; do not use raw `JSON.stringify` search as the main query path.
 - Build atomic writes in `src/core/apply.ts`; do not extend single-row append into the primary writer.
-- Build `src/core/context.ts` and `src/core/novelty.ts` as separate modules because agents need both orientation and duplicate pressure.
 - Route the CLI through `openKnb` and output envelopes. The CLI should not import ledger, validation, query, or projection helpers directly.
 
 Final cleanup rules:
@@ -236,12 +233,9 @@ Claim identity policy:
 
 - `identity` is required for claim rows.
 - `identity.claim_key` is optional. Agents should provide it when they know a stable key, but V1 should not force agents to invent weak keys.
-- `identity.dedupe_hash` is optional. Novelty may compute normalized statement hashes internally, but apply must not silently persist a dedupe hash that the caller did not provide.
 
-Source dedupe policy:
 
 - Duplicate source URI or content-hash evidence should produce warnings, not blocked writes.
-- Claim-level novelty is the V1 duplicate-control surface.
 
 ## Change Rows
 
@@ -267,7 +261,6 @@ Base request shape:
 type ApplyRequest = {
   operations: ApplyOperation[];
   atomic?: true; // v1 supports only atomic writes
-  dedupe?: boolean; // default false
   actor?: string;
   now?: string;
 };
@@ -356,11 +349,9 @@ Interface responsibilities:
 - Resolve intra-batch references such as `$op0`.
 - Complete draft rows through the contract module using actor, time, and ID allocator inputs.
 - Build all change rows for lifecycle operations.
-- Run novelty and dedupe checks when requested.
 - Validate the complete candidate ledger.
 - Return rows to append through the ledger transaction.
 - Tell the projection module to rebuild eager indexes after a successful write when configured.
-- Return an `ApplyResult` with created IDs, skipped operations, warnings, and novelty classifications.
 
 `knb apply` is atomic by default. If any operation fails inside the write transaction, no operation writes. Apply must not validate against one ledger snapshot and append against another.
 
@@ -376,16 +367,13 @@ Reference resolution is structural. Apply resolves `$op<N>` and `$<as>` only in 
 
 Apply must not blindly string-replace arbitrary row fields.
 
-When `dedupe` skips a duplicate claim that later operations reference, apply resolves that reference to the matched active canonical row only when novelty returns exactly one unambiguous match. If no match or multiple matches exist, apply fails the whole batch with `duplicate_blocked`.
 
 Result shape:
 
 ```ts
 type ApplyResult = {
   created: Array<{ op: number; as?: string; id: string; kind: KnbRowKind }>;
-  skipped: Array<{ op: number; reason: string }>;
   warnings: string[];
-  novelty: Array<{ op: number; classification: string; matched_ids: string[] }>;
 };
 ```
 
@@ -574,7 +562,6 @@ add        convenience wrapper for one row
 get        fetch rows by ID
 query      retrieve matching rows
 context    build a compact research packet
-novelty    classify candidate claims
 render     generate disposable views
 check      validate ledger health
 index      rebuild or inspect generated indexes
@@ -596,8 +583,6 @@ Agents should be able to run this loop:
 ```bash
 knb status --json
 knb context --collection <collection> --max-tokens 3000 --json
-knb novelty --stdin --json < candidate-claims.json
-knb apply --stdin --atomic --dedupe --json < ops.json
 knb check --json
 knb render --collection <collection> --format md --out knb/views/<collection>.md --json
 ```
@@ -813,39 +798,6 @@ warnings
 token_estimate
 ```
 
-## Novelty Module
-
-The novelty module provides deterministic claim comparison. It is shared by the `novelty` command and `apply --dedupe`; callers should not implement their own dedupe checks.
-
-Interface responsibilities:
-
-- Accept candidate claim drafts or completed claim rows.
-- Compare against active claims from `EffectiveState`.
-- Match exact `identity.claim_key` first.
-- Match exact `identity.dedupe_hash` second.
-- Compare normalized claim statements lexically.
-- Use structured evidence and relation signals, including evidence roles such as `supports` and `contradicts`, relation `contradicts`, and explicit correction or novelty metadata.
-- Classify candidates as `new`, `duplicate`, `corroboration`, `update`, `contradiction`, or `correction`.
-- Return matched row IDs and reasons for each classification.
-
-The novelty module is deterministic and local. It does not use embeddings, network calls, LLM calls, or semantic search in v1. `contradiction` and `correction` require explicit structured signals, such as matching claim keys plus candidate metadata, evidence roles, or relation data. The module should classify conservatively when structured signals are absent.
-
-Classification policy:
-
-- `duplicate`: the candidate adds no material statement, time, evidence, or assessment.
-- `corroboration`: the statement or key matches, but the source or evidence is materially new.
-- `update`: the same key or thread has a newer time, changed value, or changed assessment.
-- `contradiction`: explicit structured contradiction signals exist.
-- `correction`: explicit correction metadata or relation exists.
-- `new`: no meaningful active match exists.
-
-Apply integration policy:
-
-- Skip `duplicate` claims when `dedupe` is enabled.
-- Allow `corroboration`, `update`, `contradiction`, `correction`, and `new` claims by default.
-- Report every novelty classification in `ApplyResult`.
-- Resolve references to skipped duplicates only under the single-match rule in the apply module.
-
 ## Projection Module
 
 The projection module owns disposable outputs derived from effective state. It is the seam behind `render`, `index`, status freshness, and check freshness warnings.
@@ -934,7 +886,6 @@ src/
     read-snapshot.ts
     query.ts
     context.ts
-    novelty.ts
     projections.ts
     output.ts
     errors.ts
@@ -962,7 +913,6 @@ type Knb = {
   get(ids: string[], options?: GetOptions): Promise<GetResult>;
   query(request: QueryRequest): Promise<QueryResult>;
   context(request: ContextRequest): Promise<ContextResult>;
-  novelty(request: NoveltyRequest): Promise<NoveltyResult>;
   render(request: RenderRequest): Promise<RenderResult>;
   check(request?: CheckRequest): Promise<CheckResult>;
   rebuildIndex(): Promise<IndexResult>;
@@ -984,16 +934,13 @@ Test through module interfaces:
 - Workspace tests cover config precedence, path normalization, and actor resolution.
 - Contract tests cover row samples, operation samples, JSON Schema, schema sync, duplicate IDs, cross-row references, and validation errors.
 - Ledger tests cover empty and missing ledgers, defensive JSONL loading, line-numbered parse errors, fingerprint changes, locked write transactions, lock contention, callback failure, and flush behavior.
-- Apply tests cover atomic writes, lock contention, allowed reference paths, forward-reference rejection, generated IDs, collision retry, lifecycle operations, scope derivation, dedupe, skipped duplicate references, and failed validation.
 - Effective state tests cover active rows, archived rows, retraction, supersession, merge, relation changes, patch audit history, inactive explanations, hidden change rows, and dangling-change warnings.
 - Read snapshot tests cover partial snapshots, validation summaries, effective state inclusion, and projection freshness.
 - Query tests cover exact ID matches, claim-key matches, normalized text matches, filters, active/history behavior, and compact/full output.
 - Get tests cover active rows, hidden inactive rows, history mode, and explanations.
-- Novelty tests cover claim-key matches, dedupe-hash matches, normalized statement matches, corroboration, explicit contradiction, conservative classification, and dedupe blocking.
 - Projection tests cover deterministic render output, index rebuilds, metadata, stale detection, and workspace path constraints.
 - Output tests cover JSON envelopes, human text, stderr, and exit codes.
 - Context tests cover ranking, source inclusion, warnings, information gaps, and token-budget truncation.
-- Facade tests cover the same flow agents use: `init`, `status`, `schema`, `apply`, `check`, `context`, `novelty`, `render`, and `index` against a temporary workspace.
 
 Avoid tests that pin private helper behavior. If a helper needs direct tests, first ask whether it is a real module seam or only an internal implementation detail.
 
@@ -1014,7 +961,6 @@ Avoid tests that pin private helper behavior. If a helper needs direct tests, fi
 13. Add `get`.
 14. Replace prototype query internals with `query.ts`.
 15. Add `context.ts` as a separate research-packet module.
-16. Add `novelty.ts` and wire `apply --dedupe` through it.
 17. Add `projections.ts`, render metadata, freshness checks, and indexes.
 18. Cut over the CLI to `parse args -> openKnb -> facade method -> output.render`.
 19. Remove public `validate` and `append`.

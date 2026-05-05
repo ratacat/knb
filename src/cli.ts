@@ -20,7 +20,6 @@ import {
   type OutputFormat,
   type OutputOptions,
 } from "./core/output";
-import type { CandidateClaim } from "./core/novelty";
 import type { ContextRequest } from "./core/context";
 import type { GetRequest, QueryRequest } from "./core/query";
 import type { RenderAllRequest, RenderRequest } from "./core/projections";
@@ -39,7 +38,6 @@ const COMMANDS = new Set([
   "get",
   "query",
   "context",
-  "novelty",
   "render",
   "check",
   "index",
@@ -173,7 +171,6 @@ async function runFacadeCommand(
 
     if (command === "apply") {
       const request = await readApplyRequest(flags, knb.workspace.root);
-      if (booleanFlag(flags, "dedupe")) request.dedupe = true;
       if (booleanFlag(flags, "atomic")) request.atomic = true;
       const dryRun = booleanFlag(flags, "dry-run");
       const result = dryRun ? await knb.previewApply(request) : await knb.apply(request);
@@ -224,13 +221,6 @@ async function runFacadeCommand(
       const request = contextRequestFromFlags(flags);
       const result = await knb.context(request);
       return renderResult(success("context", result, baseMeta()), outputOptions);
-    }
-
-    if (command === "novelty") {
-      const payload = await readJsonPayload(flags);
-      const candidates = extractCandidates(payload);
-      const result = await knb.novelty({ candidates });
-      return renderResult(success("novelty", result, baseMeta()), outputOptions);
     }
 
     if (command === "render") {
@@ -589,18 +579,6 @@ async function readApplyRequest(flags: FlagMap, workspaceRoot: string): Promise<
   return payload as ApplyRequest;
 }
 
-function extractCandidates(payload: unknown): CandidateClaim[] {
-  if (Array.isArray(payload)) return payload as CandidateClaim[];
-  if (payload && typeof payload === "object") {
-    const candidates = (payload as { candidates?: unknown }).candidates;
-    if (Array.isArray(candidates)) return candidates as CandidateClaim[];
-  }
-  throw knbError(
-    "invalid_arguments",
-    "novelty payload must be an array of candidates or { candidates: [...] }",
-  );
-}
-
 async function readStdinJson(): Promise<unknown> {
   const chunks: Buffer[] = [];
   for await (const chunk of process.stdin) {
@@ -642,12 +620,11 @@ Usage:
   knb collections [--root <dir>] [--json|--pretty|--ndjson|--text|--quiet]
   knb schema  [--json|--pretty|--ndjson|--text|--quiet]
   knb log     [--actor <a>] [--since <date>] [--until <date>] [--limit N] [--json|--pretty|--ndjson|--text|--quiet]
-  knb apply   (--file ops.json | --json '{...}' | --stdin) [--atomic] [--dedupe] [--dry-run]
+  knb apply   (--file ops.json | --json '{...}' | --stdin) [--atomic] [--dry-run]
   knb add     (--file row.json | --json '{...}' | --stdin)
   knb get     <id> [<id>...] [--as-of <iso>] [--include-history] [--explain]
   knb query   [--as-of <iso>] [--kind <kind>] [--collection <c>] [--subject <s>] [--tag <t>] [--text <q>] [--claim-key <k>] [--claim-type <t>] [--predicate <p>] [--qualifier k=v] [--external-ref system:id] [--citing <uri>] [--limit N] [--history] [--full]
   knb context [--as-of <iso>] [--collection <c>] [--subject <s>] [--tag <t>] [--claim-type <t>] [--predicate <p>] [--qualifier k=v] [--external-ref system:id] [--max-tokens 3000] [--recency-window-days N] [--no-warnings]
-  knb novelty (--file candidates.json | --json '{...}' | --stdin)
   knb render  (--collection <c> [--out path] | --all) [--as-of <iso>] [--format md]
   knb check   [--json]
   knb index   [--rebuild]
@@ -664,7 +641,6 @@ Commands:
   get       Fetch full rows by id; default returns only active rows.
   query     Search active rows by kind, scope, text, citation, and generic structured claim fields. Use --history to include inactive.
   context   Build a token-budgeted context packet for a scope.
-  novelty   Classify candidate claims against active claims (no writes).
   render    Generate Markdown view(s) for one collection or every active collection.
   check     Report parse, validation, state warnings, and projection freshness. Exit 0 if ok, otherwise the typed error code.
   index     Without --rebuild, report freshness only. With --rebuild, regenerate all V1 indexes.

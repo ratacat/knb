@@ -68,8 +68,6 @@ export type ExternalRef = {
 export type Identity = {
   claim_key?: string;
   thread_key?: string;
-  dedupe_hash?: string;
-  novelty?: "new" | "duplicate" | "corroboration" | "update" | "contradiction" | "correction";
   checked_at?: string;
 };
 
@@ -396,7 +394,6 @@ export type ApplyOperation =
 export type ApplyRequest = {
   operations: ApplyOperation[];
   atomic?: true;
-  dedupe?: boolean;
   actor?: string;
   now?: string;
   run_id?: string;
@@ -860,10 +857,6 @@ export function jsonSchema(): Record<string, unknown> {
         properties: {
           claim_key: { type: "string" },
           thread_key: { type: "string" },
-          dedupe_hash: { type: "string" },
-          novelty: {
-            enum: ["new", "duplicate", "corroboration", "update", "contradiction", "correction"],
-          },
           checked_at: { type: "string" },
         },
       },

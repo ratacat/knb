@@ -3,7 +3,7 @@ import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { applyOperations, previewApplyOperations, type ApplyDeps, type NoveltyDecision } from "../src/core/apply";
+import { applyOperations, previewApplyOperations, type ApplyDeps } from "../src/core/apply";
 import type {
   ApplyOperation,
   ApplyRequest,
@@ -50,7 +50,6 @@ async function pathExists(path: string): Promise<boolean> {
 
 function makeDeps(overrides?: {
   randomIdPart?: () => string;
-  classifyNovelty?: (candidate: KnbRow, snapshot?: unknown) => NoveltyDecision;
   actor?: string;
   clock?: () => Date;
 }): ApplyDeps {
@@ -62,10 +61,6 @@ function makeDeps(overrides?: {
     },
     actor: overrides?.actor ?? "agent:test",
   };
-  if (overrides?.classifyNovelty) {
-    const fn = overrides.classifyNovelty;
-    deps.classifyNovelty = (row, snapshot) => fn(row, snapshot);
-  }
   return deps;
 }
 
@@ -192,9 +187,7 @@ describe("applyOperations", () => {
     const result = await applyOperations(request, makeDeps());
 
     expect(result.created).toEqual([]);
-    expect(result.skipped).toEqual([]);
     expect(result.warnings).toEqual([]);
-    expect(result.novelty).toEqual([]);
     expect(result.meta.rows_appended).toBe(0);
     expect(result.meta.bytes_written).toBe(0);
     expect(result.meta.ledger_path).toBe(ledgerPath());
@@ -272,12 +265,7 @@ describe("applyOperations", () => {
     expect(created?.as).toBeUndefined();
     expect(result.meta.rows_appended).toBe(1);
     expect(result.meta.bytes_written).toBeGreaterThan(0);
-    expect(result.skipped).toEqual([]);
     expect(result.warnings).toEqual([]);
-    // sources are not classified -> novelty default ("new", no matches)
-    expect(result.novelty).toEqual([
-      { op: 0, classification: "new", matched_ids: [] },
-    ]);
 
     const onDisk = await readLedgerText();
     const lines = onDisk.trim().split("\n");
@@ -353,9 +341,6 @@ describe("applyOperations", () => {
     expect(result.created[3]?.kind).toBe("synthesis");
     expect(result.created[4]?.kind).toBe("change");
 
-    // novelty has an entry for every add op (5 - 1 lifecycle = 4)
-    // and only the claim has a non-default classification path; sources/questions/syntheses default to "new"
-    expect(result.novelty.map((n) => n.op)).toEqual([0, 1, 2, 3]);
   });
 
   test("scope-slug priority: collections > subjects > tags", async () => {
@@ -1289,225 +1274,6 @@ describe("applyOperations", () => {
     expect(snapshot.rows).toHaveLength(2);
     expect((snapshot.rows[0]?.row as { id: string }).id).toBe("src:example:20260501:src00001");
     expect((snapshot.rows[1]?.row as { id: string }).id).toBe("src:example:20260501:src00002");
-  });
-
-  test("dedupe + duplicate single-match: row skipped, alias rebound, subsequent op resolves to canonical", async () => {
-    const canonical: ClaimRow = {
-      schema_version: "knb.v1",
-      id: "claim:example:20260101:canon000",
-      kind: "claim",
-      created_at: "2026-01-01T00:00:00Z",
-      created_by: "agent:seed",
-      scope: { collections: ["example"] },
-      identity: { claim_key: "k" },
-      claim: { statement: "x", atomic: true },
-      time: { precision: "unknown" },
-      provenance: {
-        evidence: [
-          { source_id: "src:example:20260101:srccccc0", role: "supports", summary: "ok" },
-        ],
-      },
-      assessment: { confidence: "high" },
-    };
-    const seedSource: SourceRow = {
-      schema_version: "knb.v1",
-      id: "src:example:20260101:srccccc0",
-      kind: "source",
-      created_at: "2026-01-01T00:00:00Z",
-      created_by: "agent:seed",
-      scope: { collections: ["example"] },
-      source: { type: "web_page", title: "S", uri: "https://example.com/s" },
-      provenance: { acquisition: { method: "manual" } },
-    };
-    await seedLedger([seedSource, canonical]);
-
-    const ids = ["aaaa1111", "bbbb2222", "cccc3333"];
-    let i = 0;
-    const deps = makeDeps({
-      randomIdPart: () => ids[i++] ?? "ffffffff",
-      classifyNovelty: (candidate) => {
-        if (candidate.kind === "claim") {
-          return { classification: "duplicate", matched_ids: [canonical.id] };
-        }
-        return { classification: "new", matched_ids: [] };
-      },
-    });
-
-    const request: ApplyRequest = {
-      dedupe: true,
-      operations: [
-        {
-          op: "add",
-          as: "newClaim",
-          row: { ...buildClaimDraft(), provenance: { evidence: [{ source_id: seedSource.id, role: "supports", summary: "x" }] } },
-        },
-        // op 1 references the skipped op via $alias and via $op0 — both must resolve to canonical id
-        { op: "retract", target_ids: ["$newClaim"], reason: "stale" },
-        { op: "retract", target_ids: ["$op0"], reason: "via $op0" },
-      ],
-    };
-    const result = await applyOperations(request, deps);
-
-    expect(result.skipped).toHaveLength(1);
-    expect(result.skipped[0]?.op).toBe(0);
-    expect(result.skipped[0]?.matched_ids).toEqual([canonical.id]);
-    expect(result.skipped[0]?.reason).toContain(canonical.id);
-    expect(result.created).toHaveLength(2);
-    expect(result.created.every((c) => c.kind === "change")).toBe(true);
-    // novelty still records the classification for the skipped op
-    expect(result.novelty).toHaveLength(1);
-    expect(result.novelty[0]).toEqual({ op: 0, classification: "duplicate", matched_ids: [canonical.id] });
-
-    const onDisk = await readLedgerText();
-    const lines = onDisk.trim().split("\n");
-    expect(lines).toHaveLength(4); // 2 seed + 2 change rows
-    const change1 = JSON.parse(lines[2] as string) as ChangeRow;
-    const change2 = JSON.parse(lines[3] as string) as ChangeRow;
-    expect(change1.change.target_ids).toEqual([canonical.id]);
-    expect(change2.change.target_ids).toEqual([canonical.id]);
-  });
-
-  test("dedupe + duplicate with multiple matches throws duplicate_blocked and writes nothing", async () => {
-    const seedSource: SourceRow = {
-      schema_version: "knb.v1",
-      id: "src:example:20260101:srccccc0",
-      kind: "source",
-      created_at: "2026-01-01T00:00:00Z",
-      created_by: "agent:seed",
-      scope: { collections: ["example"] },
-      source: { type: "web_page", title: "S", uri: "https://example.com/s" },
-      provenance: { acquisition: { method: "manual" } },
-    };
-    await seedLedger([seedSource]);
-    const before = await readLedgerText();
-
-    const deps = makeDeps({
-      classifyNovelty: () => ({ classification: "duplicate", matched_ids: ["a", "b"] }),
-    });
-    const request: ApplyRequest = {
-      dedupe: true,
-      operations: [
-        { op: "add", row: { ...buildClaimDraft(), provenance: { evidence: [{ source_id: seedSource.id, role: "supports", summary: "x" }] } } },
-      ],
-    };
-
-    let thrown: unknown;
-    try {
-      await applyOperations(request, deps);
-    } catch (error) {
-      thrown = error;
-    }
-    expect(isKnbError(thrown)).toBe(true);
-    expect((thrown as { code: string }).code).toBe("duplicate_blocked");
-    expect((thrown as { details?: { matched_ids?: string[] } }).details?.matched_ids).toEqual(["a", "b"]);
-    expect(await readLedgerText()).toBe(before);
-  });
-
-  test("without dedupe, duplicate classification still appends row but reports classification", async () => {
-    const seedSource: SourceRow = {
-      schema_version: "knb.v1",
-      id: "src:example:20260101:srccccc0",
-      kind: "source",
-      created_at: "2026-01-01T00:00:00Z",
-      created_by: "agent:seed",
-      scope: { collections: ["example"] },
-      source: { type: "web_page", title: "S", uri: "https://example.com/s" },
-      provenance: { acquisition: { method: "manual" } },
-    };
-    await seedLedger([seedSource]);
-
-    const deps = makeDeps({
-      classifyNovelty: () => ({ classification: "duplicate", matched_ids: ["existing"] }),
-    });
-    const request: ApplyRequest = {
-      operations: [
-        { op: "add", row: { ...buildClaimDraft(), provenance: { evidence: [{ source_id: seedSource.id, role: "supports", summary: "x" }] } } },
-      ],
-    };
-    const result = await applyOperations(request, deps);
-    expect(result.created).toHaveLength(1);
-    expect(result.created[0]?.id).not.toBe("existing");
-    expect(result.skipped).toEqual([]);
-    expect(result.novelty).toEqual([
-      { op: 0, classification: "duplicate", matched_ids: ["existing"] },
-    ]);
-  });
-
-  test("classifier is called only for claim adds, never for sources/questions/syntheses/lifecycle", async () => {
-    const seenKinds: string[] = [];
-    const claimDraft = {
-      ...buildClaimDraft(),
-      provenance: { evidence: [{ source_id: "$src", role: "supports" as const, summary: "ok" }] },
-    };
-    const questionDraft = {
-      kind: "question" as const,
-      scope: { collections: ["example"] },
-      question: { text: "Why?", status: "open" as const },
-    };
-    const synthesisDraft = {
-      kind: "synthesis" as const,
-      scope: { collections: ["example"] },
-      synthesis: {
-        title: "T",
-        summary: "S",
-        basis: { claim_ids: ["$cl"] },
-        status: "active" as const,
-      },
-    };
-    const ids = ["aaaaaaaa", "bbbbbbbb", "cccccccc", "dddddddd", "eeeeeeee"];
-    let i = 0;
-    await applyOperations(
-      {
-        operations: [
-          { op: "add", as: "src", row: SOURCE_DRAFT },
-          { op: "add", as: "cl", row: claimDraft },
-          { op: "add", row: questionDraft },
-          { op: "add", row: synthesisDraft },
-          { op: "retract", target_ids: ["$cl"], reason: "x" },
-        ],
-      },
-      makeDeps({
-        randomIdPart: () => ids[i++] ?? "fffffff0",
-        classifyNovelty: (candidate) => {
-          seenKinds.push(candidate.kind);
-          return { classification: "new", matched_ids: [] };
-        },
-      }),
-    );
-    expect(seenKinds).toEqual(["claim"]);
-  });
-
-  test("classifier receives the locked snapshot containing the seeded rows", async () => {
-    const seedSource: SourceRow = {
-      schema_version: "knb.v1",
-      id: "src:example:20260101:locksnap",
-      kind: "source",
-      created_at: "2026-01-01T00:00:00Z",
-      created_by: "agent:seed",
-      scope: { collections: ["example"] },
-      source: { type: "web_page", title: "S", uri: "https://example.com/s" },
-      provenance: { acquisition: { method: "manual" } },
-    };
-    await seedLedger([seedSource]);
-
-    let snapshotRowCount = -1;
-    let snapshotIds: string[] = [];
-    const deps = makeDeps({
-      randomIdPart: () => "claimid1",
-      classifyNovelty: (_candidate, snapshot) => {
-        const snap = snapshot as { rows: Array<{ row: { id: string } }> };
-        snapshotRowCount = snap.rows.length;
-        snapshotIds = snap.rows.map((r) => r.row.id);
-        return { classification: "new", matched_ids: [] };
-      },
-    });
-    const claimDraft = {
-      ...buildClaimDraft(),
-      provenance: { evidence: [{ source_id: seedSource.id, role: "supports" as const, summary: "ok" }] },
-    };
-    await applyOperations({ operations: [{ op: "add", row: claimDraft }] }, deps);
-    expect(snapshotRowCount).toBe(1);
-    expect(snapshotIds).toEqual([seedSource.id]);
   });
 
   test("warnings array is populated when contract validation surfaces a duplicate-source-uri warning", async () => {

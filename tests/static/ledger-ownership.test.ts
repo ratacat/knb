@@ -18,7 +18,6 @@ const SCANNED_FILES = [
   "src/core/errors.ts",
   "src/core/knb.ts",
   "src/core/ledger.ts",
-  "src/core/novelty.ts",
   "src/core/output.ts",
   "src/core/projections.ts",
   "src/core/query.ts",

@@ -4,7 +4,6 @@ This guide records the high-intelligence refactor direction for turning the curr
 
 ## Summary
 
-The current prototype already has the right **row vocabulary**: `source`, `claim`, `question`, `synthesis`, and `change`. It does not yet have the deep module boundaries, atomic write path, public library facade, read snapshot, output envelopes, or agent-first command surface described in `docs/design/agent-first-cli.md`. This should be a staged refactor, not a targeted patch: `src/knb.ts` currently owns too many concerns, and the design spec explicitly wants those concerns concentrated into deeper modules with simple interfaces. The right implementation path is to first lock down contracts and output/error behavior, then carve ledger, state, read-snapshot, apply, query, context, novelty, and projection into real modules, keeping each stage testable.
 
 ## 1. Short Gap Analysis
 
@@ -36,12 +35,10 @@ The major issue is that `src/knb.ts` is a broad helper module. It currently mixe
 | Apply module | Missing; current `append` writes one row only |
 | Query module | Shallow; `queryRows` does direct filters and `JSON.stringify` text search |
 | Context module | Missing |
-| Novelty module | Missing |
 | Projection module | Missing; render writes directly and has no metadata/freshness |
 | Output/error modules | Missing; CLI prints directly and uses ad hoc exit codes |
 | Public package export | Missing; `package.json` has a bin but no `"exports"` entry |
 
-The current CLI also diverges from the target surface. It exposes `validate`, `append`, `query`, and `render`; the spec wants `init`, `status`, `schema`, `apply`, `add`, `get`, `query`, `context`, `novelty`, `render`, `check`, and `index`, with `validate` replaced by `check` and `append` replaced by `apply` / `add`.
 
 ### Important Behavioral Divergences
 
@@ -49,7 +46,6 @@ The most important correctness gap is write safety. Today, `appendRow` loads the
 
 The second big gap is that current state is underspecified in code. `effectiveRows` builds a simple inactive ID set from all `retract`, `supersede`, and `merge` changes. It does not return status explanations, relation graph changes, warnings, archived state, duplicate state, or inactive history. The spec wants an `EffectiveState` projection with `active`, `retracted`, `superseded`, `duplicate`, `archived`, and `invalid` statuses.
 
-The third big gap is agent usability. The spec's agent loop depends on stable JSON envelopes, status packets, token-budgeted context packets, novelty classification, atomic `apply`, and dedupe. The prototype has none of those yet.
 
 ## 2. Design Direction
 
@@ -67,7 +63,6 @@ The deletion-test principle from the spec is the correct boundary rule: a module
 - `apply`
 - `query`
 - `context`
-- `novelty`
 - `projections`
 - `Knb` facade
 
@@ -91,7 +86,6 @@ src/
     apply.ts              atomic semantic write pipeline
     query.ts              deterministic retrieval
     context.ts            research briefing packet
-    novelty.ts            deterministic claim comparison
     projections.ts        render/index/freshness metadata
 ```
 
@@ -174,7 +168,6 @@ The operation contract should match the design doc:
 type ApplyRequest = {
   operations: ApplyOperation[];
   atomic?: true;
-  dedupe?: boolean;
   actor?: string;
   now?: string;
 };
@@ -417,8 +410,6 @@ export type {
   QueryResult,
   ContextRequest,
   ContextResult,
-  NoveltyRequest,
-  NoveltyResult,
   RenderRequest,
   RenderResult,
   CheckRequest,
@@ -438,7 +429,6 @@ type Knb = {
   get(ids: string[], options?: GetOptions): Promise<GetResult>;
   query(request: QueryRequest): Promise<QueryResult>;
   context(request: ContextRequest): Promise<ContextResult>;
-  novelty(request: NoveltyRequest): Promise<NoveltyResult>;
   render(request: RenderRequest): Promise<RenderResult>;
   check(request?: CheckRequest): Promise<CheckResult>;
   rebuildIndex(): Promise<IndexResult>;
@@ -600,15 +590,12 @@ The apply module owns:
 - ID generation.
 - Lifecycle operation conversion to `change` rows.
 - Candidate ledger validation.
-- Optional dedupe integration.
 - `ApplyResult`.
 
 ```ts
 type ApplyResult = {
   created: Array<{ op: number; as?: string; id: string; kind: KnbRowKind }>;
-  skipped: Array<{ op: number; reason: string }>;
   warnings: string[];
-  novelty: Array<{ op: number; classification: string; matched_ids: string[] }>;
 };
 ```
 
@@ -639,7 +626,6 @@ Inside `ledger.withWriteTransaction`:
      - generated `id`
    - For lifecycle operations, derive `scope` from target rows if omitted.
    - Build `change` rows for `retract`, `supersede`, `merge`, `relate`, and `patch`.
-8. Run novelty/dedupe when requested.
 9. Validate the complete candidate ledger.
 10. Return append rows and `ApplyResult` to the ledger transaction.
 11. After successful append, trigger eager projection rebuild only if configured; otherwise freshness metadata naturally becomes stale by fingerprint mismatch.
@@ -668,12 +654,10 @@ Use the first available value from:
 
 If no slug source exists, validation fails before ID generation.
 
-Implement `apply` with `dedupe: false` first if needed, but the final milestone for this stage must route `dedupe: true` through `novelty.ts`. Do not let `apply` grow a private duplicate-check implementation that differs from the `novelty` command.
 
 CLI:
 
 ```text
-knb apply --stdin --atomic --dedupe --json
 knb add ...
 ```
 
@@ -837,79 +821,18 @@ Tests:
 
 Stage exit condition: agents can cheaply orient before writing.
 
-### Milestone 9: Implement Novelty And Dedupe
 
 Goal: make "only add high-value stuff" enforceable locally and deterministically.
 
 New file:
 
 ```text
-src/core/novelty.ts
 ```
-
-Classifications:
-
-```text
-new
-duplicate
-corroboration
-update
-contradiction
-correction
-```
-
-Algorithm for each candidate claim:
-
-1. Compare exact `identity.claim_key`.
-2. Compare exact `identity.dedupe_hash`.
-3. Compare normalized `claim.statement`.
-4. Use structured evidence signals:
-   - evidence role `supports`
-   - evidence role `contradicts`
-   - relation `contradicts`
-   - explicit `identity.novelty`
-5. Classify conservatively:
-   - `duplicate` only when the candidate adds no materially new statement, time, evidence, or assessment.
-   - `corroboration` when the statement/key matches but the source or evidence is meaningfully new.
-   - `update` when the same thread/key has a newer time or changed value.
-   - `contradiction` only with explicit structured contradiction signals.
-   - `correction` only with explicit correction metadata or relation.
-   - `new` when no meaningful match exists.
-
-No embeddings. No LLM calls. No network calls. No semantic search in v1.
-
-Apply integration:
-
-- `duplicate` -> skip candidate claim.
-- `corroboration` -> allow by default because new evidence can be valuable.
-- `update` -> allow.
-- `contradiction` -> allow and mark as contested/contradictory if fields support it.
-- `correction` -> allow.
-- `new` -> allow.
-
-If a skipped duplicate is referenced later in the same batch, resolve that reference to the matched canonical row only when there is exactly one unambiguous match. Otherwise fail the batch with `duplicate_blocked`.
 
 CLI:
 
 ```text
-knb novelty --stdin --json
 ```
-
-Tests:
-
-- `tests/novelty.test.ts`
-  - exact claim key duplicate
-  - exact dedupe hash duplicate
-  - normalized statement duplicate
-  - corroboration with new source
-  - explicit contradiction
-  - conservative classification when signals are absent
-- Extend `tests/apply.test.ts`
-  - `apply --dedupe` skips duplicates
-  - `apply --dedupe` reports novelty classifications
-  - ambiguous skipped reference fails safely
-
-Stage exit condition: the knowledge base can reject or classify low-value repeated claims before appending.
 
 ### Milestone 10: Implement Projections, Render Metadata, And Indexes
 
@@ -1003,7 +926,6 @@ add
 get
 query
 context
-novelty
 render
 check
 index
@@ -1048,7 +970,6 @@ Remove or rewrite:
 Final test flow:
 
 ```text
-init/status -> schema -> apply -> check -> context -> novelty -> render -> index
 ```
 
 Run it against a temporary workspace.
@@ -1206,7 +1127,6 @@ Depends on:
 - `ledger.ts`
 - `contract.ts`
 - `state.ts`
-- `novelty.ts`
 - `errors.ts`
 
 ### `src/core/query.ts`
@@ -1231,11 +1151,9 @@ Depends on:
 - `query.ts` concepts, but not query as a filter wrapper
 - `contract.ts` row types
 
-### `src/core/novelty.ts`
 
 Current role: missing.
 
-Final role: deterministic claim comparison shared by `knb novelty` and `apply --dedupe`.
 
 Depends on:
 
@@ -1336,9 +1254,7 @@ The design doc explicitly treats the earlier `knowbase` / `kb` shape as historic
 
 The ledger module can guarantee logical atomicity under normal runtime failures by validating and appending inside one lock-held transaction. It cannot perfectly guarantee crash-atomic multi-row append on every filesystem if the process dies mid-write. The recovery behavior should be: parse issues are reported by `check`, valid rows remain readable where possible, and mechanical repair is explicit.
 
-### Dedupe Reference Behavior Needs One Policy
 
-When `apply --dedupe` skips a duplicate claim that later operations reference, the recommended default is:
 
 - If the duplicate has exactly one active canonical match, resolve the batch reference to that existing row.
 - If it has zero or multiple matches, fail the batch with `duplicate_blocked`.
@@ -1347,27 +1263,21 @@ That keeps agents from accidentally creating dangling syntheses or relations.
 
 ### Do Not Add Embeddings Yet
 
-The user goal points toward semantic novelty and large-scale recursive research, but the spec intentionally keeps V1 deterministic and local. The right V1 pressure against duplicate sludge is structured identity, provenance, time, assessment, novelty classification, open questions, and context ranking, not embeddings yet.
 
 ## 6. Open Questions With Recommended Defaults
 
 ### 1. Should `identity.claim_key` Be Required For Every Claim?
 
-Recommended default: no. Keep `identity` required for claims, but keep `claim_key` optional. Novelty should use `claim_key` when present, then `dedupe_hash`, then normalized statement matching.
 
 Requiring `claim_key` too early may make agents invent bad keys. Better to support strong keys without forcing low-quality ones.
 
-### 2. Should Apply Auto-Generate `identity.dedupe_hash`?
 
-Recommended default: no for v1. Compute normalized statement hashes internally for novelty comparison, but do not silently persist `dedupe_hash` unless the caller provides it.
 
 This avoids opaque mutations to user-provided claim identity.
 
-### 3. Should Source Rows Be Deduped?
 
 Recommended default: warn but do not block duplicate source URI/content hash in v1.
 
-The spec's novelty module is claim-focused. Source dedupe is useful, but blocking source duplicates too early can interfere with provenance capture.
 
 ### 4. Should `patch` Change Rows Mutate Effective Rows?
 
@@ -1424,11 +1334,8 @@ That protects agents from path traversal and keeps projections disposable.
 13. Add `get`.
 14. Replace prototype query with `query.ts`.
 15. Add `context.ts`.
-16. Add `novelty.ts` and wire `apply --dedupe`.
 17. Add `projections.ts`, render metadata, freshness checks, and indexes.
 18. Cut over CLI fully.
 19. Remove `validate`, `append`, and broad helper usage from `src/knb.ts`.
 20. Update docs and package exports.
 21. Add the full agent-loop facade test.
-
-The two biggest architectural levers are atomic claim-level writes with provenance and a deterministic novelty/context pair. That combination gives agents a simple loop: orient, identify gaps, classify candidate knowledge, write only meaningful changes, then re-render the world-state.

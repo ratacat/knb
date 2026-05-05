@@ -12,7 +12,7 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { applyOperations, type ApplyDeps, type NoveltyDecision } from "../src/core/apply";
+import { applyOperations, type ApplyDeps } from "../src/core/apply";
 import type {
   ApplyRequest,
   DraftRow,
@@ -46,7 +46,6 @@ function lockPath(): string {
 
 function makeDeps(overrides?: {
   randomIdPart?: () => string;
-  classifyNovelty?: (candidate: KnbRow) => NoveltyDecision;
   actor?: string;
   clock?: () => Date;
   workspace?: { paths: { ledger: string; lock: string } };
@@ -61,10 +60,6 @@ function makeDeps(overrides?: {
     },
     actor: overrides?.actor ?? "agent:test",
   };
-  if (overrides?.classifyNovelty) {
-    deps.classifyNovelty = (row) =>
-      (overrides.classifyNovelty as (candidate: KnbRow) => NoveltyDecision)(row);
-  }
   return deps;
 }
 

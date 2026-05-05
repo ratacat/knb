@@ -260,19 +260,6 @@
         "thread_key": {
           "type": "string"
         },
-        "dedupe_hash": {
-          "type": "string"
-        },
-        "novelty": {
-          "enum": [
-            "new",
-            "duplicate",
-            "corroboration",
-            "update",
-            "contradiction",
-            "correction"
-          ]
-        },
         "checked_at": {
           "type": "string"
         }

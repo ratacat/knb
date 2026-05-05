@@ -469,7 +469,6 @@ describe("cli help and entrypoint", () => {
       "get",
       "query",
       "context",
-      "novelty",
       "render",
       "check",
       "index",
@@ -630,7 +629,7 @@ describe("cli status --detailed", () => {
           row: {
             kind: "claim",
             scope: { collections: ["detail-cli"] },
-            identity: { claim_key: "detail-cli|claim", novelty: "duplicate" },
+            identity: { claim_key: "detail-cli|claim" },
             claim: { statement: "Detailed status works.", atomic: true },
             time: { precision: "unknown" },
             provenance: {
@@ -651,14 +650,12 @@ describe("cli status --detailed", () => {
       data: {
         detailed?: {
           evidence_depth: { count: number; p50: number; p90: number; max: number };
-          novelty_active_distribution: Record<string, number>;
           syntheses_per_collection: Record<string, number>;
         };
       };
     };
     expect(env.ok).toBe(true);
     expect(env.data.detailed?.evidence_depth).toEqual({ count: 1, p50: 1, p90: 1, max: 1 });
-    expect(env.data.detailed?.novelty_active_distribution).toEqual({ duplicate: 1 });
     expect(env.data.detailed?.syntheses_per_collection).toEqual({});
   });
 });
@@ -917,7 +914,7 @@ describe("cli flag parsing", () => {
   });
 });
 
-describe("cli apply / add / novelty payload sources", () => {
+describe("cli apply / add / add payload sources", () => {
   test("apply --file <path> reads operations from disk", async () => {
     await initWorkspace();
     const opsPath = join(workDir, "ops.json");
@@ -1171,34 +1168,6 @@ describe("cli apply / add / novelty payload sources", () => {
     expect(env.data.meta.rows_appended).toBe(1);
   });
 
-  test("novelty --file <path> classifies candidates from disk", async () => {
-    await initWorkspace();
-    const file = join(workDir, "candidates.json");
-    await writeFile(
-      file,
-      JSON.stringify([
-        {
-          kind: "claim",
-          scope: { collections: ["novelty"] },
-          identity: { claim_key: "novelty|never-before-seen" },
-          claim: { statement: "Never before seen.", atomic: true },
-          assessment: { confidence: "low" },
-        },
-      ]),
-      "utf8",
-    );
-
-    const result = await runCliBinary(["novelty", "--file", file, "--json"]);
-    expect(result.code).toBe(0);
-    const env = JSON.parse(result.stdout.trim()) as {
-      ok: boolean;
-      data: { results: Array<{ classification: string }> };
-    };
-    expect(env.ok).toBe(true);
-    expect(env.data.results.length).toBe(1);
-    expect(env.data.results[0]?.classification).toBe("new");
-  });
-
   test("apply with no payload source returns exit 2 invalid_arguments", async () => {
     await initWorkspace();
     const result = await runCliBinary(["apply", "--atomic", "--json"]);
@@ -1325,19 +1294,6 @@ describe("cli apply / add / novelty payload sources", () => {
     expect(env.error.details?.issues?.[0]?.path).toBe("operations");
   });
 
-  test("novelty with non-array, non-{candidates} payload returns exit 2", async () => {
-    await initWorkspace();
-    const result = await runCliBinary(["novelty", "--json", "{}", "--pretty"]);
-    expect(result.code).toBe(2);
-    const env = JSON.parse(result.stderr.trim()) as {
-      ok: boolean;
-      error: { code: string; message: string };
-    };
-    expect(env.ok).toBe(false);
-    expect(env.error.code).toBe("invalid_arguments");
-    expect(env.error.message).toContain("candidates");
-  });
-
   test("apply --stdin with very large payload (>5000 ops) does not deadlock and succeeds", async () => {
     await initWorkspace();
     const ops = Array.from({ length: 5000 }, (_, i) => ({
@@ -1368,7 +1324,7 @@ describe("cli apply / add / novelty payload sources", () => {
   }, 30000);
 });
 
-describe("cli get / query / context / novelty success envelopes", () => {
+describe("cli get / query / context success envelopes", () => {
   test("get with no positional ids returns exit 2 invalid_arguments", async () => {
     await initWorkspace();
     const result = await runCliBinary(["get", "--json"]);
@@ -1991,70 +1947,6 @@ describe("cli get / query / context / novelty success envelopes", () => {
     expect(env.error.message).toContain("Invalid asOf timestamp");
   });
 
-  test("novelty inline payload classifies new vs duplicate against ledger", async () => {
-    await initWorkspace();
-    const sourceAdd = await runCliBinary([
-      "add",
-      "--json",
-      JSON.stringify({
-        kind: "source",
-        scope: { collections: ["nv"] },
-        source: { type: "web_page", title: "nv-src", uri: "https://example.com/nv" },
-        provenance: { acquisition: { method: "manual" } },
-      }),
-    ]);
-    expect(sourceAdd.code).toBe(0);
-    const sourceId = (JSON.parse(sourceAdd.stdout.trim()) as {
-      data: { created: Array<{ id: string }> };
-    }).data.created[0]?.id ?? "";
-
-    const claimAdd = await runCliBinary([
-      "add",
-      "--json",
-      JSON.stringify({
-        kind: "claim",
-        scope: { collections: ["nv"] },
-        identity: { claim_key: "nv|key1" },
-        claim: { statement: "Existing claim text.", atomic: true },
-        time: { precision: "unknown" },
-        provenance: {
-          source_ids: [sourceId],
-          evidence: [{ source_id: sourceId, role: "supports", summary: "Backs claim." }],
-        },
-        assessment: { confidence: "high" },
-      }),
-    ]);
-    expect(claimAdd.code).toBe(0);
-
-    const candidates = JSON.stringify({
-      candidates: [
-        {
-          kind: "claim",
-          scope: { collections: ["nv"] },
-          identity: { claim_key: "nv|key1" },
-          claim: { statement: "Existing claim text.", atomic: true },
-          assessment: { confidence: "high" },
-        },
-        {
-          kind: "claim",
-          scope: { collections: ["nv"] },
-          identity: { claim_key: "nv|fresh" },
-          claim: { statement: "Brand new claim.", atomic: true },
-          assessment: { confidence: "low" },
-        },
-      ],
-    });
-    const result = await runCliBinary(["novelty", "--json", candidates, "--pretty"]);
-    expect(result.code).toBe(0);
-    const env = JSON.parse(result.stdout) as {
-      ok: boolean;
-      data: { results: Array<{ classification: string }> };
-    };
-    expect(env.ok).toBe(true);
-    expect(env.data.results.length).toBe(2);
-    expect(env.data.results[0]?.classification).toBe("duplicate");
-    expect(env.data.results[1]?.classification).toBe("new");
-  });
 });
 
 describe("cli render / check / index", () => {

@@ -40,7 +40,6 @@ const claim: ClaimRow = {
   scope: { collections: ["test"], subjects: ["Example"], tags: ["fact"] },
   identity: {
     claim_key: "example|has|source",
-    novelty: "new",
   },
   claim: {
     statement: "Example has a source.",

@@ -705,7 +705,7 @@ describe("executeQuery - score determinism (exact values)", () => {
     expect(result.rows[0]?.score).toBe(80);
   });
 
-  test("text matching shares Persian/Arabic normalization with novelty", () => {
+  test("text matching normalizes Persian/Arabic variants", () => {
     const src = makeSource("src:rtl:20260501:aaaa1111");
     const c = makeClaim("claim:rtl:20260501:bbbb2222", src.id, {
       identity: { claim_key: "k|rtl" },

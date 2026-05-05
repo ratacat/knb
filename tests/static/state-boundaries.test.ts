@@ -28,7 +28,6 @@ const LIFECYCLE_SCAN = [
   "src/core/errors.ts",
   "src/core/knb.ts",
   "src/core/ledger.ts",
-  "src/core/novelty.ts",
   "src/core/output.ts",
   "src/core/projections.ts",
   "src/core/query.ts",
@@ -98,7 +97,7 @@ describe("read-side EffectiveState boundaries (bd-3p9.6)", () => {
     const files = await readSourceFiles(["src/core/knb.ts"]);
     const facade = files[0]!;
     const text = facade.stripped;
-    const methods = ["status", "get", "query", "context", "render", "check", "rebuildIndex", "novelty"];
+    const methods = ["status", "get", "query", "context", "render", "check", "rebuildIndex"];
     const missing: string[] = [];
     for (const name of methods) {
       const methodPattern = new RegExp(
@@ -135,7 +134,6 @@ describe("read-side EffectiveState boundaries (bd-3p9.6)", () => {
       "src/core/errors.ts",
       "src/core/knb.ts",
       "src/core/ledger.ts",
-      "src/core/novelty.ts",
       "src/core/output.ts",
       "src/core/projections.ts",
       "src/core/query.ts",

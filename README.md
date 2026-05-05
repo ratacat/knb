@@ -13,10 +13,9 @@ Repository: https://github.com/ratacat/knb
 The loop is usually:
 
 1. Read orientation with `status` and `context`.
-2. Check whether candidate claims are new with `novelty`.
-3. Write one atomic batch with `apply`.
-4. Run `check`.
-5. Render views or rebuild indexes when another agent or human needs the projected output.
+2. Write one atomic batch with `apply`.
+3. Run `check`.
+4. Render views or rebuild indexes when another agent or human needs the projected output.
 
 The ledger is append-only on purpose. If a claim is wrong, an agent writes a `change` row that retracts or supersedes it. That gives later agents the full trail instead of a silently edited note.
 
@@ -60,16 +59,10 @@ knb status --json
 knb context --collection my-topic --max-tokens 3000 --json
 ```
 
-Preview candidate claims without writing:
-
-```bash
-knb novelty --stdin --json < candidate-claims.json
-```
-
 Commit a batch only after the candidate rows are ready:
 
 ```bash
-knb apply --stdin --atomic --dedupe --json < ops.json
+knb apply --stdin --atomic --json < ops.json
 ```
 
 Check the workspace after writes:
@@ -106,12 +99,11 @@ knb status  [--root <dir>] [--collection <c>] [--max-questions N] [--detailed] [
 knb collections [--root <dir>] [--json]
 knb schema  [--json]
 knb log     [--actor <a>] [--since <date>] [--until <date>] [--limit N] [--json]
-knb apply   (--file ops.json | --json '{...}' | --stdin) [--atomic] [--dedupe] [--dry-run]
+knb apply   (--file ops.json | --json '{...}' | --stdin) [--atomic] [--dry-run]
 knb add     (--file row.json | --json '{...}' | --stdin)
 knb get     <id> [<id>...] [--as-of <iso>] [--include-history] [--explain]
 knb query   [--as-of <iso>] [--kind claim] [--collection topic] [--subject name] [--tag tag] [--text text] [--claim-key key] [--claim-type type] [--predicate value] [--qualifier key=value] [--external-ref system:id] [--citing uri] [--limit N] [--history] [--full] [--json]
 knb context [--as-of <iso>] [--collection topic] [--subject name] [--tag tag] [--claim-type type] [--predicate value] [--qualifier key=value] [--external-ref system:id] [--max-tokens 3000] [--recency-window-days N] [--no-warnings] [--json]
-knb novelty (--file candidates.json | --json '{...}' | --stdin)
 knb render  (--collection topic [--out knb/views/topic.md] | --all) [--as-of <iso>] [--format md] [--json]
 knb check   [--json]
 knb index   [--rebuild]

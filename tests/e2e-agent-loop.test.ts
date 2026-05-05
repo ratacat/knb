@@ -66,7 +66,7 @@ function parseFailure(text: string): { ok: false; command?: string; error: { cod
 }
 
 describe("e2e: full agent loop", () => {
-  test("init -> status -> schema -> apply 3-op -> check -> context -> novelty -> dedupe -> render -> index --rebuild -> check -> status", async () => {
+  test("init -> status -> schema -> apply 3-op -> check -> context -> render -> index --rebuild -> check -> status", async () => {
     // 1. init
     const initRun = await runKnb(["init", "--json"]);
     expect(initRun.code).toBe(0);
@@ -180,71 +180,7 @@ describe("e2e: full agent loop", () => {
     const keyIds = contextEnv.data.key_claims.map((c) => c.id);
     expect(keyIds).toContain(createdClaim?.id ?? "MISSING");
 
-    // 7. novelty against fixtures (one duplicate of the existing claim, one brand new)
-    const noveltyPayload = {
-      candidates: [
-        {
-          kind: "claim",
-          scope: { collections: ["example"] },
-          identity: { claim_key: "example|e2e-loop-runs" },
-          claim: { statement: "The e2e loop runs.", atomic: true },
-          assessment: { confidence: "high" },
-        },
-        {
-          kind: "claim",
-          scope: { collections: ["example"] },
-          identity: { claim_key: "example|fresh-novel-fact" },
-          claim: { statement: "A fresh and novel fact.", atomic: true },
-          assessment: { confidence: "medium" },
-        },
-      ],
-    };
-    const noveltyRun = await runKnb(
-      ["novelty", "--stdin", "--json"],
-      JSON.stringify(noveltyPayload),
-    );
-    expect(noveltyRun.code).toBe(0);
-    const noveltyEnv = parseSuccess<{ results: Array<{ classification: string; matched_ids: string[] }> }>(noveltyRun.stdout);
-    expect(noveltyEnv.data.results.length).toBe(2);
-    expect(noveltyEnv.data.results[0]?.classification).toBe("duplicate");
-    expect(noveltyEnv.data.results[1]?.classification).toBe("new");
-
-    // 8. apply --dedupe with a duplicate add
-    const dedupePayload = {
-      operations: [
-        {
-          op: "add",
-          row: {
-            kind: "claim",
-            scope: { collections: ["example"] },
-            identity: { claim_key: "example|e2e-loop-runs" },
-            claim: { statement: "The e2e loop runs.", atomic: true },
-            time: { precision: "unknown" },
-            provenance: {
-              source_ids: [createdSource?.id ?? ""],
-              evidence: [{ source_id: createdSource?.id ?? "", role: "supports", summary: "Source backs the claim." }],
-            },
-            assessment: { confidence: "high" },
-          },
-        },
-      ],
-    };
-    const dedupeRun = await runKnb(
-      ["apply", "--stdin", "--atomic", "--dedupe", "--json"],
-      JSON.stringify(dedupePayload),
-    );
-    expect(dedupeRun.code).toBe(0);
-    const dedupeEnv = parseSuccess<{
-      created: unknown[];
-      skipped: Array<{ op: number; reason: string }>;
-      meta: { rows_appended: number };
-    }>(dedupeRun.stdout);
-    expect(dedupeEnv.data.created.length).toBe(0);
-    expect(dedupeEnv.data.skipped.length).toBe(1);
-    expect(dedupeEnv.data.skipped[0]?.reason.startsWith("duplicate of ")).toBe(true);
-    expect(dedupeEnv.data.meta.rows_appended).toBe(0);
-
-    // 9. render the example collection
+    // 7. render the example collection
     const renderRun = await runKnb(["render", "--collection", "example", "--json"]);
     expect(renderRun.code).toBe(0);
     const renderEnv = parseSuccess<{ path: string; bytes_written: number }>(renderRun.stdout);
@@ -252,7 +188,7 @@ describe("e2e: full agent loop", () => {
     expect(renderEnv.data.bytes_written).toBeGreaterThan(0);
     expect(await pathExists(renderEnv.data.path)).toBe(true);
 
-    // 10. index --rebuild
+    // 8. index --rebuild
     const indexRun = await runKnb(["index", "--rebuild", "--json"]);
     expect(indexRun.code).toBe(0);
     const indexEnv = parseSuccess<{ indexes: Array<{ name: string; bytes_written: number }> }>(indexRun.stdout);
@@ -260,7 +196,7 @@ describe("e2e: full agent loop", () => {
     const indexNames = indexEnv.data.indexes.map((entry) => entry.name).sort();
     expect(indexNames).toEqual([...V1_INDEX_NAMES].sort());
 
-    // 11. check after rebuild - everything fresh
+    // 9. check after rebuild - everything fresh
     const checkRunAfter = await runKnb(["check", "--json"]);
     expect(checkRunAfter.code).toBe(0);
     const checkEnvAfter = parseSuccess<{
@@ -271,14 +207,14 @@ describe("e2e: full agent loop", () => {
     const allFresh = checkEnvAfter.data.projection_freshness.entries.every((entry) => entry.state === "fresh");
     expect(allFresh).toBe(true);
 
-    // 11b. on-disk verification: V1 sidecars + view file
+    // 9b. on-disk verification: V1 sidecars + view file
     const indexFiles = await readdir(join(workDir, "knb", "indexes"));
     const indexJsonFiles = indexFiles.filter((f) => f.endsWith(".json"));
     expect(indexJsonFiles.length).toBeGreaterThanOrEqual(V1_INDEX_NAMES.length);
     const viewFiles = await readdir(join(workDir, "knb", "views"));
     expect(viewFiles).toContain("example.md");
 
-    // 12. status final - 3 rows on disk (dedupe skipped)
+    // 10. status final - 3 rows on disk
     const finalStatus = await runKnb(["status", "--json"]);
     expect(finalStatus.code).toBe(0);
     const finalStatusEnv = parseSuccess<{ row_count: number; active_counts_by_kind: Record<string, number> }>(finalStatus.stdout);
@@ -286,36 +222,6 @@ describe("e2e: full agent loop", () => {
     expect(finalStatusEnv.data.active_counts_by_kind.source).toBe(1);
     expect(finalStatusEnv.data.active_counts_by_kind.claim).toBe(1);
     expect(finalStatusEnv.data.active_counts_by_kind.synthesis).toBe(1);
-
-    // 13. idempotency: re-applying the same dedupe payload still skips and
-    // re-rendering / re-rebuilding is a no-op for row count.
-    const dedupeReplay = await runKnb(
-      ["apply", "--stdin", "--atomic", "--dedupe", "--json"],
-      JSON.stringify({
-        operations: [
-          {
-            op: "add",
-            row: {
-              kind: "claim",
-              scope: { collections: ["example"] },
-              identity: { claim_key: "example|e2e-loop-runs" },
-              claim: { statement: "The e2e loop runs.", atomic: true },
-              time: { precision: "unknown" },
-              provenance: {
-                source_ids: [createdSource?.id ?? ""],
-                evidence: [{ source_id: createdSource?.id ?? "", role: "supports", summary: "Backs the claim." }],
-              },
-              assessment: { confidence: "high" },
-            },
-          },
-        ],
-      }),
-    );
-    expect(dedupeReplay.code).toBe(0);
-    const replayEnv = parseSuccess<{ created: unknown[]; skipped: unknown[]; meta: { rows_appended: number } }>(dedupeReplay.stdout);
-    expect(replayEnv.data.created.length).toBe(0);
-    expect(replayEnv.data.skipped.length).toBe(1);
-    expect(replayEnv.data.meta.rows_appended).toBe(0);
 
     const finalStatus2 = await runKnb(["status", "--json"]);
     const final2Env = parseSuccess<{ row_count: number }>(finalStatus2.stdout);

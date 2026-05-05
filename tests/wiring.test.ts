@@ -127,7 +127,6 @@ describe("Wave 7 wiring", () => {
     const claimResult = await knb.add(claimDraft(sourceId, "link-by-id", "Linked by id."));
     expect(claimResult.created.length).toBe(1);
     expect(claimResult.created[0]?.kind).toBe("claim");
-    expect(claimResult.novelty[0]?.classification).toBe("new");
 
     const claimId = claimResult.created[0]?.id ?? "";
     const got = await knb.get([sourceId, claimId]);
@@ -155,30 +154,6 @@ describe("Wave 7 wiring", () => {
     expect(claimLine.includes(sourceId)).toBe(true);
     // Verify the alias is preserved in created entries.
     expect(result.created[0]?.as).toBe("source");
-  });
-
-  test("knb.apply with --dedupe skips a duplicated claim and reports it in skipped", async () => {
-    const knb = await openWiringKnb();
-    const sourceResult = await knb.add(sourceDraft("dedupe"));
-    const sourceId = sourceResult.created[0]?.id ?? "";
-
-    const claim = claimDraft(sourceId, "dedupe", "Dedupe me.");
-    // First write so the canonical exists.
-    const firstClaim = await knb.add(claim);
-    const originalId = firstClaim.created[0]?.id ?? "";
-    expect(originalId.length).toBeGreaterThan(0);
-
-    const dupe = claimDraft(sourceId, "dedupe", "Dedupe me.");
-    const second = await knb.apply({ operations: [{ op: "add", row: dupe }], dedupe: true });
-    expect(second.created.length).toBe(0);
-    expect(second.skipped.length).toBe(1);
-    expect(second.skipped[0]?.reason.startsWith("duplicate of ")).toBe(true);
-    expect(second.skipped[0]?.matched_ids).toContain(originalId);
-
-    // Ledger should still contain only the original (plus the source).
-    const ledger = await readFile(join(workDir, "knb", "ledger.jsonl"), "utf8");
-    const lines = ledger.trim().split("\n").filter((l) => l.length > 0);
-    expect(lines.length).toBe(2);
   });
 
   test("knb.check on a clean rendered+indexed workspace reports ok=true", async () => {
@@ -242,22 +217,6 @@ describe("Wave 7 wiring", () => {
     expect(afterCheck.ok).toBe(false);
   });
 
-  test("knb.novelty classifies a candidate against the existing claim", async () => {
-    const knb = await openWiringKnb();
-    const sourceResult = await knb.add(sourceDraft("novel-test"));
-    const sourceId = sourceResult.created[0]?.id ?? "";
-    await knb.add(claimDraft(sourceId, "novel-test", "Novelty exists."));
-
-    const candidate = claimDraft(sourceId, "novel-test", "Novelty exists.");
-    const result = await knb.novelty({ candidates: [candidate as never] });
-    expect(result.results.length).toBe(1);
-    const classification = result.results[0]?.classification;
-    // Same statement and same claim_key → should be a duplicate or similar non-new classification.
-    expect(classification).not.toBe("new");
-    expect(Array.isArray(result.results[0]?.matched_ids)).toBe(true);
-    expect((result.results[0]?.matched_ids ?? []).length).toBeGreaterThanOrEqual(1);
-  });
-
   test("knb.context returns ContextResult shape and reflects an added claim", async () => {
     const knb = await openWiringKnb();
     const sourceResult = await knb.add(sourceDraft("ctx-test"));
@@ -296,7 +255,6 @@ describe("Wave 7 wiring", () => {
     expect(typeof knb.get).toBe("function");
     expect(typeof knb.query).toBe("function");
     expect(typeof knb.context).toBe("function");
-    expect(typeof knb.novelty).toBe("function");
     expect(typeof knb.render).toBe("function");
     expect(typeof knb.check).toBe("function");
     expect(typeof knb.rebuildIndex).toBe("function");

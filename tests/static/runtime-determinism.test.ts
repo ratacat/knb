@@ -15,7 +15,6 @@ const FORBIDDEN_FILES = [
   "src/core/state.ts",
   "src/core/query.ts",
   "src/core/context.ts",
-  "src/core/novelty.ts",
   "src/core/read-snapshot.ts",
   "src/core/ledger.ts",
   "src/core/workspace.ts",

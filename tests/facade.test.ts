@@ -165,7 +165,6 @@ describe("openKnb", () => {
       "get",
       "query",
       "context",
-      "novelty",
       "render",
       "renderAll",
       "check",
@@ -567,7 +566,6 @@ describe("Knb.status", () => {
       duplicate_source_uri_clusters: [],
       duplicate_claim_key_clusters: [],
       evidence_depth: { count: 0, p50: 0, p90: 0, max: 0 },
-      novelty_active_distribution: {},
       syntheses_per_collection: {},
     });
   });
@@ -585,13 +583,13 @@ describe("Knb.status", () => {
 
     const claimA = freshClaimRow(sourceA.id, "claim:detail:20260501:claimaaa");
     claimA.scope = { collections: ["alpha"] };
-    claimA.identity = { claim_key: "detail|shared", novelty: "duplicate" };
+    claimA.identity = { claim_key: "detail|shared" };
     claimA.provenance = {
       evidence: [{ source_id: sourceA.id, role: "supports", summary: "A" }],
     };
     const claimB = freshClaimRow(sourceA.id, "claim:detail:20260501:claimbbb");
     claimB.scope = { collections: ["alpha", "beta"] };
-    claimB.identity = { claim_key: "detail|shared", novelty: "duplicate" };
+    claimB.identity = { claim_key: "detail|shared" };
     claimB.provenance = {
       source_ids: [sourceA.id, sourceB.id],
       evidence: [
@@ -601,7 +599,7 @@ describe("Knb.status", () => {
     };
     const claimC = freshClaimRow(sourceC.id, "claim:detail:20260501:claimccc");
     claimC.scope = { collections: ["beta"] };
-    claimC.identity = { claim_key: "detail|unique", novelty: "correction" };
+    claimC.identity = { claim_key: "detail|unique" };
     claimC.provenance = {
       evidence: [{ source_id: sourceC.id, role: "supports", summary: "C" }],
     };
@@ -660,7 +658,6 @@ describe("Knb.status", () => {
       },
     ]);
     expect(status.detailed?.evidence_depth).toEqual({ count: 3, p50: 1, p90: 2, max: 2 });
-    expect(status.detailed?.novelty_active_distribution).toEqual({ correction: 1, duplicate: 2 });
     expect(status.detailed?.syntheses_per_collection).toEqual({ alpha: 1, beta: 1 });
   });
 });
@@ -730,9 +727,7 @@ describe("Knb facade methods on empty workspace", () => {
     const knb = await openKnb(makeOpenOptions());
     const result = await knb.apply({ operations: [] });
     expect(result.created).toEqual([]);
-    expect(result.skipped).toEqual([]);
     expect(result.warnings).toEqual([]);
-    expect(result.novelty).toEqual([]);
     expect(result.meta.rows_appended).toBe(0);
     expect(result.meta.bytes_written).toBe(0);
     expect(result.meta.ledger_path).toBe(join(workDir, "knb", "ledger.jsonl"));
@@ -792,12 +787,6 @@ describe("Knb facade methods on empty workspace", () => {
     expect((caught as { code: string }).code).toBe("not_found");
     const details = (caught as { details?: { ids?: string[] } }).details;
     expect(details?.ids).toEqual(["a", "b", "c"]);
-  });
-
-  test("novelty on empty candidates returns empty results", async () => {
-    const knb = await openKnb(makeOpenOptions());
-    const result = await knb.novelty({ candidates: [] });
-    expect(result.results).toEqual([]);
   });
 
   test("collectionStatus returns latest active synthesis and priority-sorted open questions", async () => {
@@ -1167,7 +1156,6 @@ describe("Knb facade methods on empty workspace", () => {
     expect(result.meta.rows_appended).toBe(1);
     expect(result.meta.bytes_written).toBeGreaterThan(0);
     expect(result.warnings).toBeDefined();
-    expect(Array.isArray(result.novelty)).toBe(true);
   });
 });
 
