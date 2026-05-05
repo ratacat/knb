@@ -21,7 +21,6 @@ import {
   V1_INDEX_NAMES,
   checkFreshness,
   rebuildIndexes,
-  renderAllCollections,
   renderCollection,
 } from "../src/core/projections";
 import { executeQuery } from "../src/core/query";
@@ -289,7 +288,6 @@ async function makeWorkspace(): Promise<KnbWorkspace> {
       schema: join(root, "knb", "schema.json"),
       views,
       indexes,
-      runs: join(root, ".knb", "runs"),
       lock: join(root, ".knb", "ledger.lock"),
       config: join(root, ".knb", "config.json"),
     },
@@ -916,74 +914,6 @@ describe("renderCollection", () => {
     expect(bodyA).not.toBe(bodyB);
     expect(bodyB).toContain("Ledger: 99 rows");
     expect(bodyB).toContain(canonicalContentHash("changed"));
-  });
-});
-
-describe("renderAllCollections", () => {
-  test("renders one default Markdown view for each active collection", async () => {
-    const ws = await freshWorkspace();
-    const rows: KnbRow[] = [
-      makeSource("src:a:20260501:s1", { scope: { collections: ["beta", "alpha"] } }),
-      makeSource("src:b:20260501:s2", { scope: { collections: ["gamma"] } }),
-    ];
-    const state = buildEffectiveState(load(rows));
-    const fp = fingerprintFor(rows);
-
-    const result = await renderAllCollections(state, ws, fp);
-
-    expect(result.collections).toEqual(["alpha", "beta", "gamma"]);
-    expect(result.rendered.map((entry) => entry.collection)).toEqual(["alpha", "beta", "gamma"]);
-    expect(result.total_bytes_written).toBe(
-      result.rendered.reduce((sum, entry) => sum + entry.bytes_written, 0),
-    );
-    for (const collection of result.collections) {
-      expect(await readFile(join(ws.paths.views, `${collection}.md`), "utf8")).toContain(
-        `# ${collection.charAt(0).toUpperCase()}${collection.slice(1)}`,
-      );
-      expect(await readFile(join(ws.paths.views, `${collection}.md.meta.json`), "utf8")).toContain(
-        `"collection": "${collection}"`,
-      );
-    }
-  });
-
-  test("does not render collections that only appear on inactive rows or change rows", async () => {
-    const ws = await freshWorkspace();
-    const live = makeSource("src:live:20260501:s1", { scope: { collections: ["live"] } });
-    const dead = makeSource("src:dead:20260501:s2", { scope: { collections: ["dead"] } });
-    const retract: ChangeRow = {
-      schema_version: "knb.v1",
-      id: "chg:dead:20260501:r1",
-      kind: "change",
-      created_at: "2026-05-01T13:00:00Z",
-      created_by: "agent:test",
-      scope: { collections: ["change-only"] },
-      change: { action: "retract", target_ids: [dead.id], reason: "inactive test" },
-    };
-    const rows: KnbRow[] = [live, dead, retract];
-    const state = buildEffectiveState(load(rows));
-    const fp = fingerprintFor(rows);
-
-    const result = await renderAllCollections(state, ws, fp);
-
-    expect(result.collections).toEqual(["live"]);
-    expect(result.rendered.length).toBe(1);
-  });
-
-  test("rejects unsupported format before rendering any collection", async () => {
-    const ws = await freshWorkspace();
-    const rows = [makeSource("src:x:20260501:s1")];
-    const state = buildEffectiveState(load(rows));
-    const fp = fingerprintFor(rows);
-
-    let captured: unknown;
-    try {
-      await renderAllCollections(state, ws, fp, { format: "html" as unknown as "md" });
-    } catch (error) {
-      captured = error;
-    }
-
-    expect(isKnbError(captured)).toBe(true);
-    if (isKnbError(captured)) expect(captured.code).toBe("validation_failed");
   });
 });
 

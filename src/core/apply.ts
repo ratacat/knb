@@ -28,7 +28,6 @@ import {
   type LedgerFingerprint,
   type LedgerWriteResult,
 } from "./ledger";
-import { isSafeRunManifestId, writeRunManifest as defaultWriteRunManifest, type RunManifest } from "./run-manifests";
 
 const ID_COLLISION_RETRY_LIMIT = 8;
 
@@ -42,11 +41,10 @@ export function generateRunId(
 }
 
 export type ApplyDeps = {
-  workspace: { paths: { ledger: string; lock: string; runs?: string } };
+  workspace: { paths: { ledger: string; lock: string } };
   runtime: { clock: () => Date; randomIdPart: (bytes: number) => string };
   actor: string;
   writeLedger?: typeof defaultWriteLedger;
-  writeRunManifest?: typeof defaultWriteRunManifest | false;
 };
 
 export type ApplyCreatedEntry = {
@@ -110,13 +108,13 @@ export async function applyOperations(
   const clock = buildClockOrThrow(deps.runtime.clock, request.now);
   const startedAt = clock();
   const requestedRunId = stringOrUndef(request.run_id);
-  if (requestedRunId !== undefined && !isSafeRunManifestId(requestedRunId)) {
+  if (requestedRunId !== undefined && !isSafeRunId(requestedRunId)) {
     throw knbError("validation_failed", "Apply request failed validation", {
       issues: [
         {
           level: "error",
           code: "run_id_unsafe",
-          message: `run_id is not safe for manifest filename: ${requestedRunId}`,
+          message: `run_id contains unsupported characters: ${requestedRunId}`,
           path: "run_id",
         },
       ],
@@ -307,29 +305,6 @@ export async function applyOperations(
     fingerprint_after: writeResult.fingerprintAfter,
   };
 
-  const writeRunManifest = deps.writeRunManifest ?? defaultWriteRunManifest;
-  if (writeRunManifest !== false && writeResult.rowsAppended > 0) {
-    const manifest: RunManifest = {
-      schema_version: "knb.run.v1",
-      run_id: finalResult.run_id,
-      actor,
-      started_at: startedAt.toISOString(),
-      completed_at: clock().toISOString(),
-      rows_appended: writeResult.rowsAppended,
-      row_ids: finalResult.created.map((entry) => entry.id),
-    };
-    const intent = stringOrUndef(request.intent);
-    if (intent !== undefined) manifest.intent = intent;
-
-    // Run manifests are observability sidecars. The ledger append is canonical,
-    // so a manifest write failure is reported as a warning instead of rolling
-    // back an otherwise valid apply.
-    try {
-      await writeRunManifest(deps.workspace, manifest);
-    } catch (error) {
-      finalResult.warnings.push(`run_manifest_write_failed: ${errorMessage(error)}`);
-    }
-  }
   return finalResult;
 }
 
@@ -340,7 +315,6 @@ export async function previewApplyOperations(
   const ledgerPath = deps.workspace.paths.ledger;
   const result = await applyOperations(request, {
     ...deps,
-    writeRunManifest: false,
     writeLedger: async (options, transaction) => {
       const loadOptions: Parameters<typeof loadLedger>[0] = { path: options.path };
       if (options.readFile !== undefined) loadOptions.readFile = options.readFile;
@@ -367,6 +341,10 @@ export async function previewApplyOperations(
     planned_rows: plannedRows,
   };
   return result;
+}
+
+function isSafeRunId(value: string): boolean {
+  return /^[A-Za-z0-9_.:-]+$/.test(value);
 }
 
 type ProcessAddArgs = {
@@ -961,11 +939,6 @@ function withRunProvenance(row: KnbRow, runId: string, agent: string): KnbRow {
 
 function stringOrUndef(value: unknown): string | undefined {
   return typeof value === "string" && value.length > 0 ? value : undefined;
-}
-
-function errorMessage(error: unknown): string {
-  if (error instanceof Error && error.message.length > 0) return error.message;
-  return String(error);
 }
 
 function cloneJson<T>(value: T): T {

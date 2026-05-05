@@ -1396,7 +1396,6 @@ describe("applyOperations", () => {
       }),
     );
     expect(await pathExists(ledgerPath())).toBe(false);
-    expect(await pathExists(join(workDir, ".knb", "runs", "run/bad.json"))).toBe(false);
   });
 
   test("caller supplied duplicate run_id is rejected before appending a second batch", async () => {
@@ -1438,9 +1437,6 @@ describe("applyOperations", () => {
       expect.objectContaining({ code: "run_id_duplicate", path: "run_id" }),
     );
     expect(await readLedgerText()).toBe(before);
-    const manifest = JSON.parse(await readFile(join(workDir, ".knb", "runs", "same_run.json"), "utf8")) as { actor: string; row_ids: string[] };
-    expect(manifest.actor).toBe("agent:first");
-    expect(manifest.row_ids).toEqual(["src:example:20260501:firstrun"]);
   });
 
   test("apply populates run provenance on knowledge rows without overwriting acquisition metadata", async () => {
@@ -1503,119 +1499,6 @@ describe("applyOperations", () => {
     const source = rows[0] as SourceRow;
     expect(source.provenance.acquisition?.method).toBe("manual");
     expect(source.provenance.acquisition?.query).toBe("keep me");
-  });
-
-  test("apply writes a run manifest including change rows while ChangeRow stays manifest-traced only", async () => {
-    const ids = ["srcmani1", "chgmani2"];
-    let index = 0;
-    const result = await applyOperations(
-      {
-        run_id: "run_manifest_test",
-        intent: "test manifest",
-        actor: "agent:manifest",
-        operations: [
-          { op: "add", as: "source", row: SOURCE_DRAFT },
-          { op: "retract", target_ids: ["$source"], reason: "exercise change rows" },
-        ],
-      },
-      makeDeps({ randomIdPart: () => ids[index++] as string }),
-    );
-
-    expect(result.run_id).toBe("run_manifest_test");
-    const manifestPath = join(workDir, ".knb", "runs", "run_manifest_test.json");
-    expect(await pathExists(manifestPath)).toBe(true);
-    const manifest = JSON.parse(await readFile(manifestPath, "utf8")) as {
-      schema_version: string;
-      run_id: string;
-      actor: string;
-      intent?: string;
-      started_at: string;
-      completed_at: string;
-      rows_appended: number;
-      row_ids: string[];
-    };
-    expect(manifest.schema_version).toBe("knb.run.v1");
-    expect(manifest.run_id).toBe("run_manifest_test");
-    expect(manifest.actor).toBe("agent:manifest");
-    expect(manifest.intent).toBe("test manifest");
-    expect(manifest.started_at).toBe(FIXED_DATE.toISOString());
-    expect(manifest.completed_at).toBe(FIXED_DATE.toISOString());
-    expect(manifest.rows_appended).toBe(2);
-    expect(manifest.row_ids).toEqual([
-      "src:example:20260501:srcmani1",
-      "chg:example:20260501:chgmani2",
-    ]);
-
-    const rows = (await loadLedger({ path: ledgerPath() })).rows.map((loaded) => loaded.row);
-    const change = rows.find((row): row is ChangeRow => row.kind === "change");
-    expect(change).toBeDefined();
-    expect((change as { provenance?: unknown } | undefined)?.provenance).toBeUndefined();
-  });
-
-  test("two applies by different actors produce distinct run manifests", async () => {
-    const ids = ["actorone", "actortwo"];
-    let index = 0;
-    const first = await applyOperations(
-      {
-        actor: "agent:one",
-        operations: [{ op: "add", row: SOURCE_DRAFT }],
-      },
-      makeDeps({ randomIdPart: () => ids[index++] as string }),
-    );
-    const second = await applyOperations(
-      {
-        actor: "agent:two",
-        operations: [
-          {
-            op: "add",
-            row: {
-              ...SOURCE_DRAFT,
-              source: { ...SOURCE_DRAFT.source, uri: "https://example.com/two" },
-            },
-          },
-        ],
-      },
-      makeDeps({ randomIdPart: () => ids[index++] as string }),
-    );
-
-    expect(first.run_id).toBe("run_2026-05-01T12-00-00-000Z_actorone");
-    expect(second.run_id).toBe("run_2026-05-01T12-00-00-000Z_actortwo");
-    expect(first.run_id).not.toBe(second.run_id);
-
-    const firstManifest = JSON.parse(
-      await readFile(join(workDir, ".knb", "runs", `${first.run_id}.json`), "utf8"),
-    ) as { actor: string; row_ids: string[]; rows_appended: number };
-    const secondManifest = JSON.parse(
-      await readFile(join(workDir, ".knb", "runs", `${second.run_id}.json`), "utf8"),
-    ) as { actor: string; row_ids: string[]; rows_appended: number };
-
-    expect(firstManifest.actor).toBe("agent:one");
-    expect(firstManifest.rows_appended).toBe(1);
-    expect(firstManifest.row_ids).toEqual([first.created[0]!.id]);
-    expect(secondManifest.actor).toBe("agent:two");
-    expect(secondManifest.rows_appended).toBe(1);
-    expect(secondManifest.row_ids).toEqual([second.created[0]!.id]);
-  });
-
-  test("run manifest write failure warns without rolling back the ledger append", async () => {
-    const deps = makeDeps({ randomIdPart: () => "warnrun1" });
-    deps.writeRunManifest = async () => {
-      throw new Error("disk full");
-    };
-
-    const result = await applyOperations(
-      {
-        run_id: "run_warning_test",
-        operations: [{ op: "add", row: SOURCE_DRAFT }],
-      },
-      deps,
-    );
-
-    expect(result.created[0]?.id).toBe("src:example:20260501:warnrun1");
-    expect(result.warnings).toContain("run_manifest_write_failed: disk full");
-    const rows = (await loadLedger({ path: ledgerPath() })).rows.map((loaded) => loaded.row);
-    expect(rows.map((row) => row.id)).toEqual(["src:example:20260501:warnrun1"]);
-    expect(await pathExists(join(workDir, ".knb", "runs", "run_warning_test.json"))).toBe(false);
   });
 
   test("retract two claims sharing a collection: derived scope is the intersection", async () => {

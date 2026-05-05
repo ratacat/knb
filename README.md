@@ -88,30 +88,25 @@ For targeted reads, query the effective state:
 
 ```bash
 knb query --kind claim --collection my-topic --json
-knb collections --json
 ```
 
 ## CLI reference
 
 ```bash
 knb init    [--root <dir>] [--config <path>] [--ledger <path>] [--actor <name>] [--force] [--json]
-knb status  [--root <dir>] [--collection <c>] [--max-questions N] [--detailed] [--json]
-knb collections [--root <dir>] [--json]
+knb status  [--root <dir>] [--json]
 knb schema  [--json]
-knb log     [--actor <a>] [--since <date>] [--until <date>] [--limit N] [--json]
 knb apply   (--file ops.json | --json '{...}' | --stdin) [--atomic] [--dry-run]
 knb add     (--file row.json | --json '{...}' | --stdin)
 knb get     <id> [<id>...] [--as-of <iso>] [--include-history] [--explain]
 knb query   [--as-of <iso>] [--kind claim] [--collection topic] [--subject name] [--tag tag] [--text text] [--claim-key key] [--limit N] [--history] [--full] [--json]
-knb context [--as-of <iso>] [--collection topic] [--subject name] [--tag tag] [--max-tokens 3000] [--recency-window-days N] [--no-warnings] [--json]
-knb render  (--collection topic [--out knb/views/topic.md] | --all) [--as-of <iso>] [--format md] [--json]
+knb context [--as-of <iso>] [--collection topic] [--subject name] [--tag tag] [--max-tokens 3000] [--no-warnings] [--json]
+knb render  --collection topic [--out knb/views/topic.md] [--as-of <iso>] [--format md] [--json]
 knb check   [--json]
 knb index   [--rebuild]
 ```
 
 `apply` and `add` use the same locked write path. They validate the full batch before touching the ledger, so duplicate IDs, unresolved source references, unresolved relation targets, and kind-specific shape errors fail cleanly.
-
-`collections` reads from the validated effective-state snapshot, not from generated indexes. `log` reads apply run manifests from `.knb/runs/`.
 
 `get`, `query`, `context`, and `render` accept `--as-of <iso>` for historical reads.
 

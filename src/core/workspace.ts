@@ -26,7 +26,6 @@ export type KnbWorkspace = {
     schema: string;
     views: string;
     indexes: string;
-    runs: string;
     lock: string;
     config: string;
   };
@@ -52,7 +51,6 @@ const DEFAULT_PATHS = {
   schema: join("knb", "schema.json"),
   views: join("knb", "views"),
   indexes: join("knb", "indexes"),
-  runs: join(".knb", "runs"),
   lock: join(".knb", "ledger.lock"),
   config: join(".knb", "config.json"),
 } as const;
@@ -78,7 +76,6 @@ export async function openWorkspace(options: OpenWorkspaceOptions = {}): Promise
     schema: normalizeUnderRoot(root, schemaSource),
     views: normalizeUnderRoot(root, viewsSource),
     indexes: normalizeUnderRoot(root, indexesSource),
-    runs: join(root, DEFAULT_PATHS.runs),
     lock: join(root, DEFAULT_PATHS.lock),
     config: configPath ?? join(root, DEFAULT_PATHS.config),
   };

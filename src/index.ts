@@ -2,18 +2,7 @@ export { openKnb } from "./core/knb";
 export type {
   Knb,
   OpenKnbOptions,
-  StatusOptions,
   KnbStatus,
-  DetailedStatus,
-  DuplicateSourceUriCluster,
-  DuplicateClaimKeyCluster,
-  EvidenceDepthStats,
-  CollectionStatusRequest,
-  CollectionStatusResult,
-  CollectionSummary,
-  CollectionsResult,
-  LogRequest,
-  LogResult,
   SchemaResult,
   InitOptions,
   InitResult,
@@ -41,12 +30,7 @@ export type {
 export type { LedgerFingerprint } from "./core/ledger";
 export type {
   ContextRequest,
-  ContextRecencyProfile,
   ContextResult,
-  ContextScoringProfile,
-  ContextScoringProfileInput,
-  ContextScoringWeights,
-  ContextScoringWeightsInput,
 } from "./core/context";
 export type {
   GetRequest,
@@ -55,8 +39,6 @@ export type {
   QueryResult,
 } from "./core/query";
 export type {
-  RenderAllRequest,
-  RenderAllResult,
   RenderRequest,
   RenderResult,
 } from "./core/projections";

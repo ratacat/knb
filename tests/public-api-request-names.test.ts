@@ -6,12 +6,9 @@ import { join } from "node:path";
 import { openKnb } from "../src/index";
 import type {
   ApplyRequest,
-  CollectionStatusRequest,
   ContextRequest,
-  ContextScoringProfileInput,
   GetRequest,
   QueryRequest,
-  RenderAllRequest,
   RenderRequest,
 } from "../src/index";
 
@@ -22,11 +19,11 @@ type Expect<T extends true> = T;
 type PublicRequestNamesUseCamelCase = [
   Expect<HasKey<ApplyRequest, "runId">>,
   Expect<Not<HasKey<ApplyRequest, "run_id">>>,
-  Expect<HasKey<CollectionStatusRequest, "maxQuestions">>,
-  Expect<Not<HasKey<CollectionStatusRequest, "max_questions">>>,
   Expect<HasKey<ContextRequest, "includeWarnings">>,
   Expect<HasKey<ContextRequest, "maxTokens">>,
-  Expect<HasKey<ContextRequest, "recencyWindowDays">>,
+  Expect<Not<HasKey<ContextRequest, "recencyWindowDays">>>,
+  Expect<Not<HasKey<ContextRequest, "scoringProfile">>>,
+  Expect<Not<HasKey<ContextRequest, "tokenEstimator">>>,
   Expect<Not<HasKey<ContextRequest, "claim_type">>>,
   Expect<Not<HasKey<ContextRequest, "external_refs">>>,
   Expect<Not<HasKey<ContextRequest, "include_warnings">>>,
@@ -41,7 +38,6 @@ type PublicRequestNamesUseCamelCase = [
   Expect<Not<HasKey<QueryRequest, "externalRefs">>>,
   Expect<HasKey<GetRequest, "includeHistory">>,
   Expect<HasKey<RenderRequest, "asOf">>,
-  Expect<HasKey<RenderAllRequest, "asOf">>,
 ];
 
 const typecheckPublicRequestExamples = [
@@ -51,16 +47,8 @@ const typecheckPublicRequestExamples = [
   } satisfies ApplyRequest,
   {
     collection: "public",
-    maxQuestions: 2,
-  } satisfies CollectionStatusRequest,
-  {
-    collection: "public",
     includeWarnings: false,
     maxTokens: 1000,
-    recencyWindowDays: 30,
-    scoringProfile: {
-      weights: { importance: { high: 3, medium: 2, low: 1, unknown: 0 } },
-    } satisfies ContextScoringProfileInput,
   } satisfies ContextRequest,
   {
     collection: "public",
@@ -74,9 +62,6 @@ const typecheckPublicRequestExamples = [
     collection: "public",
     asOf: "2026-05-01T12:30:00Z",
   } satisfies RenderRequest,
-  {
-    asOf: "2026-05-01T12:30:00Z",
-  } satisfies RenderAllRequest,
 ];
 
 describe("public facade request option names", () => {
@@ -159,6 +144,6 @@ describe("public facade request option names", () => {
   });
 
   test("compile-time examples are present", () => {
-    expect(typecheckPublicRequestExamples).toHaveLength(7);
+    expect(typecheckPublicRequestExamples).toHaveLength(5);
   });
 });

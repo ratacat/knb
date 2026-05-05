@@ -14,9 +14,6 @@ export type ContextRequest = {
   asOf?: string;
   maxTokens?: number;
   includeWarnings?: boolean;
-  recencyWindowDays?: number;
-  scoringProfile?: ContextScoringProfileInput;
-  tokenEstimator?: (text: string) => number;
 };
 
 export type ContextSource = {
@@ -92,35 +89,16 @@ const INFO_DEPTH_RANK: Record<string, number> = {
 };
 const PRIORITY_RANK: Record<string, number> = { high: 3, medium: 2, low: 1 };
 
-export type ContextScoringWeights = {
+type ContextScoringWeights = {
   importance: Readonly<Record<string, number>>;
   confidence: Readonly<Record<string, number>>;
   informationDepth: Readonly<Record<string, number>>;
   priority: Readonly<Record<string, number>>;
 };
 
-export type ContextScoringWeightsInput = {
-  importance?: Readonly<Record<string, number>>;
-  confidence?: Readonly<Record<string, number>>;
-  informationDepth?: Readonly<Record<string, number>>;
-  priority?: Readonly<Record<string, number>>;
-};
-
-export type ContextScoringProfile = {
+type ContextScoringProfile = {
   weights: ContextScoringWeights;
   thinEvidenceThreshold: number;
-  recency?: ContextRecencyProfile;
-};
-
-export type ContextRecencyProfile = {
-  windowDays: number;
-  weight: number;
-};
-
-export type ContextScoringProfileInput = {
-  weights?: ContextScoringWeightsInput;
-  thinEvidenceThreshold?: number;
-  recency?: Partial<ContextRecencyProfile>;
 };
 
 export type ContextSynthesisScore = {
@@ -150,7 +128,7 @@ export type ContextQuestionScore = {
   id: string;
 };
 
-export const DEFAULT_CONTEXT_SCORING_PROFILE: ContextScoringProfile = {
+const DEFAULT_CONTEXT_SCORING_PROFILE: ContextScoringProfile = {
   weights: {
     importance: IMPORTANCE_RANK,
     confidence: CONFIDENCE_RANK,
@@ -159,49 +137,6 @@ export const DEFAULT_CONTEXT_SCORING_PROFILE: ContextScoringProfile = {
   },
   thinEvidenceThreshold: THIN_EVIDENCE_THRESHOLD,
 };
-
-function resolveContextScoringProfile(
-  input: ContextScoringProfileInput | undefined,
-  recencyWindowDays: number | undefined,
-): ContextScoringProfile {
-  if (input === undefined && recencyWindowDays === undefined) return DEFAULT_CONTEXT_SCORING_PROFILE;
-  const profile: ContextScoringProfile = {
-    weights: {
-      importance: { ...DEFAULT_CONTEXT_SCORING_PROFILE.weights.importance, ...input?.weights?.importance },
-      confidence: { ...DEFAULT_CONTEXT_SCORING_PROFILE.weights.confidence, ...input?.weights?.confidence },
-      informationDepth: { ...DEFAULT_CONTEXT_SCORING_PROFILE.weights.informationDepth, ...input?.weights?.informationDepth },
-      priority: { ...DEFAULT_CONTEXT_SCORING_PROFILE.weights.priority, ...input?.weights?.priority },
-    },
-    thinEvidenceThreshold:
-      typeof input?.thinEvidenceThreshold === "number" && Number.isFinite(input.thinEvidenceThreshold)
-        ? Math.max(0, input.thinEvidenceThreshold)
-        : DEFAULT_CONTEXT_SCORING_PROFILE.thinEvidenceThreshold,
-  };
-  const profileRecencyWindow = finitePositiveNumber(input?.recency?.windowDays);
-  const requestRecencyWindow = finitePositiveNumber(recencyWindowDays);
-  const windowDays = requestRecencyWindow ?? profileRecencyWindow;
-  if (windowDays !== undefined) {
-    profile.recency = {
-      windowDays,
-      weight: finitePositiveNumber(input?.recency?.weight) ?? 1,
-    };
-  }
-  return profile;
-}
-
-function finitePositiveNumber(value: unknown): number | undefined {
-  return typeof value === "number" && Number.isFinite(value) && value > 0 ? value : undefined;
-}
-
-function recencyScore(row: KnbRow, profile: ContextScoringProfile, anchor: string | undefined): number {
-  const recency = profile.recency;
-  if (recency === undefined || anchor === undefined) return 0;
-  const anchorMs = Date.parse(anchor);
-  const createdMs = Date.parse(row.created_at);
-  if (!Number.isFinite(anchorMs) || !Number.isFinite(createdMs) || createdMs > anchorMs) return 0;
-  const ageDays = (anchorMs - createdMs) / 86_400_000;
-  return Math.max(0, 1 - ageDays / recency.windowDays) * recency.weight;
-}
 
 function defaultEstimator(text: string): number {
   return Math.ceil(text.length / 4);
@@ -240,29 +175,27 @@ function basisDepthOf(row: SynthesisRow): number {
   return claims + questions + sources;
 }
 
-export function scoreContextSynthesis(
+function scoreContextSynthesis(
   row: SynthesisRow,
   profile: ContextScoringProfile = DEFAULT_CONTEXT_SCORING_PROFILE,
-  recencyAnchor?: string,
 ): ContextSynthesisScore {
   return {
     importance: profile.weights.importance[importanceOf(row)] ?? 0,
-    recency: recencyScore(row, profile, recencyAnchor),
+    recency: 0,
     createdAt: row.created_at,
     basisDepth: basisDepthOf(row),
     id: row.id,
   };
 }
 
-export function scoreContextClaim(
+function scoreContextClaim(
   row: ClaimRow,
   profile: ContextScoringProfile = DEFAULT_CONTEXT_SCORING_PROFILE,
-  recencyAnchor?: string,
 ): ContextClaimScore {
   return {
     importance: profile.weights.importance[importanceOf(row)] ?? 0,
     confidence: profile.weights.confidence[confidenceOf(row)] ?? 0,
-    recency: recencyScore(row, profile, recencyAnchor),
+    recency: 0,
     informationDepth: profile.weights.informationDepth[informationDepthOf(row)] ?? 0,
     evidenceCount: evidenceCountOf(row),
     contested: contestedOf(row) ? 1 : 0,
@@ -271,15 +204,14 @@ export function scoreContextClaim(
   };
 }
 
-export function scoreContextQuestion(
+function scoreContextQuestion(
   row: QuestionRow,
   profile: ContextScoringProfile = DEFAULT_CONTEXT_SCORING_PROFILE,
-  recencyAnchor?: string,
 ): ContextQuestionScore {
   return {
     priority: profile.weights.priority[priorityOf(row)] ?? 0,
     importance: profile.weights.importance[importanceOf(row)] ?? 0,
-    recency: recencyScore(row, profile, recencyAnchor),
+    recency: 0,
     createdAt: row.created_at,
     id: row.id,
   };
@@ -290,10 +222,10 @@ function timeOf(row: ClaimRow): string | undefined {
   return t.valid_at ?? t.occurred_at ?? t.valid_from ?? t.reported_at ?? undefined;
 }
 
-function rankSyntheses(rows: SynthesisRow[], profile: ContextScoringProfile, recencyAnchor: string | undefined): SynthesisRow[] {
+function rankSyntheses(rows: SynthesisRow[], profile: ContextScoringProfile): SynthesisRow[] {
   return [...rows].sort((a, b) => {
-    const scoreA = scoreContextSynthesis(a, profile, recencyAnchor);
-    const scoreB = scoreContextSynthesis(b, profile, recencyAnchor);
+    const scoreA = scoreContextSynthesis(a, profile);
+    const scoreB = scoreContextSynthesis(b, profile);
     if (scoreA.importance !== scoreB.importance) return scoreB.importance - scoreA.importance;
     if (scoreA.recency !== scoreB.recency) return scoreB.recency - scoreA.recency;
     if (a.created_at !== b.created_at) return a.created_at < b.created_at ? 1 : -1;
@@ -302,10 +234,10 @@ function rankSyntheses(rows: SynthesisRow[], profile: ContextScoringProfile, rec
   });
 }
 
-function rankClaims(rows: ClaimRow[], profile: ContextScoringProfile, recencyAnchor: string | undefined): ClaimRow[] {
+function rankClaims(rows: ClaimRow[], profile: ContextScoringProfile): ClaimRow[] {
   return [...rows].sort((a, b) => {
-    const scoreA = scoreContextClaim(a, profile, recencyAnchor);
-    const scoreB = scoreContextClaim(b, profile, recencyAnchor);
+    const scoreA = scoreContextClaim(a, profile);
+    const scoreB = scoreContextClaim(b, profile);
     if (scoreA.importance !== scoreB.importance) return scoreB.importance - scoreA.importance;
     if (scoreA.confidence !== scoreB.confidence) return scoreB.confidence - scoreA.confidence;
     if (scoreA.recency !== scoreB.recency) return scoreB.recency - scoreA.recency;
@@ -317,10 +249,10 @@ function rankClaims(rows: ClaimRow[], profile: ContextScoringProfile, recencyAnc
   });
 }
 
-function rankQuestions(rows: QuestionRow[], profile: ContextScoringProfile, recencyAnchor: string | undefined): QuestionRow[] {
+function rankQuestions(rows: QuestionRow[], profile: ContextScoringProfile): QuestionRow[] {
   return [...rows].sort((a, b) => {
-    const scoreA = scoreContextQuestion(a, profile, recencyAnchor);
-    const scoreB = scoreContextQuestion(b, profile, recencyAnchor);
+    const scoreA = scoreContextQuestion(a, profile);
+    const scoreB = scoreContextQuestion(b, profile);
     if (scoreA.priority !== scoreB.priority) return scoreB.priority - scoreA.priority;
     if (scoreA.importance !== scoreB.importance) return scoreB.importance - scoreA.importance;
     if (scoreA.recency !== scoreB.recency) return scoreB.recency - scoreA.recency;
@@ -334,15 +266,6 @@ function matchesScope(row: KnbRow, request: ContextRequest): boolean {
   if (request.subject && !row.scope.subjects?.includes(request.subject)) return false;
   if (request.tag && !row.scope.tags?.includes(request.tag)) return false;
   return true;
-}
-
-function newestCreatedAt(rows: EffectiveRow[]): string | undefined {
-  let newest: string | undefined;
-  for (const effective of rows) {
-    const createdAt = effective.row.created_at;
-    if (newest === undefined || createdAt > newest) newest = createdAt;
-  }
-  return newest;
 }
 
 function canonicalSourceIds(ids: Iterable<string | undefined>, state: EffectiveState): string[] {
@@ -544,16 +467,13 @@ function stateWarningToContext(w: StateWarning): ContextWarning {
 }
 
 export function buildContext(state: EffectiveState, request: ContextRequest = {}): ContextResult {
-  const estimator = request.tokenEstimator ?? defaultEstimator;
-  const scoringProfile = resolveContextScoringProfile(request.scoringProfile, request.recencyWindowDays);
+  const estimator = defaultEstimator;
+  const scoringProfile = DEFAULT_CONTEXT_SCORING_PROFILE;
   const maxTokens = request.maxTokens ?? DEFAULT_MAX_TOKENS;
   const includeWarnings = request.includeWarnings !== false;
 
   const allActive: EffectiveRow[] = state.rows();
   const inScope = allActive.filter((r) => matchesScope(r.row, request));
-  const recencyAnchor = scoringProfile.recency === undefined
-    ? undefined
-    : request.asOf ?? newestCreatedAt(inScope);
   const synthesisRows: SynthesisRow[] = [];
   const claimRows: ClaimRow[] = [];
   const questionRows: QuestionRow[] = [];
@@ -572,9 +492,9 @@ export function buildContext(state: EffectiveState, request: ContextRequest = {}
     }
   }
 
-  const rankedSyntheses = rankSyntheses(synthesisRows, scoringProfile, recencyAnchor);
-  const rankedClaims = rankClaims(claimRows, scoringProfile, recencyAnchor);
-  const rankedQuestions = rankQuestions(questionRows, scoringProfile, recencyAnchor);
+  const rankedSyntheses = rankSyntheses(synthesisRows, scoringProfile);
+  const rankedClaims = rankClaims(claimRows, scoringProfile);
+  const rankedQuestions = rankQuestions(questionRows, scoringProfile);
   const scopedActiveCounts = { syntheses: synthesisRows.length, claims: claimRows.length };
 
   let syntheses = rankedSyntheses.map((row) => toContextSynthesis(row, state));

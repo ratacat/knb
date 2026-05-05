@@ -18,12 +18,8 @@ import {
   rowSamples,
   type ApplyOperation,
   type ApplyRequest as CoreApplyRequest,
-  type ClaimRow,
   type DraftRow,
   type KnbRow,
-  type QuestionRow,
-  type SourceRow,
-  type SynthesisRow,
   type ValidationIssue,
 } from "./contract";
 import { knbError } from "./errors";
@@ -32,12 +28,9 @@ import {
   JsonProjectionArtifactStore,
   type FreshnessReport,
   type IndexResult,
-  type RenderAllRequest,
-  type RenderAllResult,
   type RenderRequest,
   type RenderResult,
 } from "./projections";
-import { readRunManifests, type RunManifest } from "./run-manifests";
 import {
   executeGet,
   executeQuery,
@@ -52,7 +45,7 @@ import {
   type ProjectionFreshness,
   type ReadSnapshotOptions,
 } from "./read-snapshot";
-import { buildEffectiveState, type EffectiveState, type StateWarning } from "./state";
+import type { EffectiveState, StateWarning } from "./state";
 import { openWorkspace, type KnbWorkspace, type OpenWorkspaceOptions } from "./workspace";
 
 export { ROW_KINDS } from "./contract";
@@ -85,73 +78,6 @@ export type KnbStatus = {
   active_counts_by_kind: Record<string, number>;
   inactive_counts_by_status: Record<string, number>;
   projection_freshness: ProjectionFreshness;
-  detailed?: DetailedStatus;
-};
-
-export type StatusOptions = {
-  detailed?: boolean;
-};
-
-export type DuplicateSourceUriCluster = {
-  uri: string;
-  count: number;
-  source_ids: string[];
-};
-
-export type DuplicateClaimKeyCluster = {
-  claim_key: string;
-  count: number;
-  claim_ids: string[];
-};
-
-export type EvidenceDepthStats = {
-  count: number;
-  p50: number;
-  p90: number;
-  max: number;
-};
-
-export type DetailedStatus = {
-  duplicate_source_uri_clusters: DuplicateSourceUriCluster[];
-  duplicate_claim_key_clusters: DuplicateClaimKeyCluster[];
-  evidence_depth: EvidenceDepthStats;
-  syntheses_per_collection: Record<string, number>;
-};
-
-export type CollectionStatusRequest = {
-  collection: string;
-  maxQuestions?: number;
-};
-
-export type CollectionStatusResult = {
-  collection: string;
-  active_counts_by_kind: Record<string, number>;
-  inactive_counts_by_status: Record<string, number>;
-  latest_synthesis?: {
-    id: string;
-    title: string;
-    created_at: string;
-    summary: string;
-    limitations?: string;
-  };
-  open_question_count: number;
-  open_questions: Array<{
-    id: string;
-    text: string;
-    created_at: string;
-    priority?: "low" | "medium" | "high";
-    why_it_matters?: string;
-  }>;
-};
-
-export type CollectionSummary = {
-  collection: string;
-  active_counts_by_kind: Record<string, number>;
-  latest_created_at?: string;
-};
-
-export type CollectionsResult = {
-  collections: CollectionSummary[];
 };
 
 export type SchemaResult = {
@@ -187,36 +113,19 @@ export type ApplyRequest = Omit<CoreApplyRequest, "run_id"> & {
   runId?: string;
 };
 
-export type LogRequest = {
-  actor?: string;
-  since?: string;
-  until?: string;
-  limit?: number;
-};
-
-export type LogResult = {
-  entries: RunManifest[];
-  total_matched: number;
-  total_returned: number;
-};
-
 export type Knb = {
   workspace: KnbWorkspace;
   runtime: KnbRuntime;
   init(options?: InitOptions): Promise<InitResult>;
-  status(options?: StatusOptions): Promise<KnbStatus>;
-  collectionStatus(request: CollectionStatusRequest): Promise<CollectionStatusResult>;
-  collections(): Promise<CollectionsResult>;
+  status(): Promise<KnbStatus>;
   schema(): Promise<SchemaResult>;
   apply(request: ApplyRequest): Promise<ApplyResult>;
   previewApply(request: ApplyRequest): Promise<ApplyResult>;
   add(row: DraftRow): Promise<ApplyResult>;
-  log(request?: LogRequest): Promise<LogResult>;
   get(ids: string[], options?: Omit<GetRequest, "ids">): Promise<GetResult>;
   query(request: QueryRequest): Promise<QueryResult>;
   context(request: ContextRequest): Promise<ContextResult>;
   render(request: RenderRequest): Promise<RenderResult>;
-  renderAll(request?: RenderAllRequest): Promise<RenderAllResult>;
   check(): Promise<CheckResult>;
   rebuildIndex(): Promise<IndexResult>;
 };
@@ -259,19 +168,9 @@ function makeKnb(workspace: KnbWorkspace, runtime: KnbRuntime): Knb {
     async init(initOptions: InitOptions = {}): Promise<InitResult> {
       return performInit(workspace, initOptions);
     },
-    async status(options: StatusOptions = {}): Promise<KnbStatus> {
+    async status(): Promise<KnbStatus> {
       const snapshot = await readSnapshot({ workspace, freshness: projectionFreshness });
-      return statusFromSnapshot(workspace, snapshot, options);
-    },
-    async collectionStatus(request: CollectionStatusRequest): Promise<CollectionStatusResult> {
-      const snapshot = await readSnapshot({ workspace, freshness: false });
-      const state = requireState(snapshot, "collectionStatus");
-      return collectionStatusFromState(state, request);
-    },
-    async collections(): Promise<CollectionsResult> {
-      const snapshot = await readSnapshot({ workspace, freshness: false });
-      const state = requireState(snapshot, "collections");
-      return collectionsFromState(state);
+      return statusFromSnapshot(workspace, snapshot);
     },
     async schema(): Promise<SchemaResult> {
       return buildSchemaResult();
@@ -293,9 +192,6 @@ function makeKnb(workspace: KnbWorkspace, runtime: KnbRuntime): Knb {
     async add(row: DraftRow): Promise<ApplyResult> {
       const operation = { op: "add", row } as ApplyOperation;
       return facade.apply({ operations: [operation] });
-    },
-    async log(request: LogRequest = {}): Promise<LogResult> {
-      return buildLog(workspace, request);
     },
     async get(ids: string[], getOptions: Omit<GetRequest, "ids"> = {}): Promise<GetResult> {
       const snapshot = await readSnapshot(readSnapshotOptions(workspace, false, getOptions.asOf));
@@ -319,11 +215,6 @@ function makeKnb(workspace: KnbWorkspace, runtime: KnbRuntime): Knb {
       const snapshot = await readSnapshot(readSnapshotOptions(workspace, false, request.asOf));
       const state = requireState(snapshot, "render");
       return projectionArtifacts.renderCollection(state, snapshot.fingerprint, request);
-    },
-    async renderAll(request: RenderAllRequest = {}): Promise<RenderAllResult> {
-      const snapshot = await readSnapshot(readSnapshotOptions(workspace, false, request.asOf));
-      const state = requireState(snapshot, "renderAll");
-      return projectionArtifacts.renderAllCollections(state, snapshot.fingerprint, request);
     },
     async check(): Promise<CheckResult> {
       const snapshot = await readSnapshot({ workspace, freshness: projectionFreshness });
@@ -353,63 +244,6 @@ function readSnapshotOptions(
   const options: ReadSnapshotOptions = { workspace, freshness };
   if (asOf !== undefined) options.asOf = asOf;
   return options;
-}
-
-async function buildLog(workspace: KnbWorkspace, request: LogRequest): Promise<LogResult> {
-  const manifests = await readRunManifests(workspace);
-  const actor = stringOption(request.actor);
-  const since = parseLogDate(request.since, "since");
-  const until = parseLogDate(request.until, "until");
-
-  const filtered = manifests
-    .filter((manifest) => actor === undefined || manifest.actor === actor)
-    .filter((manifest) => {
-      const completed = logTime(manifest.completed_at);
-      if (!Number.isFinite(completed)) return false;
-      if (since !== undefined && completed < since) return false;
-      if (until !== undefined && completed > until) return false;
-      return true;
-    })
-    .sort((a, b) => {
-      const byTime = logTime(b.completed_at) - logTime(a.completed_at);
-      if (byTime !== 0) return byTime;
-      return a.run_id.localeCompare(b.run_id);
-    });
-
-  const limit = normalizeLogLimit(request.limit);
-  const entries = filtered.slice(0, limit);
-  return {
-    entries,
-    total_matched: filtered.length,
-    total_returned: entries.length,
-  };
-}
-
-function normalizeLogLimit(limit: number | undefined): number {
-  if (limit === undefined) return 20;
-  if (!Number.isFinite(limit)) return 20;
-  return Math.max(0, Math.trunc(limit));
-}
-
-function parseLogDate(value: string | undefined, field: "since" | "until"): number | undefined {
-  const trimmed = stringOption(value);
-  if (trimmed === undefined) return undefined;
-  const parsed = Date.parse(trimmed);
-  if (Number.isNaN(parsed)) {
-    throw knbError("validation_failed", `Invalid log ${field} timestamp`, { [field]: value });
-  }
-  return parsed;
-}
-
-function logTime(value: string): number {
-  const parsed = Date.parse(value);
-  return Number.isNaN(parsed) ? Number.NEGATIVE_INFINITY : parsed;
-}
-
-function stringOption(value: string | undefined): string | undefined {
-  if (typeof value !== "string") return undefined;
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : undefined;
 }
 
 function requireState(snapshot: KnbReadSnapshot, op: string): EffectiveState {
@@ -482,7 +316,6 @@ async function performInit(workspace: KnbWorkspace, options: InitOptions): Promi
 function statusFromSnapshot(
   workspace: KnbWorkspace,
   snapshot: KnbReadSnapshot,
-  options: StatusOptions = {},
 ): KnbStatus {
   const activeCounts: Record<string, number> = {};
   if (snapshot.state) {
@@ -527,190 +360,7 @@ function statusFromSnapshot(
     inactive_counts_by_status: inactiveCounts,
     projection_freshness: snapshot.projectionFreshness,
   };
-  if (options.detailed === true && snapshot.state !== undefined) {
-    result.detailed = detailedStatusFromState(snapshot.state);
-  }
   return result;
-}
-
-function collectionsFromState(state: EffectiveState): CollectionsResult {
-  const byCollection = new Map<string, CollectionSummary>();
-  for (const er of state.rows({ includeChanges: true })) {
-    const collections = er.row.scope.collections ?? [];
-    for (const rawCollection of collections) {
-      const collection = rawCollection.trim();
-      if (collection.length === 0) continue;
-      const summary = byCollection.get(collection) ?? {
-        collection,
-        active_counts_by_kind: {},
-      };
-      incrementCount(summary.active_counts_by_kind, er.row.kind);
-      if (summary.latest_created_at === undefined || er.row.created_at > summary.latest_created_at) {
-        summary.latest_created_at = er.row.created_at;
-      }
-      byCollection.set(collection, summary);
-    }
-  }
-  return {
-    collections: [...byCollection.values()].sort((a, b) => a.collection.localeCompare(b.collection)),
-  };
-}
-
-function detailedStatusFromState(state: EffectiveState): DetailedStatus {
-  const active = state.rows({ includeChanges: true }).map((er) => er.row);
-  const activeSources = active.filter((row): row is SourceRow => row.kind === "source");
-  const activeClaims = active.filter((row): row is ClaimRow => row.kind === "claim");
-  const collections = collectionsFromState(state).collections;
-
-  return {
-    duplicate_source_uri_clusters: duplicateSourceUriClusters(activeSources),
-    duplicate_claim_key_clusters: duplicateClaimKeyClusters(activeClaims),
-    evidence_depth: evidenceDepthStats(activeClaims),
-    syntheses_per_collection: synthesesPerCollection(collections),
-  };
-}
-
-function duplicateSourceUriClusters(rows: SourceRow[]): DuplicateSourceUriCluster[] {
-  const byUri = new Map<string, string[]>();
-  for (const row of rows) {
-    const uri = typeof row.source.uri === "string" ? row.source.uri.trim() : "";
-    if (uri.length === 0) continue;
-    const ids = byUri.get(uri) ?? [];
-    ids.push(row.id);
-    byUri.set(uri, ids);
-  }
-  return [...byUri.entries()]
-    .filter(([, ids]) => ids.length > 1)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([uri, ids]) => ({ uri, count: ids.length, source_ids: ids }));
-}
-
-function duplicateClaimKeyClusters(rows: ClaimRow[]): DuplicateClaimKeyCluster[] {
-  const byKey = new Map<string, string[]>();
-  for (const row of rows) {
-    const key = typeof row.identity.claim_key === "string" ? row.identity.claim_key.trim() : "";
-    if (key.length === 0) continue;
-    const ids = byKey.get(key) ?? [];
-    ids.push(row.id);
-    byKey.set(key, ids);
-  }
-  return [...byKey.entries()]
-    .filter(([, ids]) => ids.length > 1)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([claim_key, ids]) => ({ claim_key, count: ids.length, claim_ids: ids }));
-}
-
-function evidenceDepthStats(rows: ClaimRow[]): EvidenceDepthStats {
-  const depths = rows.map(evidenceDepth).sort((a, b) => a - b);
-  if (depths.length === 0) return { count: 0, p50: 0, p90: 0, max: 0 };
-  return {
-    count: depths.length,
-    p50: percentileNearestRank(depths, 0.5),
-    p90: percentileNearestRank(depths, 0.9),
-    max: depths[depths.length - 1] as number,
-  };
-}
-
-function evidenceDepth(row: ClaimRow): number {
-  const sourceIds = new Set<string>();
-  for (const id of row.provenance.source_ids ?? []) {
-    if (typeof id === "string" && id.length > 0) sourceIds.add(id);
-  }
-  for (const evidence of row.provenance.evidence ?? []) {
-    if (typeof evidence.source_id === "string" && evidence.source_id.length > 0) {
-      sourceIds.add(evidence.source_id);
-    }
-  }
-  return sourceIds.size;
-}
-
-function percentileNearestRank(sortedAscending: number[], percentile: number): number {
-  if (sortedAscending.length === 0) return 0;
-  const rank = Math.max(1, Math.ceil(percentile * sortedAscending.length));
-  return sortedAscending[Math.min(rank - 1, sortedAscending.length - 1)] as number;
-}
-
-function synthesesPerCollection(collections: CollectionSummary[]): Record<string, number> {
-  const counts: Record<string, number> = {};
-  for (const entry of collections) {
-    const count = entry.active_counts_by_kind.synthesis ?? 0;
-    if (count > 0) counts[entry.collection] = count;
-  }
-  return counts;
-}
-
-function collectionStatusFromState(
-  state: EffectiveState,
-  request: CollectionStatusRequest,
-): CollectionStatusResult {
-  const collection = typeof request.collection === "string" ? request.collection.trim() : "";
-  if (collection.length === 0) {
-    throw knbError("validation_failed", "Collection status requires a non-empty collection", {
-      collection: request.collection,
-    });
-  }
-
-  const activeRows = state.rows({ collection, includeChanges: true });
-  const activeCounts: Record<string, number> = {};
-  for (const er of activeRows) {
-    incrementCount(activeCounts, er.row.kind);
-  }
-
-  const inactiveCounts: Record<string, number> = {};
-  for (const status of ["retracted", "superseded", "duplicate", "archived"] as const) {
-    const count = state.rows({ status, collection, includeChanges: true }).length;
-    if (count > 0) inactiveCounts[status] = count;
-  }
-
-  const activeContentRows = state.rows({ collection, includeChanges: false });
-  const latestSynthesis = activeContentRows
-    .map((er) => er.row)
-    .filter((row): row is SynthesisRow => row.kind === "synthesis" && row.synthesis.status === "active")
-    .sort((a, b) => b.created_at.localeCompare(a.created_at))[0];
-
-  const openQuestions = activeContentRows
-    .map((er) => er.row)
-    .filter((row): row is QuestionRow => row.kind === "question" && row.question.status === "open")
-    .sort(byQuestionPriorityThenCreated);
-
-  const maxQuestions =
-    typeof request.maxQuestions === "number" && Number.isFinite(request.maxQuestions)
-      ? Math.max(0, Math.floor(request.maxQuestions))
-      : 12;
-
-  const result: CollectionStatusResult = {
-    collection,
-    active_counts_by_kind: activeCounts,
-    inactive_counts_by_status: inactiveCounts,
-    open_question_count: openQuestions.length,
-    open_questions: openQuestions.slice(0, maxQuestions).map((row) => ({
-      id: row.id,
-      text: row.question.text,
-      created_at: row.created_at,
-      ...(row.question.priority !== undefined ? { priority: row.question.priority } : {}),
-      ...(row.question.why_it_matters !== undefined
-        ? { why_it_matters: row.question.why_it_matters }
-        : {}),
-    })),
-  };
-
-  if (latestSynthesis !== undefined) {
-    result.latest_synthesis = {
-      id: latestSynthesis.id,
-      title: latestSynthesis.synthesis.title,
-      created_at: latestSynthesis.created_at,
-      summary: latestSynthesis.synthesis.summary,
-      ...(latestSynthesis.synthesis.limitations !== undefined
-        ? { limitations: latestSynthesis.synthesis.limitations }
-        : {}),
-    };
-  }
-
-  return result;
-}
-
-function incrementCount(counts: Record<string, number>, key: string): void {
-  counts[key] = (counts[key] ?? 0) + 1;
 }
 
 function sortedRecord(record: Record<string, number>): Record<string, number> {
@@ -719,17 +369,6 @@ function sortedRecord(record: Record<string, number>): Record<string, number> {
   return sorted;
 }
 
-function byQuestionPriorityThenCreated(a: QuestionRow, b: QuestionRow): number {
-  return questionPriorityWeight(b.question.priority) - questionPriorityWeight(a.question.priority)
-    || b.created_at.localeCompare(a.created_at);
-}
-
-function questionPriorityWeight(priority: QuestionRow["question"]["priority"]): number {
-  if (priority === "high") return 3;
-  if (priority === "medium") return 2;
-  if (priority === "low") return 1;
-  return 0;
-}
 
 function checkFromSnapshot(snapshot: KnbReadSnapshot): CheckResult {
   const parseIssues = [...snapshot.ledger.parseIssues];

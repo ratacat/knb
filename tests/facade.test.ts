@@ -15,13 +15,11 @@ import {
   type ClaimRow,
   type QuestionRow,
   type SourceRow,
-  type SynthesisRow,
 } from "../src/core/contract";
 import { isKnbError } from "../src/core/errors";
 import { openWorkspace } from "../src/core/workspace";
 import { defaultProjectState, readSnapshot } from "../src/core/read-snapshot";
 import { V1_INDEX_NAMES } from "../src/core/projections";
-import type { RunManifest } from "../src/core/run-manifests";
 
 let workDir: string;
 
@@ -55,34 +53,6 @@ async function seedLedger(text: string): Promise<string> {
 
 function jsonl(rows: object[]): string {
   return `${rows.map((row) => JSON.stringify(row)).join("\n")}\n`;
-}
-
-async function seedRunManifests(manifests: RunManifest[]): Promise<void> {
-  const runsDir = join(workDir, ".knb", "runs");
-  await mkdir(runsDir, { recursive: true });
-  for (const manifest of manifests) {
-    await writeFile(join(runsDir, `${manifest.run_id}.json`), `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
-  }
-}
-
-function manifest(
-  run_id: string,
-  actor: string,
-  completed_at: string,
-  row_ids: string[],
-  intent?: string,
-): RunManifest {
-  const result: RunManifest = {
-    schema_version: "knb.run.v1",
-    run_id,
-    actor,
-    started_at: completed_at,
-    completed_at,
-    rows_appended: row_ids.length,
-    row_ids,
-  };
-  if (intent !== undefined) result.intent = intent;
-  return result;
 }
 
 function freshSourceRow(id = "src:facade:20260501:aaaa1111"): SourceRow {
@@ -155,10 +125,7 @@ describe("openKnb", () => {
     const expected = [
       "init",
       "status",
-      "collectionStatus",
-      "collections",
       "schema",
-      "log",
       "apply",
       "previewApply",
       "add",
@@ -166,7 +133,6 @@ describe("openKnb", () => {
       "query",
       "context",
       "render",
-      "renderAll",
       "check",
       "rebuildIndex",
     ] as const;
@@ -549,117 +515,6 @@ describe("Knb.status", () => {
     expect((await knb.status()).row_count).toBe(1);
   });
 
-  test("default status does not include detailed stats", async () => {
-    const source = freshSourceRow();
-    await seedLedger(jsonl([source]));
-    const knb = await openKnb(makeOpenOptions());
-    const baseline = await knb.status();
-    const explicitDefault = await knb.status({ detailed: false });
-    expect(explicitDefault).toEqual(baseline);
-    expect("detailed" in baseline).toBe(false);
-  });
-
-  test("detailed status returns empty corpus-health stats on an empty workspace", async () => {
-    const knb = await openKnb(makeOpenOptions());
-    const status = await knb.status({ detailed: true });
-    expect(status.detailed).toEqual({
-      duplicate_source_uri_clusters: [],
-      duplicate_claim_key_clusters: [],
-      evidence_depth: { count: 0, p50: 0, p90: 0, max: 0 },
-      syntheses_per_collection: {},
-    });
-  });
-
-  test("detailed status computes mixed dup-heavy stats from EffectiveState and ignores stale indexes", async () => {
-    const sourceA = freshSourceRow("src:detail:20260501:sourcea1");
-    sourceA.scope = { collections: ["alpha"] };
-    sourceA.source.uri = "https://example.com/shared-source";
-    const sourceB = freshSourceRow("src:detail:20260501:sourceb2");
-    sourceB.scope = { collections: ["beta"] };
-    sourceB.source.uri = "https://example.com/shared-source";
-    const sourceC = freshSourceRow("src:detail:20260501:sourcec3");
-    sourceC.scope = { collections: ["beta"] };
-    sourceC.source.uri = "https://example.com/unique-source";
-
-    const claimA = freshClaimRow(sourceA.id, "claim:detail:20260501:claimaaa");
-    claimA.scope = { collections: ["alpha"] };
-    claimA.identity = { claim_key: "detail|shared" };
-    claimA.provenance = {
-      evidence: [{ source_id: sourceA.id, role: "supports", summary: "A" }],
-    };
-    const claimB = freshClaimRow(sourceA.id, "claim:detail:20260501:claimbbb");
-    claimB.scope = { collections: ["alpha", "beta"] };
-    claimB.identity = { claim_key: "detail|shared" };
-    claimB.provenance = {
-      source_ids: [sourceA.id, sourceB.id],
-      evidence: [
-        { source_id: sourceA.id, role: "supports", summary: "A" },
-        { source_id: sourceB.id, role: "supports", summary: "B" },
-      ],
-    };
-    const claimC = freshClaimRow(sourceC.id, "claim:detail:20260501:claimccc");
-    claimC.scope = { collections: ["beta"] };
-    claimC.identity = { claim_key: "detail|unique" };
-    claimC.provenance = {
-      evidence: [{ source_id: sourceC.id, role: "supports", summary: "C" }],
-    };
-
-    const synthesisA: SynthesisRow = {
-      schema_version: "knb.v1",
-      id: "synth:detail:20260501:syntha11",
-      kind: "synthesis",
-      created_at: "2026-05-01T15:00:00.000Z",
-      created_by: "agent:test",
-      scope: { collections: ["alpha"] },
-      synthesis: { title: "Alpha", summary: "Alpha summary", basis: { claim_ids: [claimA.id] }, status: "active" },
-    };
-    const synthesisB: SynthesisRow = {
-      ...synthesisA,
-      id: "synth:detail:20260501:synthb22",
-      scope: { collections: ["beta"] },
-      synthesis: { title: "Beta", summary: "Beta summary", basis: { claim_ids: [claimB.id] }, status: "active" },
-    };
-    const archivedSynthesis: SynthesisRow = {
-      ...synthesisA,
-      id: "synth:detail:20260501:synthold",
-      scope: { collections: ["alpha"] },
-      synthesis: { title: "Archived", summary: "Old", basis: { claim_ids: [claimA.id] }, status: "archived" },
-    };
-
-    await seedLedger(jsonl([
-      sourceA,
-      sourceB,
-      sourceC,
-      claimA,
-      claimB,
-      claimC,
-      synthesisA,
-      synthesisB,
-      archivedSynthesis,
-    ]));
-    await mkdir(join(workDir, "knb", "indexes"), { recursive: true });
-    await writeFile(join(workDir, "knb", "indexes", "active-by-id.json"), JSON.stringify({ stale: true }), "utf8");
-
-    const knb = await openKnb(makeOpenOptions());
-    const status = await knb.status({ detailed: true });
-
-    expect(status.detailed?.duplicate_source_uri_clusters).toEqual([
-      {
-        uri: "https://example.com/shared-source",
-        count: 2,
-        source_ids: [sourceA.id, sourceB.id],
-      },
-    ]);
-    expect(status.detailed?.duplicate_claim_key_clusters).toEqual([
-      {
-        claim_key: "detail|shared",
-        count: 2,
-        claim_ids: [claimA.id, claimB.id],
-      },
-    ]);
-    expect(status.detailed?.evidence_depth).toEqual({ count: 3, p50: 1, p90: 2, max: 2 });
-    expect(status.detailed?.syntheses_per_collection).toEqual({ alpha: 1, beta: 1 });
-  });
 });
 
 describe("Knb.schema", () => {
@@ -737,20 +592,6 @@ describe("Knb facade methods on empty workspace", () => {
     expect(contextResult.meta.counts.claims).toBe(0);
   });
 
-  test("log returns an empty result when .knb/runs is missing", async () => {
-    const knb = await openKnb(makeOpenOptions());
-    const result = await knb.log({});
-    expect(result.entries).toEqual([]);
-    expect(result.total_matched).toBe(0);
-    expect(result.total_returned).toBe(0);
-  });
-
-  test("collections returns empty list on an empty workspace", async () => {
-    const knb = await openKnb(makeOpenOptions());
-    const result = await knb.collections();
-    expect(result).toEqual({ collections: [] });
-  });
-
   test("get with an unknown id throws KnbError with code not_found", async () => {
     const knb = await openKnb(makeOpenOptions());
     let caught: unknown;
@@ -775,78 +616,6 @@ describe("Knb facade methods on empty workspace", () => {
     expect((caught as { code: string }).code).toBe("not_found");
     const details = (caught as { details?: { ids?: string[] } }).details;
     expect(details?.ids).toEqual(["a", "b", "c"]);
-  });
-
-  test("collectionStatus returns latest active synthesis and priority-sorted open questions", async () => {
-    const source = freshSourceRow();
-    const oldSynthesis: SynthesisRow = {
-      schema_version: "knb.v1",
-      id: "synth:facade:20260501:aaaa1111",
-      kind: "synthesis",
-      created_at: "2026-05-01T12:00:00Z",
-      created_by: "agent:test",
-      scope: { collections: ["facade"] },
-      synthesis: {
-        title: "Old synthesis",
-        summary: "Old summary.",
-        basis: { source_ids: [source.id] },
-        status: "active",
-      },
-    };
-    const latestSynthesis: SynthesisRow = {
-      ...oldSynthesis,
-      id: "synth:facade:20260501:bbbb2222",
-      created_at: "2026-05-01T13:00:00Z",
-      synthesis: {
-        title: "Latest synthesis",
-        summary: "Latest summary.",
-        limitations: "Still thin.",
-        basis: { source_ids: [source.id] },
-        status: "active",
-      },
-    };
-    const lowQuestion: QuestionRow = {
-      schema_version: "knb.v1",
-      id: "q:facade:20260501:low11111",
-      kind: "question",
-      created_at: "2026-05-01T12:30:00Z",
-      created_by: "agent:test",
-      scope: { collections: ["facade"] },
-      question: { text: "Low question?", status: "open", priority: "low" },
-    };
-    const highQuestion: QuestionRow = {
-      ...lowQuestion,
-      id: "q:facade:20260501:high2222",
-      created_at: "2026-05-01T12:20:00Z",
-      question: {
-        text: "High question?",
-        status: "open",
-        priority: "high",
-        why_it_matters: "handoff",
-      },
-    };
-    await seedLedger(jsonl([source, oldSynthesis, latestSynthesis, lowQuestion, highQuestion]));
-    const knb = await openKnb(makeOpenOptions());
-
-    const result = await knb.collectionStatus({ collection: "facade", maxQuestions: 1 });
-
-    expect(result.collection).toBe("facade");
-    expect(result.active_counts_by_kind.source).toBe(1);
-    expect(result.active_counts_by_kind.synthesis).toBe(2);
-    expect(result.active_counts_by_kind.question).toBe(2);
-    expect(result.latest_synthesis?.id).toBe(latestSynthesis.id);
-    expect(result.latest_synthesis?.title).toBe("Latest synthesis");
-    expect(result.latest_synthesis?.limitations).toBe("Still thin.");
-    expect(result.open_question_count).toBe(2);
-    expect(result.open_questions).toEqual([
-      {
-        id: highQuestion.id,
-        text: "High question?",
-        created_at: highQuestion.created_at,
-        priority: "high",
-        why_it_matters: "handoff",
-      },
-    ]);
   });
 
   test("check on empty workspace reports clean parse and validation but missing indexes", async () => {
@@ -881,28 +650,6 @@ describe("Knb facade methods on empty workspace", () => {
     }
   });
 
-  test("renderAll writes views for every active collection through the facade", async () => {
-    const rows = [
-      freshSourceRow("src:alpha:20260501:aaaa1111"),
-      {
-        ...freshSourceRow("src:beta:20260501:bbbb2222"),
-        scope: { collections: ["beta"] },
-      },
-    ];
-    await seedLedger(jsonl(rows));
-    const knb = await openKnb(makeOpenOptions());
-
-    const result = await knb.renderAll();
-
-    expect(result.collections).toEqual(["beta", "facade"]);
-    expect(result.rendered.length).toBe(2);
-    expect(result.total_bytes_written).toBeGreaterThan(0);
-    for (const entry of result.rendered) {
-      expect(await pathExists(entry.path)).toBe(true);
-      expect(await pathExists(entry.metadata_path)).toBe(true);
-    }
-  });
-
   test("query/context/render/check propagate KnbError when ledger has parse errors", async () => {
     await seedLedger("{invalid json\n");
     const knb = await openKnb(makeOpenOptions());
@@ -932,13 +679,6 @@ describe("Knb facade methods on empty workspace", () => {
     }
     expect(isKnbError(rErr)).toBe(true);
 
-    let raErr: unknown;
-    try {
-      await knb.renderAll();
-    } catch (error) {
-      raErr = error;
-    }
-    expect(isKnbError(raErr)).toBe(true);
   });
 
   test("query/context propagate validation_failed when ledger has validation errors", async () => {
@@ -973,99 +713,6 @@ describe("Knb facade methods on empty workspace", () => {
     expect(result.meta.rows_appended).toBe(1);
     expect(result.meta.bytes_written).toBeGreaterThan(0);
     expect(result.warnings).toBeDefined();
-  });
-});
-
-describe("Knb.collections", () => {
-  test("summarizes active collections from EffectiveState, not generated indexes", async () => {
-    const sourceA = freshSourceRow("src:alpha:20260501:aaaa1111");
-    sourceA.scope = { collections: ["alpha"] };
-    sourceA.created_at = "2026-05-01T10:00:00.000Z";
-    const sourceB = freshSourceRow("src:beta:20260501:bbbb2222");
-    sourceB.scope = { collections: ["beta"] };
-    sourceB.created_at = "2026-05-01T11:00:00.000Z";
-    const claim = freshClaimRow(sourceA.id, "claim:shared:20260501:cccc3333");
-    claim.scope = { collections: ["alpha", "beta"] };
-    claim.created_at = "2026-05-01T12:00:00.000Z";
-    const question: QuestionRow = {
-      schema_version: "knb.v1",
-      id: "q:beta:20260501:dddd4444",
-      kind: "question",
-      created_at: "2026-05-01T13:00:00.000Z",
-      created_by: "agent:test",
-      scope: { collections: ["beta"] },
-      question: { text: "What next?", status: "open" },
-    };
-    const archivedQuestion: QuestionRow = {
-      ...question,
-      id: "q:alpha:20260501:eeee5555",
-      created_at: "2026-05-01T14:00:00.000Z",
-      scope: { collections: ["alpha"] },
-      question: { text: "Archived?", status: "archived" },
-    };
-    await seedLedger(jsonl([sourceA, sourceB, claim, question, archivedQuestion]));
-    await mkdir(join(workDir, "knb", "indexes"), { recursive: true });
-    await writeFile(
-      join(workDir, "knb", "indexes", "active-by-collection.json"),
-      JSON.stringify({ stale: ["wrong"] }),
-      "utf8",
-    );
-
-    const knb = await openKnb(makeOpenOptions());
-    const result = await knb.collections();
-
-    expect(result.collections).toEqual([
-      {
-        collection: "alpha",
-        active_counts_by_kind: { source: 1, claim: 1 },
-        latest_created_at: "2026-05-01T12:00:00.000Z",
-      },
-      {
-        collection: "beta",
-        active_counts_by_kind: { source: 1, claim: 1, question: 1 },
-        latest_created_at: "2026-05-01T13:00:00.000Z",
-      },
-    ]);
-  });
-});
-
-describe("Knb.log", () => {
-  test("sorts manifests by completed_at desc and run_id tie-break with default limit", async () => {
-    await seedRunManifests([
-      manifest("run_a", "agent:alpha", "2026-05-01T10:00:00.000Z", ["row:a"], "old"),
-      manifest("run_b", "agent:beta", "2026-05-02T09:00:00.000Z", ["row:b"], "middle"),
-      manifest("run_e", "agent:alpha", "2026-05-02T12:00:00.000Z", ["row:e"], "tie e"),
-      manifest("run_d", "agent:beta", "2026-05-03T00:00:00.000Z", ["row:d"], "newest"),
-      manifest("run_c", "agent:alpha", "2026-05-02T12:00:00.000Z", ["row:c"], "tie c"),
-    ]);
-
-    const knb = await openKnb(makeOpenOptions());
-    const result = await knb.log({});
-    expect(result.entries.map((entry) => entry.run_id)).toEqual(["run_d", "run_c", "run_e", "run_b", "run_a"]);
-    expect(result.total_matched).toBe(5);
-    expect(result.total_returned).toBe(5);
-  });
-
-  test("filters manifests by actor, since, until, and limit", async () => {
-    await seedRunManifests([
-      manifest("run_a", "agent:alpha", "2026-05-01T10:00:00.000Z", ["row:a"]),
-      manifest("run_b", "agent:beta", "2026-05-02T09:00:00.000Z", ["row:b"]),
-      manifest("run_c", "agent:alpha", "2026-05-02T12:00:00.000Z", ["row:c"]),
-      manifest("run_d", "agent:beta", "2026-05-03T00:00:00.000Z", ["row:d"]),
-      manifest("run_e", "agent:alpha", "2026-05-02T13:00:00.000Z", ["row:e"]),
-    ]);
-
-    const knb = await openKnb(makeOpenOptions());
-    const result = await knb.log({
-      actor: "agent:alpha",
-      since: "2026-05-02T00:00:00.000Z",
-      until: "2026-05-02T23:59:59.999Z",
-      limit: 1,
-    });
-
-    expect(result.entries.map((entry) => entry.run_id)).toEqual(["run_e"]);
-    expect(result.total_matched).toBe(2);
-    expect(result.total_returned).toBe(1);
   });
 });
 
@@ -1171,6 +818,5 @@ describe("src/index.ts public surface", () => {
     expect(typeof knb.apply).toBe("function");
     expect(typeof knb.add).toBe("function");
     expect(typeof knb.status).toBe("function");
-    expect(typeof knb.renderAll).toBe("function");
   });
 });

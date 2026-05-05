@@ -25,11 +25,6 @@ export type RenderRequest = {
   asOf?: string;
 };
 
-export type RenderAllRequest = {
-  format?: RenderFormat;
-  asOf?: string;
-};
-
 export type ProjectionKind = "view" | "index";
 
 export type ProjectionClock = () => Date;
@@ -59,12 +54,6 @@ export type RenderResult = {
   bytes_written: number;
   metadata_path: string;
   metadata: ProjectionMetadata;
-};
-
-export type RenderAllResult = {
-  collections: string[];
-  rendered: RenderResult[];
-  total_bytes_written: number;
 };
 
 export type IndexResult = {
@@ -101,11 +90,6 @@ export type ProjectionArtifactStore = {
     ledger_fingerprint: LedgerFingerprint,
     request: RenderRequest,
   ): Promise<RenderResult>;
-  renderAllCollections(
-    state: EffectiveState,
-    ledger_fingerprint: LedgerFingerprint,
-    request?: RenderAllRequest,
-  ): Promise<RenderAllResult>;
   rebuildIndexes(state: EffectiveState, ledger_fingerprint: LedgerFingerprint): Promise<IndexResult>;
   checkFreshness(ledger_fingerprint: LedgerFingerprint): Promise<FreshnessReport>;
 };
@@ -143,14 +127,6 @@ export class JsonProjectionArtifactStore implements ProjectionArtifactStore {
     request: RenderRequest,
   ): Promise<RenderResult> {
     return renderCollection(state, this.workspace, ledger_fingerprint, request, { clock: this.clock });
-  }
-
-  renderAllCollections(
-    state: EffectiveState,
-    ledger_fingerprint: LedgerFingerprint,
-    request: RenderAllRequest = {},
-  ): Promise<RenderAllResult> {
-    return renderAllCollections(state, this.workspace, ledger_fingerprint, request, { clock: this.clock });
   }
 
   rebuildIndexes(state: EffectiveState, ledger_fingerprint: LedgerFingerprint): Promise<IndexResult> {
@@ -205,33 +181,6 @@ export async function renderCollection(
     bytes_written: bytesWritten,
     metadata_path: metadataPath,
     metadata,
-  };
-}
-
-export async function renderAllCollections(
-  state: EffectiveState,
-  workspace: KnbWorkspace,
-  ledger_fingerprint: LedgerFingerprint,
-  request: RenderAllRequest = {},
-  options: ProjectionWriteOptions = {},
-): Promise<RenderAllResult> {
-  const format: RenderFormat = request.format ?? "md";
-  if (format !== "md") {
-    throw knbError("validation_failed", `Unsupported render format: ${format}`, { format });
-  }
-
-  const collections = activeCollectionNames(state);
-  const rendered: RenderResult[] = [];
-  for (const collection of collections) {
-    const renderRequest: RenderRequest = { collection, format };
-    if (request.asOf !== undefined) renderRequest.asOf = request.asOf;
-    rendered.push(await renderCollection(state, workspace, ledger_fingerprint, renderRequest, options));
-  }
-
-  return {
-    collections,
-    rendered,
-    total_bytes_written: rendered.reduce((sum, entry) => sum + entry.bytes_written, 0),
   };
 }
 
@@ -377,20 +326,6 @@ function resolveViewPath(workspace: KnbWorkspace, collection: string, out: strin
 
 function sanitizeCollection(collection: string): string {
   return collection.replace(/[\\/:*?"<>|\x00-\x1f]/g, "_");
-}
-
-function activeCollectionNames(state: EffectiveState): string[] {
-  const names = new Set<string>();
-  for (const effective of state.rows({ status: "active", includeChanges: false })) {
-    const collections = effective.row.scope.collections;
-    if (!Array.isArray(collections)) continue;
-    for (const raw of collections) {
-      if (typeof raw !== "string") continue;
-      const collection = raw.trim();
-      if (collection.length > 0) names.add(collection);
-    }
-  }
-  return [...names].sort((a, b) => a.localeCompare(b));
 }
 
 function workspaceRelative(workspace: KnbWorkspace, target: string): string {

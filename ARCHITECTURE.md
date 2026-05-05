@@ -16,20 +16,19 @@ Rows in `knb/ledger.jsonl` are canonical events. `source`, `claim`, `question`, 
 | `src/core/context.ts` | Build token-budgeted research packets from effective state, including ranked syntheses, claims, questions, sources, and warnings. | `buildContext`, `ContextRequest`, scoring profile types, and scoring functions. |
 | `src/core/contract.ts` | Own row types, operation types, constants, validation, draft completion, samples, reference walking, and JSON Schema. | `KnbRow`, `ApplyOperation`, `validateLedger`, `validateApplyRequest`, `jsonSchema`, `referenceFields`. |
 | `src/core/errors.ts` | Define typed domain errors and map them to CLI exit codes. | `KnbErrorCode`, `knbError`, `fromUnknown`, `exitCodeForError`. |
-| `src/core/knb.ts` | Public library facade that wires workspace, ledger, read snapshots, writes, queries, context, rendering, indexes, logs, and runtime adapters. | `openKnb`, `Knb`, `OpenKnbOptions`, public request/result types. |
+| `src/core/knb.ts` | Public library facade that wires workspace, ledger, read snapshots, writes, queries, context, rendering, indexes, and runtime adapters. | `openKnb`, `Knb`, `OpenKnbOptions`, public request/result types. |
 | `src/core/ledger.ts` | Own JSONL loading, parse diagnostics, fingerprints, lock-protected append transactions, and durable flush behavior. | `loadLedger`, `writeLedger`, `LedgerFingerprint`, `LedgerSnapshot`. |
 | `src/core/output.ts` | Render CLI success/failure envelopes and human text without changing domain results. | `success`, `failure`, `render`, `CommandResult`. |
-| `src/core/projections.ts` | Render Markdown views, rebuild disposable indexes, write projection metadata, and report freshness. | `ProjectionArtifactStore`, `JsonProjectionArtifactStore`, `renderCollection`, `renderAllCollections`, `rebuildIndexes`, `checkFreshness`. |
+| `src/core/projections.ts` | Render Markdown views, rebuild disposable indexes, write projection metadata, and report freshness. | `ProjectionArtifactStore`, `JsonProjectionArtifactStore`, `renderCollection`, `rebuildIndexes`, `checkFreshness`. |
 | `src/core/query.ts` | Retrieve active or historical rows from effective state with deterministic filtering and ranking. | `executeQuery`, `executeGet`, `QueryRequest`, `GetRequest`. |
 | `src/core/read-snapshot.ts` | Build one read-side packet from ledger load, validation, state projection, and projection freshness. | `readSnapshot`, `KnbReadSnapshot`, injected loader/validator/projector/freshness seams. |
-| `src/core/run-manifests.ts` | Persist and read per-run operation manifests for audit logs. | `RunManifest`, `runsDirFor`, facade log methods. |
 | `src/core/source-citations.ts` | Build source URI/hash to referencing-claim vocabulary for projections. | `SourceCitationIndex`, `buildSourceCitationIndex`. |
 | `src/core/state.ts` | Project loaded ledger rows into current or as-of effective state, lifecycle explanations, relation graph, and warnings. | `buildEffectiveState`, `EffectiveState`, `EffectiveRow`, `StateOptions`. |
 | `src/core/workspace.ts` | Resolve workspace paths, config, actor identity, and runtime command execution. | `openWorkspace`, `KnbWorkspace`, `OpenWorkspaceOptions`. |
 
-## Scoring Model
+## Context Ranking
 
-Context scoring is explicit and narrow. Defaults preserve historical ordering: importance, confidence, information depth, evidence count, contested status, created time, then id. Callers may pass `ContextRequest.scoringProfile` to adjust weights and `recencyWindowDays` to enable linear recency scoring. The approved recency score is `max(0, 1 - ageDays / windowDays) * weight`, anchored to `request.asOf` when set and otherwise to the newest in-scope row.
+Context ranking is deterministic and private. The public request controls scope, token budget, historical cutoff, and warnings; callers do not supply ranking weights or recency policy.
 
 ## Projection Artifacts
 
@@ -46,9 +45,9 @@ Rendered Markdown views are structured for skimming: a top table of contents, st
 - Time precision values: `instant`, `hour`, `day`, `month`, `year`, `range`, and `unknown`.
 - `EffectiveState`: projected active/inactive row state plus lifecycle explanations, relation graph, and state warnings.
 - `LedgerFingerprint`: canonical ledger identity computed from path, row count, bytes, last row id, and content hash.
-- `run_id`: per-apply transaction id stored in run manifests and core apply results. Public TypeScript callers pass `runId`; persisted/core rows and manifests use `run_id`.
+- `run_id`: per-apply transaction id stored in core apply results and row provenance. Public TypeScript callers pass `runId`; persisted/core rows use `run_id`.
 - `SourceCitationIndex`: source URI/hash to referencing claim ids for generated projections.
 
 ## Naming
 
-Use one casing per boundary. CLI flags are kebab-case, for example `--claim-key` and `--recency-window-days`. Ledger/schema fields are snake_case, for example `claim_key`, `external_refs`, and `run_id`. Public TypeScript facade request fields are camelCase, for example `claimKey`, `maxTokens`, `includeWarnings`, `recencyWindowDays`, and `runId`. The CLI adapter is responsible for translating flags into facade request fields.
+Use one casing per boundary. CLI flags are kebab-case, for example `--claim-key` and `--max-tokens`. Ledger/schema fields are snake_case, for example `claim_key`, `external_refs`, and `run_id`. Public TypeScript facade request fields are camelCase, for example `claimKey`, `maxTokens`, `includeWarnings`, and `runId`. The CLI adapter is responsible for translating flags into facade request fields.

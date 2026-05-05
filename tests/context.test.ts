@@ -1,11 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import {
-  DEFAULT_CONTEXT_SCORING_PROFILE,
-  buildContext,
-  scoreContextClaim,
-  scoreContextQuestion,
-  scoreContextSynthesis,
-} from "../src/core/context";
+import { buildContext } from "../src/core/context";
 import { buildEffectiveState } from "../src/core/state";
 import type {
   ClaimRow,
@@ -356,203 +350,15 @@ describe("buildContext", () => {
     expect(result.syntheses[2]!.id).toBe("synLow");
   });
 
-  test("scoringProfile overrides claim ranking weights without changing row data", () => {
-    const s1 = source("src-scoring");
-    const high = claim("claim-high", [s1.id], {
-      importance: "high",
-      statement: "High importance default winner.",
-      created_at: "2026-05-01T12:01:00Z",
-    });
-    const low = claim("claim-low", [s1.id], {
-      importance: "low",
-      statement: "Low importance custom winner.",
-      created_at: "2026-05-01T12:00:00Z",
-    });
-    const state = fixtureState([s1, high, low]);
-
-    const defaultResult = buildContext(state, { collection: "alpha", includeWarnings: false });
-    expect(defaultResult.key_claims.map((row) => row.id)).toEqual(["claim-high", "claim-low"]);
-
-    const customResult = buildContext(state, {
-      collection: "alpha",
-      includeWarnings: false,
-      scoringProfile: {
-        weights: {
-          importance: { high: 1, medium: 2, low: 9, unknown: 0 },
-        },
-      },
-    });
-
-    expect(customResult.key_claims.map((row) => row.id)).toEqual(["claim-low", "claim-high"]);
-  });
-
-  test("scoringProfile thinEvidenceThreshold drives thin-evidence warnings", () => {
-    const s1 = source("src-thin-custom");
-    const supported = claim("claim-supported", [s1.id], { evidenceCount: 2 });
-    const state = fixtureState([s1, supported]);
-
-    const defaultResult = buildContext(state, { collection: "alpha" });
-    expect(defaultResult.warnings.map((warning) => warning.code)).not.toContain("info_gap_thin_evidence");
-
-    const customResult = buildContext(state, {
-      collection: "alpha",
-      scoringProfile: { thinEvidenceThreshold: 3 },
-    });
-    expect(customResult.warnings.map((warning) => warning.code)).toContain("info_gap_thin_evidence");
-  });
-
-  test("default scoring matches explicit default profile on Iran-cracks-like golden fixture", async () => {
+  test("default scoring matches Iran-cracks-like golden fixture", async () => {
     const golden = await Bun.file(
       new URL("./fixtures/context-default-scoring-golden.json", import.meta.url),
     ).json() as ContextRankingGolden;
     const state = fixtureState(iranCracksLikeRows());
 
     const implicitDefault = buildContext(state, { collection: "alpha", includeWarnings: false });
-    const explicitDefault = buildContext(state, {
-      collection: "alpha",
-      includeWarnings: false,
-      scoringProfile: DEFAULT_CONTEXT_SCORING_PROFILE,
-    });
 
     expect(contextRanking(implicitDefault)).toEqual(golden);
-    expect(contextRanking(explicitDefault)).toEqual(golden);
-  });
-
-  test("confidence weights can boost high-confidence claims within an importance tier", () => {
-    const s1 = source("src-confidence-boost");
-    const lowConfidence = claim("claim-low-confidence", [s1.id], {
-      importance: "medium",
-      confidence: "low",
-      created_at: "2026-05-01T12:00:00Z",
-    });
-    const highConfidence = claim("claim-high-confidence", [s1.id], {
-      importance: "medium",
-      confidence: "high",
-      created_at: "2026-04-01T12:00:00Z",
-    });
-    const state = fixtureState([s1, lowConfidence, highConfidence]);
-
-    const result = buildContext(state, {
-      collection: "alpha",
-      includeWarnings: false,
-      scoringProfile: {
-        weights: {
-          confidence: { high: 10, medium: 2, low: 1, unknown: 0 },
-        },
-      },
-    });
-
-    expect(result.key_claims.map((row) => row.id)).toEqual([
-      "claim-high-confidence",
-      "claim-low-confidence",
-    ]);
-  });
-
-  test("recency off restores evidence-first ordering from the default profile", () => {
-    const s1 = source("src-recency-off");
-    const oldDeepEvidence = claim("claim-old-deep-recency-off", [s1.id], {
-      importance: "high",
-      confidence: "high",
-      evidenceCount: 2,
-      created_at: "2026-04-01T12:00:00Z",
-    });
-    const recentThinEvidence = claim("claim-recent-thin-recency-off", [s1.id], {
-      importance: "high",
-      confidence: "high",
-      evidenceCount: 1,
-      created_at: "2026-05-01T12:00:00Z",
-    });
-    const state = fixtureState([s1, oldDeepEvidence, recentThinEvidence]);
-
-    const recencyOn = buildContext(state, {
-      collection: "alpha",
-      includeWarnings: false,
-      recencyWindowDays: 45,
-    });
-    const recencyOff = buildContext(state, {
-      collection: "alpha",
-      includeWarnings: false,
-      scoringProfile: { recency: { windowDays: 0 } },
-    });
-
-    expect(recencyOn.key_claims.map((row) => row.id)).toEqual([
-      "claim-recent-thin-recency-off",
-      "claim-old-deep-recency-off",
-    ]);
-    expect(recencyOff.key_claims.map((row) => row.id)).toEqual([
-      "claim-old-deep-recency-off",
-      "claim-recent-thin-recency-off",
-    ]);
-  });
-
-  test("recencyWindowDays lets recent claims outrank older claims inside the same importance and confidence tier", () => {
-    const s1 = source("src-recency");
-    const oldDeepEvidence = claim("claim-old-deep-evidence", [s1.id], {
-      importance: "high",
-      confidence: "high",
-      evidenceCount: 2,
-      statement: "Older deeper-evidence claim.",
-      created_at: "2026-04-01T12:00:00Z",
-    });
-    const recentThinEvidence = claim("claim-recent-thin-evidence", [s1.id], {
-      importance: "high",
-      confidence: "high",
-      evidenceCount: 1,
-      statement: "Recent thinner-evidence claim.",
-      created_at: "2026-05-01T12:00:00Z",
-    });
-    const state = fixtureState([s1, oldDeepEvidence, recentThinEvidence]);
-
-    const defaultResult = buildContext(state, { collection: "alpha", includeWarnings: false });
-    expect(defaultResult.key_claims.map((row) => row.id)).toEqual([
-      "claim-old-deep-evidence",
-      "claim-recent-thin-evidence",
-    ]);
-
-    const recencyResult = buildContext(state, {
-      collection: "alpha",
-      includeWarnings: false,
-      recencyWindowDays: 45,
-    });
-    expect(recencyResult.key_claims.map((row) => row.id)).toEqual([
-      "claim-recent-thin-evidence",
-      "claim-old-deep-evidence",
-    ]);
-  });
-
-  test("recencyWindowDays uses request.asOf as the deterministic recency anchor", () => {
-    const s1 = source("src-recency-asof");
-    const futureAtWorkspaceAnchor = claim("claim-future-at-workspace-anchor", [s1.id], {
-      importance: "high",
-      confidence: "high",
-      created_at: "2026-05-01T12:00:00Z",
-    });
-    const recentAtAsOfAnchor = claim("claim-recent-at-asof-anchor", [s1.id], {
-      importance: "high",
-      confidence: "high",
-      evidenceCount: 1,
-      created_at: "2026-04-10T12:00:00Z",
-    });
-    const oldAtAsOfAnchor = claim("claim-old-at-asof-anchor", [s1.id], {
-      importance: "high",
-      confidence: "high",
-      evidenceCount: 2,
-      created_at: "2026-03-01T12:00:00Z",
-    });
-    const state = fixtureState([s1, futureAtWorkspaceAnchor, recentAtAsOfAnchor, oldAtAsOfAnchor]);
-
-    const result = buildContext(state, {
-      collection: "alpha",
-      includeWarnings: false,
-      asOf: "2026-04-15T12:00:00Z",
-      recencyWindowDays: 30,
-    });
-
-    expect(result.key_claims.map((row) => row.id)).toEqual([
-      "claim-recent-at-asof-anchor",
-      "claim-old-at-asof-anchor",
-      "claim-future-at-workspace-anchor",
-    ]);
   });
 
   test("contested claim outranks non-contested at same importance", () => {
@@ -643,16 +449,6 @@ describe("buildContext", () => {
     expect(w).toBeDefined();
   });
 
-  test("custom tokenEstimator is honored", () => {
-    const s1 = source("src1");
-    const c1 = claim("c1", ["src1"]);
-    const state = fixtureState([s1, c1]);
-    const lengthEstimator = (t: string) => t.length;
-    const result = buildContext(state, { tokenEstimator: lengthEstimator });
-    const defaults = buildContext(state);
-    expect(result.token_estimate).toBeGreaterThan(defaults.token_estimate);
-  });
-
   test("deterministic order: same input produces same output", () => {
     const s1 = source("src1");
     const s2 = source("src2");
@@ -682,28 +478,6 @@ describe("buildContext", () => {
 });
 
 describe("buildContext - claim ranking dimensions", () => {
-  test("scoring profile exposes the ranking dimensions used by context selection", () => {
-    const c = claim("c", ["src1"], {
-      importance: "high",
-      confidence: "medium",
-      contested: true,
-      evidenceCount: 3,
-    });
-    const q = question("q", { priority: "high" });
-    const s = synthesis("s", ["c"], { importance: "medium", sourceIds: ["src1"] });
-
-    expect(DEFAULT_CONTEXT_SCORING_PROFILE.thinEvidenceThreshold).toBe(2);
-    const claimScore = scoreContextClaim(c);
-    expect(claimScore.importance).toBe(3);
-    expect(claimScore.confidence).toBe(2);
-    expect(claimScore.evidenceCount).toBe(3);
-    expect(claimScore.contested).toBe(1);
-    expect(scoreContextQuestion(q).priority).toBe(3);
-    const synthesisScore = scoreContextSynthesis(s);
-    expect(synthesisScore.importance).toBe(2);
-    expect(synthesisScore.basisDepth).toBe(2);
-  });
-
   test("equal importance: higher confidence outranks lower", () => {
     const s1 = source("src1");
     const cMid = claim("cMid", ["src1"], { importance: "medium", confidence: "medium" });
@@ -974,7 +748,6 @@ describe("buildContext - truncation invariants", () => {
     const state = fixtureState([s1, c1, syn1]);
     const r = buildContext(state, {
       maxTokens: 1,
-      tokenEstimator: () => 10,
     });
     expect(r.truncated).toBe(true);
     expect(r.syntheses.length).toBe(0);
@@ -1248,21 +1021,6 @@ describe("buildContext - shape details", () => {
 });
 
 describe("buildContext - estimator behavior", () => {
-  test("custom tokenEstimator influences truncation decisions", () => {
-    const s1 = source("src1");
-    const s2 = source("src2");
-    const c1 = claim("c1", ["src1"], { importance: "low" });
-    const c2 = claim("c2", ["src2"], { importance: "low" });
-    const fixedHigh = (_: string) => 100;
-    const r = buildContext(fixtureState([s1, s2, c1, c2]), {
-      maxTokens: 200,
-      tokenEstimator: fixedHigh,
-      includeWarnings: false,
-    });
-    expect(r.truncated).toBe(true);
-    expect(r.token_estimate).toBeLessThanOrEqual(200);
-  });
-
   test("default ceil(chars/4) estimator produces predictable totals on empty workspace", () => {
     const r = buildContext(fixtureState([]));
     expect(r.token_estimate).toBeGreaterThan(0);

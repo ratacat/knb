@@ -23,7 +23,6 @@ const NON_OWNER_SCAN = [
   "src/core/output.ts",
   "src/core/query.ts",
   "src/core/read-snapshot.ts",
-  "src/core/run-manifests.ts",
   "src/core/state.ts",
   "src/core/workspace.ts",
   "src/cli.ts",

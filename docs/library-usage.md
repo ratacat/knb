@@ -99,10 +99,6 @@ const ctx = await knb.context({
   collection: "x",
   maxTokens: 3000,
   includeWarnings: true,
-  recencyWindowDays: 30,
-  scoringProfile: {
-    weights: { importance: { high: 3, medium: 2, low: 1, unknown: 0 } },
-  },
 });
 ```
 

@@ -122,10 +122,6 @@ function formatHumanItem(item: unknown): string {
   if (typeof item === "string") return item;
   if (item === null || item === undefined) return "";
   if (typeof item !== "object") return String(item);
-  const runLog = asRunLogResult(item);
-  if (runLog) return formatRunLog(runLog.entries);
-  const collections = asCollectionsResult(item);
-  if (collections) return formatCollections(collections.collections);
   const candidate = item as { id?: unknown; kind?: unknown };
   const id = typeof candidate.id === "string" ? candidate.id : undefined;
   const kind = typeof candidate.kind === "string" ? candidate.kind : undefined;
@@ -149,110 +145,6 @@ function humanRowText(item: unknown): string | undefined {
   if (row.kind === "question" && typeof row.question?.text === "string") return row.question.text;
   if (row.kind === "synthesis" && typeof row.synthesis?.title === "string") return row.synthesis.title;
   return undefined;
-}
-
-type HumanRunLogEntry = {
-  run_id: string;
-  actor: string;
-  intent?: string;
-  completed_at: string;
-  rows_appended: number;
-};
-
-function asRunLogResult(item: unknown): { entries: HumanRunLogEntry[] } | undefined {
-  if (item === null || typeof item !== "object" || Array.isArray(item)) return undefined;
-  const entries = (item as { entries?: unknown }).entries;
-  if (!Array.isArray(entries)) return undefined;
-  const parsed: HumanRunLogEntry[] = [];
-  for (const entry of entries) {
-    if (entry === null || typeof entry !== "object" || Array.isArray(entry)) return undefined;
-    const candidate = entry as {
-      run_id?: unknown;
-      actor?: unknown;
-      intent?: unknown;
-      completed_at?: unknown;
-      rows_appended?: unknown;
-    };
-    if (
-      typeof candidate.run_id !== "string" ||
-      typeof candidate.actor !== "string" ||
-      typeof candidate.completed_at !== "string" ||
-      typeof candidate.rows_appended !== "number"
-    ) {
-      return undefined;
-    }
-    const parsedEntry: HumanRunLogEntry = {
-      run_id: candidate.run_id,
-      actor: candidate.actor,
-      completed_at: candidate.completed_at,
-      rows_appended: candidate.rows_appended,
-    };
-    if (typeof candidate.intent === "string") parsedEntry.intent = candidate.intent;
-    parsed.push(parsedEntry);
-  }
-  return { entries: parsed };
-}
-
-function formatRunLog(entries: HumanRunLogEntry[]): string {
-  if (entries.length === 0) return "OK (0 runs)";
-  const lines = ["completed_at\tactor\trows\trun_id\tintent"];
-  for (const entry of entries) {
-    lines.push([
-      entry.completed_at,
-      entry.actor,
-      String(entry.rows_appended),
-      entry.run_id,
-      entry.intent ?? "",
-    ].join("\t"));
-  }
-  return lines.join("\n");
-}
-
-type HumanCollectionEntry = {
-  collection: string;
-  active_counts_by_kind: Record<string, number>;
-  latest_created_at?: string;
-};
-
-function asCollectionsResult(item: unknown): { collections: HumanCollectionEntry[] } | undefined {
-  if (item === null || typeof item !== "object" || Array.isArray(item)) return undefined;
-  const entries = (item as { collections?: unknown }).collections;
-  if (!Array.isArray(entries)) return undefined;
-  const parsed: HumanCollectionEntry[] = [];
-  for (const entry of entries) {
-    if (entry === null || typeof entry !== "object" || Array.isArray(entry)) return undefined;
-    const candidate = entry as {
-      collection?: unknown;
-      active_counts_by_kind?: unknown;
-      latest_created_at?: unknown;
-    };
-    if (
-      typeof candidate.collection !== "string" ||
-      candidate.active_counts_by_kind === null ||
-      typeof candidate.active_counts_by_kind !== "object" ||
-      Array.isArray(candidate.active_counts_by_kind)
-    ) {
-      return undefined;
-    }
-    const parsedEntry: HumanCollectionEntry = {
-      collection: candidate.collection,
-      active_counts_by_kind: candidate.active_counts_by_kind as Record<string, number>,
-    };
-    if (typeof candidate.latest_created_at === "string") parsedEntry.latest_created_at = candidate.latest_created_at;
-    parsed.push(parsedEntry);
-  }
-  return { collections: parsed };
-}
-
-function formatCollections(collections: HumanCollectionEntry[]): string {
-  if (collections.length === 0) return "OK (0 collections)";
-  const kinds = ["source", "claim", "question", "synthesis", "change"] as const;
-  const lines = [`collection\t${kinds.join("\t")}\tlatest_created_at`];
-  for (const entry of collections) {
-    const counts = kinds.map((kind) => String(entry.active_counts_by_kind[kind] ?? 0));
-    lines.push([entry.collection, ...counts, entry.latest_created_at ?? ""].join("\t"));
-  }
-  return lines.join("\n");
 }
 
 export function render(
