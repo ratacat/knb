@@ -102,8 +102,8 @@ knb log     [--actor <a>] [--since <date>] [--until <date>] [--limit N] [--json]
 knb apply   (--file ops.json | --json '{...}' | --stdin) [--atomic] [--dry-run]
 knb add     (--file row.json | --json '{...}' | --stdin)
 knb get     <id> [<id>...] [--as-of <iso>] [--include-history] [--explain]
-knb query   [--as-of <iso>] [--kind claim] [--collection topic] [--subject name] [--tag tag] [--text text] [--claim-key key] [--claim-type type] [--predicate value] [--qualifier key=value] [--external-ref system:id] [--citing uri] [--limit N] [--history] [--full] [--json]
-knb context [--as-of <iso>] [--collection topic] [--subject name] [--tag tag] [--claim-type type] [--predicate value] [--qualifier key=value] [--external-ref system:id] [--max-tokens 3000] [--recency-window-days N] [--no-warnings] [--json]
+knb query   [--as-of <iso>] [--kind claim] [--collection topic] [--subject name] [--tag tag] [--text text] [--claim-key key] [--limit N] [--history] [--full] [--json]
+knb context [--as-of <iso>] [--collection topic] [--subject name] [--tag tag] [--max-tokens 3000] [--recency-window-days N] [--no-warnings] [--json]
 knb render  (--collection topic [--out knb/views/topic.md] | --all) [--as-of <iso>] [--format md] [--json]
 knb check   [--json]
 knb index   [--rebuild]
@@ -113,7 +113,7 @@ knb index   [--rebuild]
 
 `collections` reads from the validated effective-state snapshot, not from generated indexes. `log` reads apply run manifests from `.knb/runs/`.
 
-`get`, `query`, `context`, and `render` accept `--as-of <iso>` for historical reads. `query` and `context` also accept generic structured-claim filters such as `--claim-type`, `--predicate`, `--qualifier key=value`, and `--external-ref system:id`.
+`get`, `query`, `context`, and `render` accept `--as-of <iso>` for historical reads.
 
 ## Local development
 

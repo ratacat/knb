@@ -5,12 +5,6 @@ import type {
   SourceRow,
   SynthesisRow,
 } from "./contract";
-import {
-  matchesRowSelector,
-  structuredClaimSelectorFromRequest,
-  type RowSelectorExternalRef,
-  type RowSelectorValue,
-} from "./selectors";
 import type { EffectiveRow, EffectiveState, StateWarning } from "./state";
 
 export type ContextRequest = {
@@ -18,10 +12,6 @@ export type ContextRequest = {
   subject?: string;
   tag?: string;
   asOf?: string;
-  claimType?: string;
-  predicate?: string;
-  qualifiers?: Record<string, RowSelectorValue>;
-  externalRefs?: RowSelectorExternalRef[];
   maxTokens?: number;
   includeWarnings?: boolean;
   recencyWindowDays?: number;
@@ -564,9 +554,6 @@ export function buildContext(state: EffectiveState, request: ContextRequest = {}
   const recencyAnchor = scoringProfile.recency === undefined
     ? undefined
     : request.asOf ?? newestCreatedAt(inScope);
-  const structuredClaimSelector = structuredClaimSelectorFromRequest(request);
-  const hasStructuredClaimFilter = structuredClaimSelector !== undefined;
-
   const synthesisRows: SynthesisRow[] = [];
   const claimRows: ClaimRow[] = [];
   const questionRows: QuestionRow[] = [];
@@ -574,15 +561,12 @@ export function buildContext(state: EffectiveState, request: ContextRequest = {}
   for (const r of inScope) {
     if (r.row.kind === "synthesis") {
       const s = r.row as SynthesisRow;
-      if (!hasStructuredClaimFilter && s.synthesis.status === "active") synthesisRows.push(s);
+      if (s.synthesis.status === "active") synthesisRows.push(s);
     } else if (r.row.kind === "claim") {
-      if (structuredClaimSelector !== undefined && !matchesRowSelector(r.row, structuredClaimSelector)) {
-        continue;
-      }
       claimRows.push(r.row as ClaimRow);
     } else if (r.row.kind === "question") {
       const q = r.row as QuestionRow;
-      if (!hasStructuredClaimFilter && q.question.status === "open") questionRows.push(q);
+      if (q.question.status === "open") questionRows.push(q);
     } else if (r.row.kind === "source") {
       sourceRows.set(r.row.id, r.row as SourceRow);
     }

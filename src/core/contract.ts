@@ -2,7 +2,6 @@
 // validation, samples, and JSON Schema. The contract module must not read files,
 // inspect the workspace, choose clocks, or allocate randomness itself.
 
-import { validateRowSelector, type RowSelector } from "./selectors";
 
 export const KNB_SCHEMA_VERSION = "knb.v1" as const;
 
@@ -223,7 +222,6 @@ export type SynthesisRow = KnbRowCommon & {
       question_ids?: string[];
       source_ids?: string[];
     };
-    target_selector?: RowSelector;
     limitations?: string;
     status: "active" | "archived";
   };
@@ -919,11 +917,6 @@ export function jsonSchema(): Record<string, unknown> {
               source_ids: { type: "array", items: { type: "string" } },
             },
           },
-          target_selector: {
-            type: "object",
-            $ref: "knb.selector.v1",
-            description: "Optional RowSelector describing the intended synthesis coverage.",
-          },
           limitations: { type: "string" },
           status: { enum: [...SYNTHESIS_STATUSES] },
         },
@@ -1344,19 +1337,6 @@ function validateSynthesis(loaded: LoadedRow & { row: SynthesisRow }, issues: Va
       message: "synthesis must include a basis id or explicit limitations note",
       path: "synthesis.basis",
     });
-  }
-  if (row.synthesis.target_selector !== undefined) {
-    const selectorValidation = validateRowSelector(row.synthesis.target_selector);
-    for (const issue of selectorValidation.issues) {
-      issues.push({
-        level: "error",
-        code: "synthesis_target_selector_invalid",
-        line: loaded.line,
-        id: loaded.row.id,
-        message: `Invalid synthesis.target_selector: ${issue.message}`,
-        path: issue.path ? `synthesis.target_selector.${issue.path}` : "synthesis.target_selector",
-      });
-    }
   }
   validateAssessment(row.assessment, loaded, issues, { requireConfidence: false });
 }

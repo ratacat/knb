@@ -403,16 +403,6 @@ function queryRequestFromFlags(flags: FlagMap): QueryRequest {
   if (text) request.text = text;
   const claimKey = stringFlag(flags, "claim-key");
   if (claimKey) request.claimKey = claimKey;
-  const claimType = stringFlag(flags, "claim-type");
-  if (claimType) request.claimType = claimType;
-  const predicate = stringFlag(flags, "predicate");
-  if (predicate) request.predicate = predicate;
-  const qualifiers = parseQualifierFlags(flags);
-  if (qualifiers !== undefined) request.qualifiers = qualifiers;
-  const externalRefs = parseExternalRefFlags(flags);
-  if (externalRefs !== undefined) request.externalRefs = externalRefs;
-  const citing = stringFlag(flags, "citing");
-  if (citing) request.citing = citing;
   const limit = numberFlag(flags, "limit");
   if (limit !== undefined) request.limit = limit;
   if (booleanFlag(flags, "history") || booleanFlag(flags, "include-history")) {
@@ -432,14 +422,6 @@ function contextRequestFromFlags(flags: FlagMap): ContextRequest {
   if (subject) request.subject = subject;
   const tag = stringFlag(flags, "tag");
   if (tag) request.tag = tag;
-  const claimType = stringFlag(flags, "claim-type");
-  if (claimType) request.claimType = claimType;
-  const predicate = stringFlag(flags, "predicate");
-  if (predicate) request.predicate = predicate;
-  const qualifiers = parseQualifierFlags(flags);
-  if (qualifiers !== undefined) request.qualifiers = qualifiers;
-  const externalRefs = parseExternalRefFlags(flags);
-  if (externalRefs !== undefined) request.externalRefs = externalRefs;
   const maxTokens = numberFlag(flags, "max-tokens");
   if (maxTokens !== undefined) request.maxTokens = maxTokens;
   const recencyWindowDays = numberFlag(flags, "recency-window-days");
@@ -483,44 +465,6 @@ function numberFlag(flags: FlagMap, key: string): number | undefined {
     });
   }
   return parsed;
-}
-
-function stringFlags(flags: FlagMap, key: string): string[] {
-  const value = flags.get(key);
-  if (Array.isArray(value)) return value.filter((entry): entry is string => typeof entry === "string" && entry.length > 0);
-  if (typeof value === "string" && value.length > 0) return [value];
-  return [];
-}
-
-function parseQualifierFlags(flags: FlagMap): Record<string, string> | undefined {
-  const entries = stringFlags(flags, "qualifier");
-  if (entries.length === 0) return undefined;
-  const qualifiers: Record<string, string> = {};
-  for (const entry of entries) {
-    const equalsIndex = entry.indexOf("=");
-    if (equalsIndex <= 0 || equalsIndex === entry.length - 1) {
-      throw knbError("invalid_arguments", "Invalid --qualifier value; expected key=value", { qualifier: entry });
-    }
-    const key = entry.slice(0, equalsIndex).trim();
-    const value = entry.slice(equalsIndex + 1);
-    if (!/^[A-Za-z0-9_.-]+$/.test(key)) {
-      throw knbError("invalid_arguments", "Invalid --qualifier key; expected letters, numbers, dot, underscore, or dash", { qualifier: entry });
-    }
-    qualifiers[key] = value;
-  }
-  return qualifiers;
-}
-
-function parseExternalRefFlags(flags: FlagMap): Array<{ system: string; id: string }> | undefined {
-  const entries = stringFlags(flags, "external-ref");
-  if (entries.length === 0) return undefined;
-  return entries.map((entry) => {
-    const colonIndex = entry.indexOf(":");
-    if (colonIndex <= 0 || colonIndex === entry.length - 1) {
-      throw knbError("invalid_arguments", "Invalid --external-ref value; expected system:id", { external_ref: entry });
-    }
-    return { system: entry.slice(0, colonIndex), id: entry.slice(colonIndex + 1) };
-  });
 }
 
 async function readJsonPayload(flags: FlagMap): Promise<unknown> {
@@ -623,8 +567,8 @@ Usage:
   knb apply   (--file ops.json | --json '{...}' | --stdin) [--atomic] [--dry-run]
   knb add     (--file row.json | --json '{...}' | --stdin)
   knb get     <id> [<id>...] [--as-of <iso>] [--include-history] [--explain]
-  knb query   [--as-of <iso>] [--kind <kind>] [--collection <c>] [--subject <s>] [--tag <t>] [--text <q>] [--claim-key <k>] [--claim-type <t>] [--predicate <p>] [--qualifier k=v] [--external-ref system:id] [--citing <uri>] [--limit N] [--history] [--full]
-  knb context [--as-of <iso>] [--collection <c>] [--subject <s>] [--tag <t>] [--claim-type <t>] [--predicate <p>] [--qualifier k=v] [--external-ref system:id] [--max-tokens 3000] [--recency-window-days N] [--no-warnings]
+  knb query   [--as-of <iso>] [--kind <kind>] [--collection <c>] [--subject <s>] [--tag <t>] [--text <q>] [--claim-key <k>] [--limit N] [--history] [--full]
+  knb context [--as-of <iso>] [--collection <c>] [--subject <s>] [--tag <t>] [--max-tokens 3000] [--recency-window-days N] [--no-warnings]
   knb render  (--collection <c> [--out path] | --all) [--as-of <iso>] [--format md]
   knb check   [--json]
   knb index   [--rebuild]
@@ -639,7 +583,7 @@ Commands:
   apply     Apply an atomic batch of operations through the apply pipeline; use --dry-run to preview without writing.
   add       Convenience wrapper for one add operation; identical envelope to apply.
   get       Fetch full rows by id; default returns only active rows.
-  query     Search active rows by kind, scope, text, citation, and generic structured claim fields. Use --history to include inactive.
+  query     Search active rows by kind, scope, text, and claim key. Use --history to include inactive.
   context   Build a token-budgeted context packet for a scope.
   render    Generate Markdown view(s) for one collection or every active collection.
   check     Report parse, validation, state warnings, and projection freshness. Exit 0 if ok, otherwise the typed error code.

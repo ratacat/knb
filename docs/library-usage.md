@@ -79,14 +79,13 @@ const result = await knb.get(["claim:x:20260501:abc12345"], { explain: true });
 
 ### `query(request)`
 
-Deterministic retrieval over effective state. Filter by `kind`, `collection`, `subject`, `tag`, `text`, `claimKey`, `claimType`, `externalRefs`, etc.
+Deterministic retrieval over effective state. Filter by `kind`, `collection`, `subject`, `tag`, `text`, `claimKey`, `asOf`, status, history, and limit.
 
 ```ts
 const result = await knb.query({
   kind: "claim",
   collection: "x",
   claimKey: "topic|fact",
-  externalRefs: [{ system: "x", id: "123" }],
   limit: 20,
 });
 ```

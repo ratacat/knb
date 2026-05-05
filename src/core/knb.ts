@@ -53,7 +53,6 @@ import {
   type ReadSnapshotOptions,
 } from "./read-snapshot";
 import { buildEffectiveState, type EffectiveState, type StateWarning } from "./state";
-import { rowSelectorSamples, rowSelectorSchema, type RowSelector } from "./selectors";
 import { openWorkspace, type KnbWorkspace, type OpenWorkspaceOptions } from "./workspace";
 
 export { ROW_KINDS } from "./contract";
@@ -158,8 +157,6 @@ export type CollectionsResult = {
 export type SchemaResult = {
   schema_version: "knb.v1";
   json_schema: object;
-  selector_schema: object;
-  selector_samples: RowSelector[];
   row_samples: KnbRow[];
   operation_samples: ApplyOperation[];
 };
@@ -762,8 +759,6 @@ function buildSchemaResult(): SchemaResult {
   return {
     schema_version: "knb.v1",
     json_schema: jsonSchema(),
-    selector_schema: rowSelectorSchema(),
-    selector_samples: rowSelectorSamples(),
     row_samples: [samples.source, samples.claim, samples.question, samples.synthesis, samples.change],
     operation_samples: [ops.add, ops.retract, ops.supersede, ops.merge, ops.relate, ops.patch],
   };

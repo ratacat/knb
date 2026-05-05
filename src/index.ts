@@ -60,16 +60,3 @@ export type {
   RenderRequest,
   RenderResult,
 } from "./core/projections";
-export {
-  matchesRowSelector,
-  selectEffectiveRows,
-  validateRowSelector,
-} from "./core/selectors";
-export type {
-  RowSelector,
-  RowSelectorComparable,
-  RowSelectorExternalRef,
-  RowSelectorValidationResult,
-  RowSelectorValue,
-  RowSelectorWhere,
-} from "./core/selectors";

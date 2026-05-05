@@ -50,9 +50,6 @@ function claim(
     created_at?: string;
     collection?: string;
     evidenceCount?: number;
-    claimType?: string;
-    predicate?: string;
-    qualifiers?: Record<string, unknown>;
     external_refs?: ClaimRow["external_refs"];
   } = {},
 ): ClaimRow {
@@ -78,9 +75,6 @@ function claim(
     claim: {
       statement: options.statement ?? `Statement ${id}.`,
       atomic: true,
-      ...(options.claimType ? { type: options.claimType } : {}),
-      ...(options.predicate ? { predicate: options.predicate } : {}),
-      ...(options.qualifiers ? { qualifiers: options.qualifiers } : {}),
     },
     time: { precision: "unknown" },
     provenance: { source_ids: sourceIds, evidence },
@@ -338,41 +332,6 @@ describe("buildContext", () => {
     expect(result.key_claims.length).toBe(1);
     expect(result.key_claims[0]!.id).toBe("c2");
     expect(result.meta.collection).toBe("beta");
-  });
-
-  test("structured filters narrow claims before truncation and retain cited sources", () => {
-    const sMatch = source("src-match");
-    const sMiss = source("src-miss");
-    const cMatch = claim("c-match", ["src-match"], {
-      statement: "Tehran prediction matches.",
-      claimType: "prediction",
-      predicate: "will_happen",
-      qualifiers: { location: "tehran", date: "2026-05-03" },
-      external_refs: [{ system: "kalshi", id: "KXIRAN-20260503", type: "market" }],
-    });
-    const cMiss = claim("c-miss", ["src-miss"], {
-      statement: "Nonmatching Shiraz prediction with a deliberately huge token estimate.",
-      claimType: "prediction",
-      predicate: "will_happen",
-      qualifiers: { location: "shiraz", date: "2026-05-03" },
-      external_refs: [{ system: "kalshi", id: "KXOTHER", type: "market" }],
-    });
-    const state = fixtureState([sMatch, sMiss, cMatch, cMiss]);
-
-    const result = buildContext(state, {
-      collection: "alpha",
-      claimType: "prediction",
-      predicate: "will_happen",
-      qualifiers: { location: "tehran", date: "2026-05-03" },
-      externalRefs: [{ system: "kalshi", id: "KXIRAN-20260503" }],
-      maxTokens: 20,
-      includeWarnings: false,
-      tokenEstimator: (text) => (text.includes("Nonmatching Shiraz") ? 500 : 1),
-    });
-
-    expect(result.truncated).toBe(false);
-    expect(result.key_claims.map((claim) => claim.id)).toEqual(["c-match"]);
-    expect(result.sources.map((source) => source.id)).toEqual(["src-match"]);
   });
 
   test("ranking: high importance synthesis appears before low, recency breaks ties", () => {

@@ -295,16 +295,12 @@ describe("cli init (in-process)", () => {
     const data = envelope.data as {
       schema_version: string;
       json_schema: object;
-      selector_schema?: { schema_version?: string; properties?: Record<string, unknown> };
-      selector_samples?: unknown[];
       row_samples: unknown[];
       operation_samples: unknown[];
     };
     expect(data.schema_version).toBe("knb.v1");
     expect(typeof data.json_schema).toBe("object");
     expect(data.json_schema).not.toBeNull();
-    expect(data.selector_schema?.schema_version).toBe("knb.selector.v1");
-    expect(data.selector_samples?.length).toBeGreaterThanOrEqual(1);
     expect(data.row_samples.length).toBeGreaterThanOrEqual(5);
     expect(data.operation_samples.length).toBeGreaterThanOrEqual(6);
   });
@@ -1450,145 +1446,6 @@ describe("cli get / query / context success envelopes", () => {
     expect(env.data.total_returned).toBe(0);
   });
 
-  test("query --citing filters claims by cited source URI", async () => {
-    await initWorkspace();
-    const sourceAdd = await runCliBinary([
-      "add",
-      "--json",
-      JSON.stringify({
-        kind: "source",
-        scope: { collections: ["cite"] },
-        source: { type: "web_page", title: "Cited", uri: "https://example.com/cited" },
-        provenance: { acquisition: { method: "manual" } },
-      }),
-    ]);
-    expect(sourceAdd.code).toBe(0);
-    const sourceEnv = JSON.parse(sourceAdd.stdout.trim()) as {
-      data: { created: Array<{ id: string }> };
-    };
-    const sourceId = sourceEnv.data.created[0]!.id;
-
-    const claimAdd = await runCliBinary([
-      "add",
-      "--json",
-      JSON.stringify({
-        kind: "claim",
-        scope: { collections: ["cite"] },
-        identity: { claim_key: "cite|one" },
-        claim: { statement: "Cited claim.", atomic: true },
-        time: { precision: "unknown" },
-        provenance: {
-          evidence: [{ source_id: sourceId, role: "supports", summary: "Cited source." }],
-        },
-        assessment: { confidence: "high" },
-      }),
-    ]);
-    expect(claimAdd.code).toBe(0);
-
-    const result = await runCliBinary(["query", "--citing", "https://example.com/cited", "--json"]);
-    expect(result.code).toBe(0);
-    const env = JSON.parse(result.stdout.trim()) as {
-      data: { rows: Array<{ id: string; kind: string }>; total_returned: number };
-    };
-    expect(env.data.total_returned).toBe(1);
-    expect(env.data.rows[0]?.kind).toBe("claim");
-    expect(env.data.rows[0]?.id).toContain("claim:cite:");
-  });
-
-  test("query structured filters use --claim-type, --qualifier, and --external-ref", async () => {
-    await initWorkspace();
-    const payload = JSON.stringify({
-      operations: [
-        {
-          op: "add",
-          as: "src",
-          row: {
-            kind: "source",
-            scope: { collections: ["structured-cli"] },
-            source: { type: "web_page", title: "Structured source", uri: "https://example.com/structured-cli" },
-            provenance: { acquisition: { method: "manual" } },
-          },
-        },
-        {
-          op: "add",
-          row: {
-            kind: "claim",
-            scope: { collections: ["structured-cli"] },
-            external_refs: [{ system: "kalshi", id: "KXIRAN-20260501", type: "market" }],
-            identity: { claim_key: "structured|match" },
-            claim: {
-              statement: "Structured CLI match.",
-              atomic: true,
-              type: "prediction",
-              qualifiers: { location: "tehran", date: "2026-05-03" },
-            },
-            time: { precision: "unknown" },
-            provenance: {
-              evidence: [{ source_id: "$src", role: "supports", summary: "Backs match." }],
-            },
-            assessment: { confidence: "high" },
-          },
-        },
-        {
-          op: "add",
-          row: {
-            kind: "claim",
-            scope: { collections: ["structured-cli"] },
-            external_refs: [{ system: "kalshi", id: "KXOTHER", type: "market" }],
-            identity: { claim_key: "structured|miss" },
-            claim: {
-              statement: "Structured CLI miss.",
-              atomic: true,
-              type: "prediction",
-              qualifiers: { location: "shiraz", date: "2026-05-03" },
-            },
-            time: { precision: "unknown" },
-            provenance: {
-              evidence: [{ source_id: "$src", role: "supports", summary: "Backs miss." }],
-            },
-            assessment: { confidence: "high" },
-          },
-        },
-      ],
-    });
-    const applied = await runCliBinary(["apply", "--json", payload, "--pretty"]);
-    expect(applied.code).toBe(0);
-
-    const result = await runCliBinary([
-      "query",
-      "--collection",
-      "structured-cli",
-      "--claim-type",
-      "prediction",
-      "--qualifier",
-      "location=tehran",
-      "--qualifier",
-      "date=2026-05-03",
-      "--external-ref",
-      "kalshi:KXIRAN-20260501",
-      "--json",
-    ]);
-    expect(result.code).toBe(0);
-    const env = JSON.parse(result.stdout.trim()) as {
-      data: { rows: Array<{ text?: string; kind: string }>; total_returned: number };
-    };
-    expect(env.data.total_returned).toBe(1);
-    expect(env.data.rows.map((row) => row.text)).toEqual(["Structured CLI match."]);
-  });
-
-  test("query --qualifier with invalid syntax returns exit 2 invalid_arguments", async () => {
-    await initWorkspace();
-    const result = await runCliBinary(["query", "--qualifier", "not-a-pair", "--json"]);
-    expect(result.code).toBe(2);
-    const env = JSON.parse(result.stderr.trim()) as {
-      ok: boolean;
-      error: { code: string; message: string };
-    };
-    expect(env.ok).toBe(false);
-    expect(env.error.code).toBe("invalid_arguments");
-    expect(env.error.message).toContain("key=value");
-  });
-
   test("query --limit caps total_returned but not total_matched", async () => {
     await initWorkspace();
     for (let i = 0; i < 4; i += 1) {
@@ -1758,89 +1615,6 @@ describe("cli get / query / context success envelopes", () => {
       "Recent thinner-evidence context claim.",
       "Older deeper-evidence context claim.",
     ]);
-  });
-
-  test("context structured filters use --claim-type, --qualifier, and --external-ref", async () => {
-    await initWorkspace();
-    const payload = JSON.stringify({
-      operations: [
-        {
-          op: "add",
-          as: "src",
-          row: {
-            kind: "source",
-            scope: { collections: ["ctx-structured"] },
-            source: { type: "web_page", title: "Context structured source", uri: "https://example.com/ctx-structured" },
-            provenance: { acquisition: { method: "manual" } },
-          },
-        },
-        {
-          op: "add",
-          row: {
-            kind: "claim",
-            scope: { collections: ["ctx-structured"] },
-            external_refs: [{ system: "kalshi", id: "KXCTX", type: "market" }],
-            identity: { claim_key: "ctx-structured|match" },
-            claim: {
-              statement: "Context structured match.",
-              atomic: true,
-              type: "prediction",
-              qualifiers: { location: "tehran", date: "2026-05-03" },
-            },
-            time: { precision: "unknown" },
-            provenance: {
-              evidence: [{ source_id: "$src", role: "supports", summary: "Backs match." }],
-            },
-            assessment: { confidence: "high" },
-          },
-        },
-        {
-          op: "add",
-          row: {
-            kind: "claim",
-            scope: { collections: ["ctx-structured"] },
-            external_refs: [{ system: "kalshi", id: "KXMISS", type: "market" }],
-            identity: { claim_key: "ctx-structured|miss" },
-            claim: {
-              statement: "Context structured miss.",
-              atomic: true,
-              type: "prediction",
-              qualifiers: { location: "shiraz", date: "2026-05-03" },
-            },
-            time: { precision: "unknown" },
-            provenance: {
-              evidence: [{ source_id: "$src", role: "supports", summary: "Backs miss." }],
-            },
-            assessment: { confidence: "high" },
-          },
-        },
-      ],
-    });
-    const applied = await runCliBinary(["apply", "--json", payload, "--pretty"]);
-    expect(applied.code).toBe(0);
-
-    const result = await runCliBinary([
-      "context",
-      "--collection",
-      "ctx-structured",
-      "--claim-type",
-      "prediction",
-      "--qualifier",
-      "location=tehran",
-      "--external-ref",
-      "kalshi:KXCTX",
-      "--json",
-    ]);
-    expect(result.code).toBe(0);
-    const env = JSON.parse(result.stdout.trim()) as {
-      data: {
-        key_claims: Array<{ id: string; statement: string; source_ids: string[] }>;
-        sources: Array<{ id: string; title: string }>;
-      };
-    };
-    expect(env.data.key_claims.map((claim) => claim.statement)).toEqual(["Context structured match."]);
-    expect(env.data.sources.map((source) => source.title)).toEqual(["Context structured source"]);
-    expect(env.data.key_claims[0]!.source_ids).toEqual([env.data.sources[0]!.id]);
   });
 
   test("read commands honor --as-of across query, get, context, and render", async () => {

@@ -664,7 +664,7 @@ describe("renderCollection", () => {
     expect(body).not.toContain("Unused");
   });
 
-  test("source citation counts match query --citing on the same fixture", async () => {
+  test("source citation counts include source_ids and evidence references", async () => {
     const ws = await freshWorkspace();
     const targetSource = makeSource("src:x:20260501:cited", {
       source: { type: "web_page", title: "Cited Article", uri: "https://example.com/cited" },
@@ -688,11 +688,9 @@ describe("renderCollection", () => {
     const state = buildEffectiveState(load(rows));
     const fp = fingerprintFor(rows);
 
-    const query = executeQuery(state, { citing: "https://example.com/cited" });
     const result = await renderCollection(state, ws, fp, { collection: "x" });
     const body = await readFile(result.path, "utf8");
 
-    expect(query.total_matched).toBe(3);
     expect(body).toContain("Cited Article (Cited by 3 claims)");
   });
 
@@ -1112,7 +1110,7 @@ describe("rebuildIndexes", () => {
     expect(Object.keys(hashData).length).toBe(1);
   });
 
-  test("active-claims-by-source-uri maps source URIs to active citing claims", async () => {
+  test("active-claims-by-source-uri maps source URIs to active referencing claims", async () => {
     const ws = await freshWorkspace();
     const rows = fixtureRows();
     const state = buildEffectiveState(load(rows));

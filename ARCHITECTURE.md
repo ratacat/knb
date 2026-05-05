@@ -23,8 +23,7 @@ Rows in `knb/ledger.jsonl` are canonical events. `source`, `claim`, `question`, 
 | `src/core/query.ts` | Retrieve active or historical rows from effective state with deterministic filtering and ranking. | `executeQuery`, `executeGet`, `QueryRequest`, `GetRequest`. |
 | `src/core/read-snapshot.ts` | Build one read-side packet from ledger load, validation, state projection, and projection freshness. | `readSnapshot`, `KnbReadSnapshot`, injected loader/validator/projector/freshness seams. |
 | `src/core/run-manifests.ts` | Persist and read per-run operation manifests for audit logs. | `RunManifest`, `runsDirFor`, facade log methods. |
-| `src/core/selectors.ts` | Validate and evaluate structured row selectors for claim type, qualifiers, and external references. | `RowSelector`, `structuredClaimSelectorFromRequest`, `matchesRowSelector`, `rowSelectorSchema`. |
-| `src/core/source-citations.ts` | Build source URI/hash to citing-claim vocabulary for reverse citation lookup. | `SourceCitationIndex`, `buildSourceCitationIndex`. |
+| `src/core/source-citations.ts` | Build source URI/hash to referencing-claim vocabulary for projections. | `SourceCitationIndex`, `buildSourceCitationIndex`. |
 | `src/core/state.ts` | Project loaded ledger rows into current or as-of effective state, lifecycle explanations, relation graph, and warnings. | `buildEffectiveState`, `EffectiveState`, `EffectiveRow`, `StateOptions`. |
 | `src/core/workspace.ts` | Resolve workspace paths, config, actor identity, and runtime command execution. | `openWorkspace`, `KnbWorkspace`, `OpenWorkspaceOptions`. |
 
@@ -48,8 +47,8 @@ Rendered Markdown views are structured for skimming: a top table of contents, st
 - `EffectiveState`: projected active/inactive row state plus lifecycle explanations, relation graph, and state warnings.
 - `LedgerFingerprint`: canonical ledger identity computed from path, row count, bytes, last row id, and content hash.
 - `run_id`: per-apply transaction id stored in run manifests and core apply results. Public TypeScript callers pass `runId`; persisted/core rows and manifests use `run_id`.
-- `SourceCitationIndex`: source URI/hash to citing claim ids; this owns the reverse-citation vocabulary.
+- `SourceCitationIndex`: source URI/hash to referencing claim ids for generated projections.
 
 ## Naming
 
-Use one casing per boundary. CLI flags are kebab-case, for example `--claim-key` and `--recency-window-days`. Ledger/schema fields are snake_case, for example `claim_key`, `external_refs`, and `run_id`. Public TypeScript facade request fields are camelCase, for example `claimKey`, `externalRefs`, `maxTokens`, `includeWarnings`, `recencyWindowDays`, and `runId`. The CLI adapter is responsible for translating flags into facade request fields.
+Use one casing per boundary. CLI flags are kebab-case, for example `--claim-key` and `--recency-window-days`. Ledger/schema fields are snake_case, for example `claim_key`, `external_refs`, and `run_id`. Public TypeScript facade request fields are camelCase, for example `claimKey`, `maxTokens`, `includeWarnings`, `recencyWindowDays`, and `runId`. The CLI adapter is responsible for translating flags into facade request fields.

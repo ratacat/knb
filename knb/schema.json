@@ -457,11 +457,6 @@
             }
           }
         },
-        "target_selector": {
-          "type": "object",
-          "$ref": "knb.selector.v1",
-          "description": "Optional RowSelector describing the intended synthesis coverage."
-        },
         "limitations": {
           "type": "string"
         },

@@ -24,20 +24,21 @@ type PublicRequestNamesUseCamelCase = [
   Expect<Not<HasKey<ApplyRequest, "run_id">>>,
   Expect<HasKey<CollectionStatusRequest, "maxQuestions">>,
   Expect<Not<HasKey<CollectionStatusRequest, "max_questions">>>,
-  Expect<HasKey<ContextRequest, "claimType">>,
-  Expect<HasKey<ContextRequest, "externalRefs">>,
   Expect<HasKey<ContextRequest, "includeWarnings">>,
   Expect<HasKey<ContextRequest, "maxTokens">>,
+  Expect<HasKey<ContextRequest, "recencyWindowDays">>,
   Expect<Not<HasKey<ContextRequest, "claim_type">>>,
   Expect<Not<HasKey<ContextRequest, "external_refs">>>,
   Expect<Not<HasKey<ContextRequest, "include_warnings">>>,
   Expect<Not<HasKey<ContextRequest, "max_tokens">>>,
+  Expect<Not<HasKey<ContextRequest, "claimType">>>,
+  Expect<Not<HasKey<ContextRequest, "externalRefs">>>,
   Expect<HasKey<QueryRequest, "claimKey">>,
-  Expect<HasKey<QueryRequest, "claimType">>,
-  Expect<HasKey<QueryRequest, "externalRefs">>,
   Expect<Not<HasKey<QueryRequest, "claim_key">>>,
   Expect<Not<HasKey<QueryRequest, "claim_type">>>,
   Expect<Not<HasKey<QueryRequest, "external_refs">>>,
+  Expect<Not<HasKey<QueryRequest, "claimType">>>,
+  Expect<Not<HasKey<QueryRequest, "externalRefs">>>,
   Expect<HasKey<GetRequest, "includeHistory">>,
   Expect<HasKey<RenderRequest, "asOf">>,
   Expect<HasKey<RenderAllRequest, "asOf">>,
@@ -54,8 +55,6 @@ const typecheckPublicRequestExamples = [
   } satisfies CollectionStatusRequest,
   {
     collection: "public",
-    claimType: "prediction",
-    externalRefs: [{ system: "x", id: "123" }],
     includeWarnings: false,
     maxTokens: 1000,
     recencyWindowDays: 30,
@@ -66,8 +65,6 @@ const typecheckPublicRequestExamples = [
   {
     collection: "public",
     claimKey: "public|fact",
-    claimType: "prediction",
-    externalRefs: [{ system: "x", id: "123" }],
   } satisfies QueryRequest,
   {
     ids: ["claim:public:20260501:bbbb2222"],
@@ -139,15 +136,11 @@ describe("public facade request option names", () => {
       const query = await knb.query({
         collection: "public",
         claimKey: "public|fact",
-        claimType: "prediction",
-        externalRefs: [{ system: "x", id: "123" }],
       });
       expect(query.rows.map((row) => row.id)).toEqual([result.created[1]!.id]);
 
       const context = await knb.context({
         collection: "public",
-        claimType: "prediction",
-        externalRefs: [{ system: "x", id: "123" }],
         includeWarnings: false,
         maxTokens: 1000,
       });

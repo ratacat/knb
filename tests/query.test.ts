@@ -769,53 +769,6 @@ describe("executeQuery - tie-break stability", () => {
 });
 
 describe("executeQuery - filter combinations", () => {
-  test("structured filters compose with collection, kind, and text filters", () => {
-    const source = makeSource("src:structured:20260501:aaaa1111");
-    const match = makeClaim("claim:structured:20260501:bbbb2222", source.id, {
-      claim: {
-        statement: "Storm risk rises.",
-        atomic: true,
-        type: "prediction",
-        qualifiers: { location: "tehran" },
-      },
-    });
-    const wrongText = makeClaim("claim:structured:20260501:cccc3333", source.id, {
-      claim: {
-        statement: "Calm weather remains.",
-        atomic: true,
-        type: "prediction",
-        qualifiers: { location: "tehran" },
-      },
-    });
-    const wrongType = makeClaim("claim:structured:20260501:dddd4444", source.id, {
-      claim: {
-        statement: "Storm risk rises.",
-        atomic: true,
-        type: "observation",
-        qualifiers: { location: "tehran" },
-      },
-    });
-    const wrongQualifier = makeClaim("claim:structured:20260501:eeee5555", source.id, {
-      claim: {
-        statement: "Storm risk rises.",
-        atomic: true,
-        type: "prediction",
-        qualifiers: { location: "shiraz" },
-      },
-    });
-    const state = buildEffectiveState(load([source, match, wrongText, wrongType, wrongQualifier]));
-
-    const result = executeQuery(state, {
-      collection: "alpha",
-      kinds: ["claim"],
-      text: "storm",
-      claimType: "prediction",
-      qualifiers: { location: "tehran" },
-    });
-
-    expect(result.rows.map((row) => row.id)).toEqual([match.id]);
-  });
-
   test("collection + kind + text intersect correctly", () => {
     const fx = buildFixture();
     const state = buildEffectiveState(fx.rows);
@@ -891,32 +844,6 @@ describe("executeQuery - row shape - source_ids and time", () => {
     const state = buildEffectiveState(load([canonical, duplicate, c, merge]));
     const result = executeQuery(state, { ids: [c.id] });
     expect(result.rows[0]?.source_ids).toEqual([canonical.id]);
-  });
-
-  test("citing filters active claims by source URI using source_ids and evidence refs", () => {
-    const src1 = makeSource("src:citing:20260501:aaaa1111", {
-      source: { type: "web_page", title: "Cited source", uri: "https://example.com/cited" },
-    });
-    const src2 = makeSource("src:citing:20260501:bbbb2222", {
-      source: { type: "web_page", title: "Other source", uri: "https://example.com/other" },
-    });
-    const viaSourceIds = makeClaim("claim:citing:20260501:cccc3333", src1.id, {
-      provenance: {
-        source_ids: [src1.id],
-        evidence: [{ source_id: src2.id, role: "supports", summary: "Other." }],
-      },
-    });
-    const viaEvidence = makeClaim("claim:citing:20260501:dddd4444", src2.id, {
-      provenance: {
-        source_ids: [src2.id],
-        evidence: [{ source_id: src1.id, role: "supports", summary: "Cited." }],
-      },
-    });
-    const other = makeClaim("claim:citing:20260501:eeee5555", src2.id);
-    const state = buildEffectiveState(load([src1, src2, viaSourceIds, viaEvidence, other]));
-
-    const result = executeQuery(state, { citing: "https://example.com/cited" });
-    expect(result.rows.map((row) => row.id)).toEqual([viaSourceIds.id, viaEvidence.id]);
   });
 
   test("source_ids for synthesis comes from synthesis.basis.source_ids", () => {

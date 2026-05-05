@@ -57,22 +57,10 @@ function claimDraft(
   extras: {
     time?: { precision: "instant" | "hour" | "day" | "month" | "year" | "range" | "unknown"; valid_at?: string };
     importance?: "high" | "medium" | "low";
-    claimType?: string;
-    predicate?: string;
-    qualifiers?: Record<string, unknown>;
     external_refs?: ExternalRef[];
   } = {},
 ): DraftRow {
   const claimShape: Record<string, unknown> = { statement, atomic: true };
-  if (extras.claimType !== undefined) {
-    claimShape.type = extras.claimType;
-  }
-  if (extras.predicate !== undefined) {
-    claimShape.predicate = extras.predicate;
-  }
-  if (extras.qualifiers !== undefined) {
-    claimShape.qualifiers = extras.qualifiers;
-  }
   const draft: Record<string, unknown> = {
     kind: "claim",
     scope: { collections: [collection] },
@@ -288,71 +276,6 @@ describe("read-side integration: query through the facade", () => {
     expect(full.rows[0]?.row?.kind).toBe("source");
   });
 
-  test("query filters structured claims by claimType and qualifier without text search", async () => {
-    const knb = await openTestKnb();
-    await knb.apply({
-      operations: [
-        { op: "add", row: sourceDraft("structured"), as: "src" },
-        {
-          op: "add",
-          row: claimDraft("$src", "structured", "Prediction one.", undefined, {
-            claimType: "prediction",
-            qualifiers: { location: "tehran", date: "2026-05-03" },
-          }),
-        },
-        {
-          op: "add",
-          row: claimDraft("$src", "structured", "Prediction two.", undefined, {
-            claimType: "prediction",
-            qualifiers: { location: "shiraz", date: "2026-05-03" },
-          }),
-        },
-        {
-          op: "add",
-          row: claimDraft("$src", "structured", "Observation one.", undefined, {
-            claimType: "observation",
-            qualifiers: { location: "tehran", date: "2026-05-03" },
-          }),
-        },
-      ],
-    });
-
-    const result = await knb.query({
-      collection: "structured",
-      claimType: "prediction",
-      qualifiers: { location: "tehran" },
-    });
-
-    expect(result.rows.map((row) => row.text)).toEqual(["Prediction one."]);
-  });
-
-  test("query filters rows by external_ref", async () => {
-    const knb = await openTestKnb();
-    await knb.apply({
-      operations: [
-        { op: "add", row: sourceDraft("xref"), as: "src" },
-        {
-          op: "add",
-          row: claimDraft("$src", "xref", "External ref match.", undefined, {
-            external_refs: [{ system: "kalshi", id: "KXIRAN-20260501", type: "market" }],
-          }),
-        },
-        {
-          op: "add",
-          row: claimDraft("$src", "xref", "External ref miss.", undefined, {
-            external_refs: [{ system: "other", id: "KXIRAN-20260501", type: "market" }],
-          }),
-        },
-      ],
-    });
-
-    const result = await knb.query({
-      collection: "xref",
-      externalRefs: [{ system: "kalshi", id: "KXIRAN-20260501" }],
-    });
-
-    expect(result.rows.map((row) => row.text)).toEqual(["External ref match."]);
-  });
 });
 
 describe("read-side integration: asOf through the facade", () => {
