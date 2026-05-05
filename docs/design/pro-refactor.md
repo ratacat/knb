@@ -1,9 +1,6 @@
-# Pro Refactor Guide
+# Historical Pro Refactor Guide
 
-This guide records the high-intelligence refactor direction for turning the current prototype into the greenfield `knb` V1 architecture. The live specification remains [agent-first-cli.md](/Users/jaredsmith/Projects/knb/docs/design/agent-first-cli.md); use this file as source material when updating that spec.
-
-## Summary
-
+This guide records the completed refactor analysis that informed the greenfield `knb` V1 architecture. It is historical source material, not the current contract. The live specification is [agent-first-cli.md](/Users/jaredsmith/Projects/knb/docs/design/agent-first-cli.md), and the current module map is [Architecture](/Users/jaredsmith/Projects/knb/ARCHITECTURE.md).
 
 ## 1. Short Gap Analysis
 
@@ -11,12 +8,12 @@ This guide records the high-intelligence refactor direction for turning the curr
 
 The prototype has the core canonical data model in place:
 
-- `src/types.ts` defines `KnbRow`, `SourceRow`, `ClaimRow`, `QuestionRow`, `SynthesisRow`, and `ChangeRow`.
-- The row kinds match the spec's canonical model: `source`, `claim`, `question`, `synthesis`, and `change`.
-- Common modules such as `scope`, `identity`, `time`, `provenance`, `assessment`, and `relations` are already represented in TypeScript.
+- `src/types.ts` defines `KnbRow`, `SourceRow`, `ClaimRow`, `QuestionRow`, `SynthesisRow`, and `EntryRow`.
+- The row kinds match the spec's canonical model: `source`, `claim`, `question`, `synthesis`, and `entry`.
+- Common modules such as `scope`, `identity`, `time`, `provenance`, `assessment`, and `links` are already represented in TypeScript.
 - `knb/schema.json` reflects the same general row shape.
 - `src/knb.ts` already implements basic JSONL loading, validation, appending, querying, lifecycle hiding, and Markdown rendering.
-- `tests/validator.test.ts` already exercises valid rows, unresolved evidence sources, supersession hiding, and invalid lifecycle relation terms.
+- `tests/validator.test.ts` already exercises valid rows, unresolved evidence sources, supersession hiding, and invalid lifecycle link terms.
 
 That is useful scaffolding. The current implementation should be mined, not discarded blindly.
 
@@ -30,7 +27,7 @@ The major issue is that `src/knb.ts` is a broad helper module. It currently mixe
 | Workspace module | Missing |
 | Ledger module | Partially present inside `loadLedger` / `appendRow`, but no lock, no fingerprint, no transaction abstraction |
 | Contract module | Missing; validation is hand-coded in `src/knb.ts`, while schema and types live elsewhere |
-| State module | Very shallow; `effectiveRows` only hides rows targeted by lifecycle changes |
+| State module | Very shallow; `effectiveRows` only hides rows targeted by lifecycle entries |
 | Read snapshot module | Missing |
 | Apply module | Missing; current `append` writes one row only |
 | Query module | Shallow; `queryRows` does direct filters and `JSON.stringify` text search |
@@ -44,12 +41,12 @@ The major issue is that `src/knb.ts` is a broad helper module. It currently mixe
 
 The most important correctness gap is write safety. Today, `appendRow` loads the ledger, validates the candidate ledger, then appends with `appendFile`. There is no lock, no read/write transaction, no snapshot fingerprint, and no guarantee that validation and append happen against the same ledger state. The spec requires a locked ledger write transaction that reads, validates, builds append rows, writes the complete batch, flushes, and releases the lock in one path.
 
-The second big gap is that current state is underspecified in code. `effectiveRows` builds a simple inactive ID set from all `retract`, `supersede`, and `merge` changes. It does not return status explanations, relation graph changes, warnings, archived state, duplicate state, or inactive history. The spec wants an `EffectiveState` projection with `active`, `retracted`, `superseded`, `duplicate`, `archived`, and `invalid` statuses.
+The second big gap is that current state is underspecified in code. `effectiveRows` builds a simple inactive ID set from all `retract`, `supersede`, and `merge` entries. It does not return status explanations, link graph entries, warnings, archived state, duplicate state, or inactive history. The spec wants an `EffectiveState` projection with `active`, `retracted`, `superseded`, `duplicate`, `archived`, and `invalid` statuses.
 
 
 ## 2. Design Direction
 
-This is best handled as a broader staged refactor, not a single targeted change.
+This is best handled as a broader staged refactor, not a single targeted entry.
 
 The deletion-test principle from the spec is the correct boundary rule: a module earns a seam only if deleting it would push rules into multiple callers. By that standard, the following modules are justified immediately because the CLI, facade, tests, and future host apps would otherwise duplicate their rules:
 
@@ -108,8 +105,8 @@ Deliverables:
   - `validateLedger`
   - `effectiveRows`
   - `queryRows`
-  - `renderCollection`
-  - `writeRenderedCollection`
+  - `renderView`
+  - `writeRenderedProfile`
 - Do not add new product behavior yet.
 
 Why first: this gives the implementation a known-good baseline before moving code. The current tests in `tests/validator.test.ts` are narrow but useful; they should not be broken casually.
@@ -127,7 +124,7 @@ src/core/contract.ts
 This module owns:
 
 - Row-kind constants.
-- Relation/action/enum constants.
+- Link/action/enum constants.
 - `KnbRow` and row subtypes, either directly or by re-exporting internal contract-owned type definitions.
 - `ApplyRequest`, `ApplyOperation`, `DraftRow`, and `Ref`.
 - Row validation.
@@ -143,8 +140,8 @@ Move or adapt from `src/types.ts`:
 - `KNB_SCHEMA_VERSION`
 - `ROW_KINDS`
 - `SOURCE_TYPES`
-- `RELATION_TYPES`
-- `CHANGE_ACTIONS`
+- `LINK_TYPES`
+- `ENTRY_ACTIONS`
 - `TIME_PRECISIONS`
 - row and field types
 
@@ -156,9 +153,9 @@ Move or adapt from `src/knb.ts`:
 - `validateClaim`
 - `validateQuestion`
 - `validateSynthesis`
-- `validateChange`
+- `validateEntry`
 - `validateSourceRefs`
-- `validateRelations`
+- `validateLinks`
 - `validateSynthesisBasis`
 - `validateQuestionAnswers`
 
@@ -177,7 +174,7 @@ type ApplyOperation =
   | { op: "retract"; target_ids: Ref[]; reason: string; scope?: Scope; as?: string }
   | { op: "supersede"; target_ids: Ref[]; replacement_id: Ref; reason: string; scope?: Scope; as?: string }
   | { op: "merge"; target_ids: Ref[]; canonical_id: Ref; reason: string; scope?: Scope; as?: string }
-  | { op: "relate"; from_id: Ref; to_id: Ref; rel: RelationType; strength?: "low" | "medium" | "high"; rationale?: string; scope?: Scope; as?: string }
+  | { op: "link"; from_id: Ref; to_id: Ref; rel: LinkType; strength?: "low" | "medium" | "high"; rationale?: string; scope?: Scope; as?: string }
   | { op: "patch"; target_id: Ref; patch: Array<Record<string, unknown>>; reason: string; scope?: Scope; as?: string };
 ```
 
@@ -201,7 +198,7 @@ Tests:
 - `tests/contract.test.ts`
   - valid source/claim/synthesis rows
   - unresolved source references
-  - invalid relation types
+  - invalid link types
   - duplicate IDs
   - operation batch shape validation
   - row samples validate successfully
@@ -466,7 +463,7 @@ type KnbReadSnapshot = {
 
 At this milestone, `EffectiveState` can be temporary or shallow, but the call chain should be correct.
 
-CLI changes:
+CLI flow:
 
 ```text
 parse args -> openKnb -> call facade method -> render CommandResult
@@ -526,7 +523,7 @@ type EffectiveState = {
   rows(options?: StateFilter): EffectiveRow[];
   statusOf(id: string): EffectiveStatus | undefined;
   explain(id: string): StateExplanation | undefined;
-  relationGraph(): RelationGraph;
+  linkGraph(): LinkGraph;
   warnings: StateWarning[];
 };
 ```
@@ -539,18 +536,18 @@ Algorithm:
 4. Mark intrinsically archived rows:
    - `question.status === "archived"`
    - `synthesis.status === "archived"`
-5. Apply `change` rows in ledger order:
+5. Apply `entry` rows in ledger order:
    - `retract` -> target rows become `retracted`.
    - `supersede` -> target rows become `superseded`, explanation points to replacement.
    - `merge` -> target rows become `duplicate`, explanation points to canonical.
-   - `relate` -> add relation edge to effective relation graph.
+   - `link` -> add link edge to effective link graph.
    - `patch` -> record explanation/audit metadata, but do not mutate the target row in v1.
 6. Produce warnings for:
-   - dangling change references
-   - contradictory lifecycle changes
-   - lifecycle changes targeting already inactive rows
-   - relation changes with missing endpoints
-7. Hide `change` rows from normal reads unless explicitly requested.
+   - dangling entry references
+   - contradictory lifecycle entries
+   - lifecycle entries targeting already inactive rows
+   - link entries with missing endpoints
+7. Hide `entry` rows from normal reads unless explicitly requested.
 
 `effectiveRows` currently treats all target IDs as inactive regardless of detailed status or explanation. Replace all callers with `EffectiveState`.
 
@@ -562,11 +559,11 @@ Tests:
   - supersede
   - merge
   - archive
-  - relation changes
+  - link entries
   - `get --explain` data
-  - normal reads hide changes
+  - normal reads hide entries
   - history reads include inactive rows
-  - dangling change warnings
+  - dangling entry warnings
 
 Stage exit condition: all read-side behavior uses `EffectiveState`, not raw rows.
 
@@ -588,7 +585,7 @@ The apply module owns:
 - Intra-batch references.
 - Draft row completion.
 - ID generation.
-- Lifecycle operation conversion to `change` rows.
+- Lifecycle operation conversion to `entry` rows.
 - Candidate ledger validation.
 - `ApplyResult`.
 
@@ -613,7 +610,7 @@ Inside `ledger.withWriteTransaction`:
    - For `add`, resolve references inside known row reference paths only:
      - `provenance.source_ids[]`
      - `provenance.evidence[].source_id`
-     - `relations[].target_id`
+     - `links[].target_id`
      - `synthesis.basis.claim_ids[]`
      - `synthesis.basis.question_ids[]`
      - `synthesis.basis.source_ids[]`
@@ -625,7 +622,7 @@ Inside `ledger.withWriteTransaction`:
      - `created_by`
      - generated `id`
    - For lifecycle operations, derive `scope` from target rows if omitted.
-   - Build `change` rows for `retract`, `supersede`, `merge`, `relate`, and `patch`.
+   - Build `entry` rows for `retract`, `supersede`, `merge`, `link`, and `patch`.
 9. Validate the complete candidate ledger.
 10. Return append rows and `ApplyResult` to the ledger transaction.
 11. After successful append, trigger eager projection rebuild only if configured; otherwise freshness metadata naturally becomes stale by fingerprint mismatch.
@@ -643,12 +640,12 @@ source     src
 claim      claim
 question   q
 synthesis  synth
-change     chg
+entry      ent
 ```
 
 Use the first available value from:
 
-1. `scope.collections[0]`
+1. `scope.profiles[0]`
 2. `scope.subjects[0]`
 3. `scope.tags[0]`
 
@@ -678,10 +675,10 @@ Tests:
   - collision retry
   - validation failure appends no rows
   - lock contention returns exit code `6`
-  - lifecycle ops create `change` rows
+  - lifecycle ops create `entry` rows
   - scope derivation from target rows
 
-Stage exit condition: agents can write many changes in one atomic call.
+Stage exit condition: agents can write many entries in one atomic call.
 
 ### Milestone 7: Implement Deterministic Query And Get
 
@@ -698,7 +695,7 @@ The query module owns deterministic retrieval over `EffectiveState`.
 Query behavior:
 
 1. Filter by:
-   - collection
+   - profile
    - subject
    - tag
    - kind
@@ -755,7 +752,7 @@ Input:
 
 ```ts
 type ContextRequest = {
-  collection?: string;
+  profile?: string;
   subject?: string;
   tag?: string;
   maxTokens?: number;
@@ -802,19 +799,19 @@ Selection algorithm:
    - lower-ranked syntheses
 8. Preserve warnings.
 
-`context` should surface information gaps, contested claims, thin evidence, stale checks, and open questions. It should not only retrieve related things; it should expose where the knowledge graph is weak.
+`context` should surface information gaps, contested claims, thin evidence, stale checks, and open questions. It should not only retrieve connected things; it should expose where the knowledge graph is weak.
 
 CLI:
 
 ```text
-knb context --collection <collection> --max-tokens 3000 --json
+knb context --profile <profile> --max-tokens 3000 --json
 ```
 
 Tests:
 
 - `tests/context.test.ts`
   - includes syntheses, claims, questions, and cited sources
-  - respects collection filter
+  - respects profile filter
   - respects token budget
   - drops lower-value details first
   - includes warnings
@@ -846,7 +843,7 @@ src/core/projections.ts
 
 The projection module owns:
 
-- Markdown collection views.
+- Markdown profile views.
 - Generated indexes.
 - Projection metadata.
 - Freshness checks.
@@ -854,8 +851,8 @@ The projection module owns:
 
 Move from `src/knb.ts`:
 
-- `renderCollection`
-- `writeRenderedCollection`
+- `renderView`
+- `writeRenderedProfile`
 - source inclusion logic
 - synthesis/claim/question/source formatting
 
@@ -873,7 +870,7 @@ Projection metadata:
     "content_hash": "sha256:..."
   },
   "options": {
-    "collection": "example",
+    "profile": "example",
     "format": "md"
   },
   "generated_at": "2026-05-01T12:00:00Z"
@@ -887,7 +884,7 @@ Freshness rule: compare metadata ledger fingerprint to the current ledger finger
 For v1, keep indexes deterministic and simple:
 
 - active rows by ID
-- active rows by collection
+- active rows by profile
 - active claims by `claim_key`
 - active sources by URI/content hash when present
 
@@ -896,7 +893,7 @@ Indexes are disposable. They are never canonical.
 CLI:
 
 ```text
-knb render --collection <collection> --format md --out knb/views/<collection>.md --json
+knb render --profile <profile> --format md --out knb/views/<profile>.md --json
 knb index --rebuild --json
 ```
 
@@ -978,7 +975,7 @@ Run it against a temporary workspace.
 
 ### `src/cli.ts`
 
-Current role: parses flags, opens ledger path, directly calls `loadLedger`, `validateLedger`, `appendRow`, `queryRows`, and `writeRenderedCollection`, then prints directly.
+Current role: parses flags, opens ledger path, directly calls `loadLedger`, `validateLedger`, `appendRow`, `queryRows`, and `writeRenderedProfile`, then prints directly.
 
 Final role:
 
@@ -986,7 +983,7 @@ Final role:
 parse args -> openKnb -> call facade method -> output.render
 ```
 
-Changes:
+Entries:
 
 - Remove direct imports from `src/knb.ts`.
 - Import `openKnb` from `src/index.ts`.
@@ -1168,8 +1165,8 @@ Final role: generated views, indexes, metadata, and freshness.
 
 Moves from `src/knb.ts`:
 
-- `renderCollection`
-- `writeRenderedCollection`
+- `renderView`
+- `writeRenderedProfile`
 
 Depends on:
 
@@ -1230,7 +1227,7 @@ Current role: has Bun scripts and CLI bin.
 
 Final role: also exposes library entry point.
 
-Change:
+Entry:
 
 ```json
 "exports": {
@@ -1259,7 +1256,7 @@ The ledger module can guarantee logical atomicity under normal runtime failures 
 - If the duplicate has exactly one active canonical match, resolve the batch reference to that existing row.
 - If it has zero or multiple matches, fail the batch with `duplicate_blocked`.
 
-That keeps agents from accidentally creating dangling syntheses or relations.
+That keeps agents from accidentally creating dangling syntheses or links.
 
 ### Do Not Add Embeddings Yet
 
@@ -1279,7 +1276,7 @@ This avoids opaque mutations to user-provided claim identity.
 Recommended default: warn but do not block duplicate source URI/content hash in v1.
 
 
-### 4. Should `patch` Change Rows Mutate Effective Rows?
+### 4. Should `patch` Entry Rows Mutate Effective Rows?
 
 Recommended default: no. In v1, `patch` records mechanical repair history and explanation data, but `EffectiveState` should not apply JSON patches to mutate row content.
 

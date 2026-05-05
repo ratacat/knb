@@ -10,11 +10,14 @@ import { execFile } from "node:child_process";
 import { knbError } from "./errors";
 
 export type KnbConfig = {
+  schema_version?: "knb.config.v1";
+  instance_id?: string;
   ledger?: string;
   schema?: string;
   views?: string;
   indexes?: string;
   actor?: string;
+  profiles?: string[];
 };
 
 export type KnbWorkspace = {

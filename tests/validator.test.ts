@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
   validateLedger,
-  type ChangeRow,
+  type EntryRow,
   type ClaimRow,
   type KnbRow,
   type LoadedRow,
@@ -17,7 +17,7 @@ const source: SourceRow = {
   kind: "source",
   created_at: "2026-05-01T12:00:00Z",
   created_by: "agent:test",
-  scope: { collections: ["test"], subjects: ["Example"] },
+  scope: { profiles: ["test"], subjects: ["Example"] },
   source: {
     type: "web_page",
     title: "Example source",
@@ -37,7 +37,7 @@ const claim: ClaimRow = {
   kind: "claim",
   created_at: "2026-05-01T12:01:00Z",
   created_by: "agent:test",
-  scope: { collections: ["test"], subjects: ["Example"], tags: ["fact"] },
+  scope: { profiles: ["test"], subjects: ["Example"], tags: ["fact"] },
   identity: {
     claim_key: "example|has|source",
   },
@@ -73,7 +73,7 @@ const synthesis: SynthesisRow = {
   kind: "synthesis",
   created_at: "2026-05-01T12:02:00Z",
   created_by: "agent:test",
-  scope: { collections: ["test"], subjects: ["Example"] },
+  scope: { profiles: ["test"], subjects: ["Example"] },
   synthesis: {
     title: "Example has sourced knowledge",
     summary: "knb can preserve a sourced claim and render it later.",
@@ -169,25 +169,25 @@ describe("validateLedger.evidenceResolution", () => {
 });
 
 describe("validateLedger.lifecycleHistory", () => {
-  test("query hides rows targeted by change supersede unless history is requested", () => {
+  test("query hides rows targeted by entry supersede unless history is requested", () => {
     const replacement = structuredClone(claim);
     replacement.id = "claim:test:20260501:eeee5555";
     replacement.created_at = "2026-05-01T12:03:00Z";
-    const change: ChangeRow = {
+    const entry: EntryRow = {
       schema_version: "knb.v1",
-      id: "chg:test:20260501:ffff6666",
-      kind: "change",
+      id: "ent:test:20260501:ffff6666",
+      kind: "entry",
       created_at: "2026-05-01T12:04:00Z",
       created_by: "agent:test",
-      scope: { collections: ["test"], subjects: ["Example"] },
-      change: {
+      scope: { profiles: ["test"], subjects: ["Example"] },
+      entry: {
         action: "supersede",
         target_ids: [claim.id],
         replacement_id: replacement.id,
         reason: "The replacement states the claim more precisely.",
       },
     };
-    const rows = load([source, claim, replacement, change]);
+    const rows = load([source, claim, replacement, entry]);
 
     const validation = validateLedger(rows);
     expect(validation.ok).toBe(true);
@@ -195,26 +195,26 @@ describe("validateLedger.lifecycleHistory", () => {
 
     const state = buildEffectiveState(rows);
 
-    const active = executeQuery(state, { kinds: ["claim"], collection: "test" });
-    const history = executeQuery(state, { kinds: ["claim"], collection: "test", includeHistory: true });
+    const active = executeQuery(state, { kinds: ["claim"], profile: "test" });
+    const history = executeQuery(state, { kinds: ["claim"], profile: "test", includeHistory: true });
 
     expect(active.rows.map((row) => row.id)).toEqual([replacement.id]);
     expect([...history.rows.map((row) => row.id)].sort()).toEqual([claim.id, replacement.id]);
   });
 });
 
-describe("validateLedger.relationSemantics", () => {
-  test("rejects lifecycle terms in semantic relations with relation_kind_invalid", () => {
+describe("validateLedger.linkSemantics", () => {
+  test("rejects lifecycle terms in semantic links with link_kind_invalid", () => {
     const badClaim = structuredClone(claim);
     badClaim.id = "claim:test:20260501:gggg7777";
-    badClaim.relations = [{ target_id: claim.id, rel: "supersedes" as never }];
+    badClaim.links = [{ target_id: claim.id, rel: "supersedes" as never }];
 
     const result = validateLedger(load([source, claim, badClaim]));
 
     expect(result.ok).toBe(false);
-    const issue = result.issues.find((i) => i.code === "relation_kind_invalid");
+    const issue = result.issues.find((i) => i.code === "link_kind_invalid");
     expect(issue).toBeDefined();
-    expect(issue?.message).toContain("relation.rel must be one of");
+    expect(issue?.message).toContain("link.rel must be one of");
     expect(issue?.message).toContain("supports");
     expect(issue?.message).toContain("contradicts");
     expect(issue?.message).toContain("depends_on");
@@ -222,29 +222,29 @@ describe("validateLedger.relationSemantics", () => {
     expect(issue?.id).toBe(badClaim.id);
   });
 
-  test("rejects retracts as relation rel (lifecycle leak)", () => {
+  test("rejects retracts as link rel (lifecycle leak)", () => {
     const badClaim = structuredClone(claim);
     badClaim.id = "claim:test:20260501:gggg7778";
-    badClaim.relations = [{ target_id: claim.id, rel: "retracts" as never }];
+    badClaim.links = [{ target_id: claim.id, rel: "retracts" as never }];
     const result = validateLedger(load([source, claim, badClaim]));
     expect(result.ok).toBe(false);
-    expect(result.issues.some((i) => i.code === "relation_kind_invalid")).toBe(true);
+    expect(result.issues.some((i) => i.code === "link_kind_invalid")).toBe(true);
   });
 
-  test("rejects merges as relation rel (lifecycle leak)", () => {
+  test("rejects merges as link rel (lifecycle leak)", () => {
     const badClaim = structuredClone(claim);
     badClaim.id = "claim:test:20260501:gggg7779";
-    badClaim.relations = [{ target_id: claim.id, rel: "merges" as never }];
+    badClaim.links = [{ target_id: claim.id, rel: "merges" as never }];
     const result = validateLedger(load([source, claim, badClaim]));
     expect(result.ok).toBe(false);
-    expect(result.issues.some((i) => i.code === "relation_kind_invalid")).toBe(true);
+    expect(result.issues.some((i) => i.code === "link_kind_invalid")).toBe(true);
   });
 
-  test("accepts each of the four valid semantic relation kinds", () => {
+  test("accepts each of the four valid semantic link kinds", () => {
     for (const rel of ["supports", "contradicts", "depends_on", "context_for"] as const) {
       const r = structuredClone(claim);
       r.id = `claim:test:20260501:rel${rel.slice(0, 5).padEnd(5, "x")}`;
-      r.relations = [{ target_id: claim.id, rel }];
+      r.links = [{ target_id: claim.id, rel }];
       const result = validateLedger(load([source, claim, r]));
       expect(result.ok).toBe(true);
     }

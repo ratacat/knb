@@ -100,7 +100,7 @@ describe("e2e: full agent loop", () => {
           as: "source",
           row: {
             kind: "source",
-            scope: { collections: ["example"] },
+            scope: { profiles: ["example"] },
             source: {
               type: "web_page",
               title: "E2E source",
@@ -114,7 +114,7 @@ describe("e2e: full agent loop", () => {
           as: "claim",
           row: {
             kind: "claim",
-            scope: { collections: ["example"] },
+            scope: { profiles: ["example"] },
             identity: { claim_key: "example|e2e-loop-runs" },
             claim: { statement: "The e2e loop runs.", atomic: true },
             time: { precision: "unknown" },
@@ -130,7 +130,7 @@ describe("e2e: full agent loop", () => {
           as: "synthesis",
           row: {
             kind: "synthesis",
-            scope: { collections: ["example"] },
+            scope: { profiles: ["example"] },
             synthesis: {
               title: "E2E synthesis",
               summary: "Synthesizes the e2e loop.",
@@ -169,8 +169,8 @@ describe("e2e: full agent loop", () => {
     );
     expect(missingIndexes.length).toBe(V1_INDEX_NAMES.length);
 
-    // 6. context for the example collection
-    const contextRun = await runKnb(["context", "--collection", "example", "--json"]);
+    // 6. context for the example profile
+    const contextRun = await runKnb(["context", "--profile", "example", "--json"]);
     expect(contextRun.code).toBe(0);
     const contextEnv = parseSuccess<{
       summary: string;
@@ -180,8 +180,8 @@ describe("e2e: full agent loop", () => {
     const keyIds = contextEnv.data.key_claims.map((c) => c.id);
     expect(keyIds).toContain(createdClaim?.id ?? "MISSING");
 
-    // 7. render the example collection
-    const renderRun = await runKnb(["render", "--collection", "example", "--json"]);
+    // 7. render the example profile
+    const renderRun = await runKnb(["render", "--profile", "example", "--json"]);
     expect(renderRun.code).toBe(0);
     const renderEnv = parseSuccess<{ path: string; bytes_written: number }>(renderRun.stdout);
     expect(renderEnv.data.path.endsWith(join("knb", "views", "example.md"))).toBe(true);
@@ -290,14 +290,14 @@ describe("e2e: failure envelopes", () => {
     const sourceRow = {
       kind: "source",
       id: explicitId,
-      scope: { collections: ["dup"] },
+      scope: { profiles: ["dup"] },
       source: { type: "web_page", title: "Dup A", uri: "https://example.com/a" },
       provenance: { acquisition: { method: "manual" } },
     };
     const sourceRowB = {
       kind: "source",
       id: explicitId,
-      scope: { collections: ["dup"] },
+      scope: { profiles: ["dup"] },
       source: { type: "web_page", title: "Dup B", uri: "https://example.com/b" },
       provenance: { acquisition: { method: "manual" } },
     };
@@ -327,7 +327,7 @@ describe("e2e: failure envelopes", () => {
           op: "add",
           row: {
             kind: "source",
-            scope: { collections: ["lock"] },
+            scope: { profiles: ["lock"] },
             source: { type: "web_page", title: "Locked", uri: "https://example.com/locked" },
             provenance: { acquisition: { method: "manual" } },
           },
@@ -352,7 +352,7 @@ describe("e2e: failure envelopes", () => {
           op: "add",
           row: {
             kind: "claim",
-            scope: { collections: ["broken"] },
+            scope: { profiles: ["broken"] },
             identity: { claim_key: "broken|orphan" },
             claim: { statement: "Orphan claim references a missing source.", atomic: true },
             time: { precision: "unknown" },
@@ -390,7 +390,7 @@ describe("e2e: failure envelopes", () => {
           op: "add",
           row: {
             kind: "source",
-            scope: { collections: ["unsafe"] },
+            scope: { profiles: ["unsafe"] },
             source: { type: "web_page", title: "Unsafe", uri: "https://example.com/unsafe" },
             provenance: { acquisition: { method: "manual" } },
           },
@@ -430,7 +430,7 @@ describe("e2e: failure envelopes", () => {
 
     await writeFile(join(workDir, "knb", "ledger.jsonl"), "this is not valid jsonl{{\n", "utf8");
 
-    const run = await runKnb(["query", "--collection", "foo", "--json"]);
+    const run = await runKnb(["query", "--profile", "foo", "--json"]);
     expect(run.code).toBe(5);
     expect(run.stdout).toBe("");
     const env = parseFailure(run.stderr);
@@ -459,7 +459,7 @@ describe("e2e: failure envelopes", () => {
             op: "add",
             row: {
               kind: "source",
-              scope: { collections: ["io"] },
+              scope: { profiles: ["io"] },
               source: { type: "web_page", title: "IO", uri: "https://example.com/io" },
               provenance: { acquisition: { method: "manual" } },
             },

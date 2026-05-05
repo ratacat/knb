@@ -78,7 +78,7 @@ describe("read-side EffectiveState boundaries (bd-3p9.6)", () => {
     expect(bareRowStringify).toEqual([]);
   });
 
-  test("read-side modules do not branch on raw change.action lifecycle values", async () => {
+  test("read-side modules do not branch on raw entry.action lifecycle values", async () => {
     const files = await readSourceFiles(LIFECYCLE_SCAN);
     const violations: string[] = [];
     const pattern = /\baction\s*===\s*["'](retract|supersede|merge)["']/g;
@@ -174,10 +174,10 @@ describe("read-side EffectiveState boundaries (bd-3p9.6)", () => {
 
   test("scanner detects forbidden raw lifecycle branch in negative fixture", () => {
     const bad = `
-      function rogue(change: { action: string }) {
-        if (change.action === "retract") return "stale";
-        if (change.action === "supersede") return "stale";
-        if (change.action === "merge") return "stale";
+      function rogue(entry: { action: string }) {
+        if (entry.action === "retract") return "stale";
+        if (entry.action === "supersede") return "stale";
+        if (entry.action === "merge") return "stale";
         return "active";
       }
     `;

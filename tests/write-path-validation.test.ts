@@ -65,7 +65,7 @@ function makeDeps(overrides?: {
 
 const SOURCE_DRAFT: DraftRow = {
   kind: "source",
-  scope: { collections: ["example"] },
+  scope: { profiles: ["example"] },
   source: {
     type: "web_page",
     title: "Example",
@@ -79,7 +79,7 @@ const SOURCE_DRAFT: DraftRow = {
 function freshSource(suffix: number): DraftRow {
   return {
     kind: "source",
-    scope: { collections: ["example"] },
+    scope: { profiles: ["example"] },
     source: {
       type: "web_page",
       title: `Example ${suffix}`,
@@ -231,7 +231,7 @@ describe("write path reliability", () => {
       kind: "source",
       created_at: "2026-01-01T00:00:00Z",
       created_by: "agent:seed",
-      scope: { collections: ["example"] },
+      scope: { profiles: ["example"] },
       source: { type: "web_page", title: "Seed", uri: "https://seed.example" },
       provenance: { acquisition: { method: "manual" } },
     };
@@ -293,7 +293,7 @@ describe("write path security boundaries", () => {
   test("evidence reference to non-existent source id throws broken_reference / exit 7 with no write or lock", async () => {
     const draft: DraftRow = {
       kind: "claim",
-      scope: { collections: ["example"] },
+      scope: { profiles: ["example"] },
       identity: { claim_key: "example|exists" },
       claim: { statement: "Example exists.", atomic: true },
       time: { precision: "unknown" },
@@ -326,7 +326,7 @@ describe("write path security boundaries", () => {
       kind: "source",
       created_at: "2026-01-01T00:00:00Z",
       created_by: "agent:seed",
-      scope: { collections: ["example"] },
+      scope: { profiles: ["example"] },
       source: { type: "web_page", title: "S", uri: "https://example.com/s" },
       provenance: { acquisition: { method: "manual" } },
     };
@@ -357,7 +357,7 @@ describe("write path security boundaries", () => {
       kind: "source",
       created_at: "2026-01-01T00:00:00Z",
       created_by: "agent:seed",
-      scope: { collections: ["example"] },
+      scope: { profiles: ["example"] },
       source: { type: "web_page", title: "S", uri: "https://example.com/fwd" },
       provenance: { acquisition: { method: "manual" } },
     };
@@ -366,7 +366,7 @@ describe("write path security boundaries", () => {
 
     const claimDraft: DraftRow = {
       kind: "claim",
-      scope: { collections: ["example"] },
+      scope: { profiles: ["example"] },
       identity: { claim_key: "k|fwd" },
       claim: { statement: "x", atomic: true },
       time: { precision: "unknown" },
@@ -427,7 +427,7 @@ describe("write path security boundaries", () => {
     let thrown: unknown;
     try {
       await knb.render({
-        collection: "x",
+        profile: "x",
         out: "/tmp/escape-knb-write-path.md",
       });
     } catch (error) {
@@ -559,7 +559,7 @@ describe("deterministic id generation", () => {
       kind: "source",
       created_at: "2026-01-01T00:00:00Z",
       created_by: "agent:seed",
-      scope: { collections: ["example"] },
+      scope: { profiles: ["example"] },
       source: { type: "web_page", title: "Taken", uri: "https://taken.example" },
       provenance: { acquisition: { method: "manual" } },
     };
@@ -585,7 +585,7 @@ describe("deterministic id generation", () => {
       kind: "source",
       created_at: "2026-01-01T00:00:00Z",
       created_by: "agent:seed",
-      scope: { collections: ["example"] },
+      scope: { profiles: ["example"] },
       source: { type: "web_page", title: "Taken", uri: "https://t.example" },
       provenance: { acquisition: { method: "manual" } },
     };

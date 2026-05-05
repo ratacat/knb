@@ -6,6 +6,7 @@ export type {
   SchemaResult,
   InitOptions,
   InitResult,
+  CheckResult,
   KnbRuntime,
   ApplyRequest,
 } from "./core/knb";
@@ -20,6 +21,7 @@ export type {
   ValidationResult,
   ValidationIssue,
 } from "./core/contract";
+export type { ApplyResult } from "./core/apply";
 export type { KnbError, KnbErrorCode } from "./core/errors";
 export type {
   KnbReadSnapshot,
@@ -41,4 +43,25 @@ export type {
 export type {
   RenderRequest,
   RenderResult,
+  IndexResult,
 } from "./core/projections";
+export type {
+  ProfileDefinition,
+  ProfileListOptions,
+  ProfileListResult,
+  ProfileShowResult,
+  ProfileWriteResult,
+  ProfileDeleteResult,
+  ProfileCheckResult,
+} from "./core/profiles";
+export type {
+  InstanceShowResult,
+  InstanceCreateOptions,
+  InstanceCreateResult,
+  InstanceUpdateOptions,
+  InstanceUpdateResult,
+  InstanceProfileResult,
+  InstanceDeleteResult,
+  InstanceListOptions,
+  InstanceListResult,
+} from "./core/instances";

@@ -2,7 +2,7 @@ import { readFile as fsReadFile } from "node:fs/promises";
 import { isAbsolute, join } from "node:path";
 
 import type { DraftRow, KnbRowKind } from "./core/contract";
-import { fromUnknown, knbError } from "./core/errors";
+import { fromUnknown, knbError, type KnbError } from "./core/errors";
 import {
   ROW_KINDS,
   openKnb,
@@ -37,7 +37,45 @@ const COMMANDS = new Set([
   "render",
   "check",
   "index",
+  "profile",
+  "instance",
 ]);
+
+const GLOBAL_VALUE_FLAGS = new Set(["root", "config", "ledger", "actor"]);
+const GLOBAL_BOOLEAN_FLAGS = new Set(["json", "pretty", "ndjson", "text", "quiet"]);
+const GLOBAL_FLAGS = new Set([...GLOBAL_VALUE_FLAGS, ...GLOBAL_BOOLEAN_FLAGS]);
+
+const COMMAND_VALUE_FLAGS: Record<string, ReadonlySet<string>> = {
+  init: new Set(),
+  status: new Set(),
+  schema: new Set(),
+  apply: new Set(["file", "json"]),
+  add: new Set(["file", "json"]),
+  get: new Set(["as-of"]),
+  query: new Set(["as-of", "kind", "profile", "subject", "tag", "text", "claim-key", "limit"]),
+  context: new Set(["as-of", "profile", "subject", "tag", "max-tokens"]),
+  render: new Set(["profile", "subject", "tag", "out", "as-of", "format"]),
+  check: new Set(),
+  index: new Set(),
+  profile: new Set(["file", "json", "confirm"]),
+  instance: new Set(["under", "max-depth", "instance-id", "profile", "ledger", "schema", "views", "indexes", "confirm"]),
+};
+
+const COMMAND_BOOLEAN_FLAGS: Record<string, ReadonlySet<string>> = {
+  init: new Set(["force"]),
+  status: new Set(),
+  schema: new Set(),
+  apply: new Set(["stdin", "atomic", "dry-run"]),
+  add: new Set(["stdin", "dry-run"]),
+  get: new Set(["include-history", "history", "explain"]),
+  query: new Set(["history", "include-history", "full"]),
+  context: new Set(["no-warnings"]),
+  render: new Set(),
+  check: new Set(),
+  index: new Set(["rebuild"]),
+  profile: new Set(["stdin", "full", "attached", "attach"]),
+  instance: new Set(),
+};
 
 export async function runCli(args: string[], options: OutputOptions = {}): Promise<number> {
   const [command, ...rest] = args;
@@ -61,6 +99,11 @@ export async function runCli(args: string[], options: OutputOptions = {}): Promi
     );
   }
 
+  const flagError = validateKnownFlags(command, flags);
+  if (flagError) {
+    return renderResult(failure(command, flagError, { exit_code: 2 }), outputOptions);
+  }
+
   return runFacadeCommand(command, flags, positionals, outputOptions);
 }
 
@@ -71,6 +114,7 @@ async function runFacadeCommand(
   outputOptions: OutputOptions,
 ): Promise<number> {
   const start = Date.now();
+  let activeCommand = command;
 
   let knb: Knb;
   try {
@@ -79,7 +123,23 @@ async function runFacadeCommand(
     const configFlag = stringFlag(flags, "config");
     const ledgerFlag = stringFlag(flags, "ledger");
     const actorFlag = stringFlag(flags, "actor");
-    if (rootFlag) openOptions.root = rootFlag;
+    const instanceCreateRoot = command === "instance" && positionals[0] === "create" ? positionals[1] : undefined;
+    if (instanceCreateRoot && rootFlag) {
+      return renderResult(
+        failure(
+          "instance create",
+          knbError("invalid_arguments", "Use either knb instance create <root> or global --root, not both", {
+            root: rootFlag,
+            target_root: instanceCreateRoot,
+            suggestions: ["knb instance create ./research --instance-id research-main --json"],
+          }),
+          { elapsed_ms: Date.now() - start },
+        ),
+        outputOptions,
+      );
+    }
+    if (instanceCreateRoot) openOptions.root = instanceCreateRoot;
+    else if (rootFlag) openOptions.root = rootFlag;
     if (configFlag) openOptions.configPath = configFlag;
     if (ledgerFlag) openOptions.ledgerPath = ledgerFlag;
     if (actorFlag) openOptions.actor = actorFlag;
@@ -98,6 +158,16 @@ async function runFacadeCommand(
   });
 
   try {
+    if (command === "profile") {
+      activeCommand = positionals[0] ? `profile ${positionals[0]}` : "profile";
+      return await runProfileCommand(knb, flags, positionals, outputOptions, baseMeta);
+    }
+
+    if (command === "instance") {
+      activeCommand = positionals[0] ? `instance ${positionals[0]}` : "instance";
+      return await runInstanceCommand(knb, flags, positionals, outputOptions, baseMeta);
+    }
+
     if (command === "init") {
       const force = booleanFlag(flags, "force");
       const initActor = stringFlag(flags, "actor");
@@ -193,20 +263,15 @@ async function runFacadeCommand(
     }
 
     if (command === "render") {
-      const collection = stringFlag(flags, "collection");
       const asOf = stringFlag(flags, "as-of");
       const format = stringFlag(flags, "format") as RenderRequest["format"] | undefined;
-      if (!collection) {
-        return renderResult(
-          failure(
-            "render",
-            knbError("invalid_arguments", "Missing required flag: --collection"),
-            baseMeta(),
-          ),
-          outputOptions,
-        );
-      }
-      const request: RenderRequest = { collection };
+      const request: RenderRequest = {};
+      const profile = stringFlag(flags, "profile");
+      const subject = stringFlag(flags, "subject");
+      const tag = stringFlag(flags, "tag");
+      if (profile) request.profile = profile;
+      if (subject) request.subject = subject;
+      if (tag) request.tag = tag;
       const out = stringFlag(flags, "out");
       if (out) request.out = out;
       if (format) request.format = format;
@@ -240,12 +305,211 @@ async function runFacadeCommand(
       outputOptions,
     );
   } catch (error) {
-    return renderResult(failure(command, fromUnknown(error), baseMeta()), outputOptions);
+    return renderResult(failure(activeCommand, fromUnknown(error), baseMeta()), outputOptions);
   }
 }
 
 function renderResult(result: CommandResult, options: OutputOptions): number {
   return render(result, options).exitCode;
+}
+
+async function runProfileCommand(
+  knb: Knb,
+  flags: FlagMap,
+  positionals: string[],
+  outputOptions: OutputOptions,
+  baseMeta: () => Record<string, unknown>,
+): Promise<number> {
+  const [subcommand, profileId, ...extra] = positionals;
+  if (!subcommand) {
+    return renderResult(
+      failure(
+        "profile",
+        knbError("invalid_arguments", "knb profile requires a subcommand", {
+          suggestions: ["knb profile list --json", "knb profile show <profile-id> --json"],
+        }),
+        baseMeta(),
+      ),
+      outputOptions,
+    );
+  }
+
+  if (subcommand === "list") {
+    rejectExtraPositionals("profile list", [profileId, ...extra]);
+    const result = await knb.listProfiles({
+      attachedOnly: booleanFlag(flags, "attached"),
+      full: booleanFlag(flags, "full"),
+    });
+    return renderResult(success("profile list", result, baseMeta()), outputOptions);
+  }
+
+  if (subcommand === "show") {
+    requireOnePositional("profile show", profileId, "profile id");
+    rejectExtraPositionals("profile show", extra);
+    const result = await knb.showProfile(profileId);
+    return renderResult(success("profile show", result, baseMeta()), outputOptions);
+  }
+
+  if (subcommand === "create") {
+    requireOnePositional("profile create", profileId, "profile id");
+    rejectExtraPositionals("profile create", extra);
+    const payload = await readWorkspaceJsonPayload(flags, knb.workspace.root);
+    const result = await knb.createProfile(profileId, payload, { attach: booleanFlag(flags, "attach") });
+    return renderResult(success("profile create", result, baseMeta()), outputOptions);
+  }
+
+  if (subcommand === "replace") {
+    requireOnePositional("profile replace", profileId, "profile id");
+    rejectExtraPositionals("profile replace", extra);
+    const payload = await readWorkspaceJsonPayload(flags, knb.workspace.root);
+    const request: { confirm?: string } = {};
+    const confirm = stringFlag(flags, "confirm");
+    if (confirm !== undefined) request.confirm = confirm;
+    const result = await knb.replaceProfile(profileId, payload, request);
+    return renderResult(success("profile replace", result, baseMeta()), outputOptions);
+  }
+
+  if (subcommand === "delete") {
+    requireOnePositional("profile delete", profileId, "profile id");
+    rejectExtraPositionals("profile delete", extra);
+    const request: { confirm?: string } = {};
+    const confirm = stringFlag(flags, "confirm");
+    if (confirm !== undefined) request.confirm = confirm;
+    const result = await knb.deleteProfile(profileId, request);
+    return renderResult(success("profile delete", result, baseMeta()), outputOptions);
+  }
+
+  if (subcommand === "check") {
+    if (extra.length > 0) rejectExtraPositionals("profile check", extra);
+    const result = await knb.checkProfiles(profileId);
+    return renderResult(success("profile check", result, baseMeta()), outputOptions);
+  }
+
+  return renderResult(
+    failure(
+      `profile ${subcommand}`,
+      knbError("invalid_arguments", `Unknown profile subcommand: ${subcommand}`, {
+        subcommand,
+        suggestions: ["knb profile list --json", "knb profile show <profile-id> --json"],
+      }),
+      baseMeta(),
+    ),
+    outputOptions,
+  );
+}
+
+async function runInstanceCommand(
+  knb: Knb,
+  flags: FlagMap,
+  positionals: string[],
+  outputOptions: OutputOptions,
+  baseMeta: () => Record<string, unknown>,
+): Promise<number> {
+  const [subcommand, first, ...extra] = positionals;
+  if (!subcommand) {
+    return renderResult(
+      failure(
+        "instance",
+        knbError("invalid_arguments", "knb instance requires a subcommand", {
+          suggestions: ["knb instance show --json", "knb instance create ./research --instance-id research-main --json"],
+        }),
+        baseMeta(),
+      ),
+      outputOptions,
+    );
+  }
+
+  if (subcommand === "show") {
+    rejectExtraPositionals("instance show", [first, ...extra]);
+    const result = await knb.showInstance();
+    return renderResult(success("instance show", result, baseMeta()), outputOptions);
+  }
+
+  if (subcommand === "create") {
+    requireOnePositional("instance create", first, "root");
+    rejectExtraPositionals("instance create", extra);
+    const request: NonNullable<Parameters<Knb["createInstance"]>[0]> = {};
+    const instanceId = stringFlag(flags, "instance-id");
+    const profiles = stringFlags(flags, "profile");
+    const actor = stringFlag(flags, "actor");
+    if (instanceId !== undefined) request.instanceId = instanceId;
+    if (profiles.length > 0) request.profiles = profiles;
+    if (actor !== undefined) request.actor = actor;
+    const result = await knb.createInstance(request);
+    return renderResult(success("instance create", result, baseMeta()), outputOptions);
+  }
+
+  if (subcommand === "list") {
+    rejectExtraPositionals("instance list", [first, ...extra]);
+    const under = stringFlag(flags, "under");
+    if (!under) {
+      throw knbError("invalid_arguments", "knb instance list requires --under <dir>", {
+        suggestions: ["knb instance list --under . --json"],
+      });
+    }
+    const request: Parameters<Knb["listInstances"]>[0] = { under };
+    const maxDepth = numberFlag(flags, "max-depth");
+    if (maxDepth !== undefined) request.maxDepth = maxDepth;
+    const result = await knb.listInstances(request);
+    return renderResult(success("instance list", result, baseMeta()), outputOptions);
+  }
+
+  if (subcommand === "set") {
+    rejectExtraPositionals("instance set", [first, ...extra]);
+    const request: Parameters<Knb["updateInstance"]>[0] = {};
+    const actor = stringFlag(flags, "actor");
+    const ledger = stringFlag(flags, "ledger");
+    const schema = stringFlag(flags, "schema");
+    const views = stringFlag(flags, "views");
+    const indexes = stringFlag(flags, "indexes");
+    if (actor !== undefined) request.actor = actor;
+    if (ledger !== undefined) request.ledger = ledger;
+    if (schema !== undefined) request.schema = schema;
+    if (views !== undefined) request.views = views;
+    if (indexes !== undefined) request.indexes = indexes;
+    if (Object.values(request).every((value) => value === undefined)) {
+      throw knbError("invalid_arguments", "knb instance set requires at least one config flag", {
+        suggestions: ["knb instance set --actor agent:name --json"],
+      });
+    }
+    const result = await knb.updateInstance(request);
+    return renderResult(success("instance set", result, baseMeta()), outputOptions);
+  }
+
+  if (subcommand === "attach-profile") {
+    requireOnePositional("instance attach-profile", first, "profile id");
+    rejectExtraPositionals("instance attach-profile", extra);
+    const result = await knb.attachInstanceProfile(first);
+    return renderResult(success("instance attach-profile", result, baseMeta()), outputOptions);
+  }
+
+  if (subcommand === "detach-profile") {
+    requireOnePositional("instance detach-profile", first, "profile id");
+    rejectExtraPositionals("instance detach-profile", extra);
+    const result = await knb.detachInstanceProfile(first);
+    return renderResult(success("instance detach-profile", result, baseMeta()), outputOptions);
+  }
+
+  if (subcommand === "delete") {
+    rejectExtraPositionals("instance delete", [first, ...extra]);
+    const request: { confirm?: string } = {};
+    const confirm = stringFlag(flags, "confirm");
+    if (confirm !== undefined) request.confirm = confirm;
+    const result = await knb.deleteInstance(request);
+    return renderResult(success("instance delete", result, baseMeta()), outputOptions);
+  }
+
+  return renderResult(
+    failure(
+      `instance ${subcommand}`,
+      knbError("invalid_arguments", `Unknown instance subcommand: ${subcommand}`, {
+        subcommand,
+        suggestions: ["knb instance show --json", "knb instance list --under . --json"],
+      }),
+      baseMeta(),
+    ),
+    outputOptions,
+  );
 }
 
 function formatFromFlags(flags: FlagMap): OutputFormat | undefined {
@@ -298,6 +562,47 @@ function setFlag(flags: FlagMap, key: string, value: string | boolean): void {
   flags.set(key, [existing, value]);
 }
 
+function validateKnownFlags(command: string, flags: FlagMap): KnbError | undefined {
+  const commandValueFlags = COMMAND_VALUE_FLAGS[command] ?? new Set<string>();
+  const commandBooleanFlags = COMMAND_BOOLEAN_FLAGS[command] ?? new Set<string>();
+  const commandFlags = new Set([...commandValueFlags, ...commandBooleanFlags]);
+  const valueFlags = new Set([...commandValueFlags, ...GLOBAL_VALUE_FLAGS]);
+  const booleanFlags = new Set([...commandBooleanFlags, ...GLOBAL_BOOLEAN_FLAGS]);
+  for (const key of flags.keys()) {
+    if (GLOBAL_FLAGS.has(key) || commandFlags.has(key)) continue;
+    return knbError("invalid_arguments", `Unknown flag for knb ${command}: --${key}`, {
+      flag: `--${key}`,
+      command,
+    });
+  }
+  for (const [key, raw] of flags.entries()) {
+    const values = Array.isArray(raw) ? raw : [raw];
+    if (valueFlags.has(key) && booleanFlags.has(key)) continue;
+    if (valueFlags.has(key)) {
+      const bad = values.find((value) => typeof value !== "string" || value.length === 0);
+      if (bad !== undefined) {
+        return knbError("invalid_arguments", `Flag --${key} requires a value`, {
+          flag: `--${key}`,
+          command,
+          value: String(bad),
+        });
+      }
+      continue;
+    }
+    if (booleanFlags.has(key)) {
+      const bad = values.find((value) => value !== true);
+      if (bad !== undefined) {
+        return knbError("invalid_arguments", `Flag --${key} does not accept a value`, {
+          flag: `--${key}`,
+          command,
+          value: String(bad),
+        });
+      }
+    }
+  }
+  return undefined;
+}
+
 function getRequestFromFlags(flags: FlagMap): Omit<GetRequest, "ids"> {
   const request: Omit<GetRequest, "ids"> = {};
   const asOf = stringFlag(flags, "as-of");
@@ -320,8 +625,8 @@ function queryRequestFromFlags(flags: FlagMap): QueryRequest {
     }
     request.kinds = [kindFlag as KnbRowKind];
   }
-  const collection = stringFlag(flags, "collection");
-  if (collection) request.collection = collection;
+  const profile = stringFlag(flags, "profile");
+  if (profile) request.profile = profile;
   const subject = stringFlag(flags, "subject");
   if (subject) request.subject = subject;
   const tag = stringFlag(flags, "tag");
@@ -343,8 +648,8 @@ function contextRequestFromFlags(flags: FlagMap): ContextRequest {
   const request: ContextRequest = {};
   const asOf = stringFlag(flags, "as-of");
   if (asOf !== undefined) request.asOf = asOf;
-  const collection = stringFlag(flags, "collection");
-  if (collection) request.collection = collection;
+  const profile = stringFlag(flags, "profile");
+  if (profile) request.profile = profile;
   const subject = stringFlag(flags, "subject");
   if (subject) request.subject = subject;
   const tag = stringFlag(flags, "tag");
@@ -367,10 +672,36 @@ function stringFlag(flags: FlagMap, key: string): string | undefined {
   return typeof value === "string" && value.length > 0 ? value : undefined;
 }
 
+function stringFlags(flags: FlagMap, key: string): string[] {
+  const value = flags.get(key);
+  if (Array.isArray(value)) {
+    return value.filter((entry): entry is string => typeof entry === "string" && entry.length > 0);
+  }
+  return typeof value === "string" && value.length > 0 ? [value] : [];
+}
+
 function booleanFlag(flags: FlagMap, key: string): boolean {
   const value = flags.get(key);
   if (Array.isArray(value)) return value.includes(true);
   return value === true;
+}
+
+function requireOnePositional(command: string, value: string | undefined, label: string): asserts value is string {
+  if (!value) {
+    throw knbError("invalid_arguments", `knb ${command} requires ${label}`, {
+      suggestions: [`knb ${command} <${label.replaceAll(" ", "-")}> --json`],
+    });
+  }
+}
+
+function rejectExtraPositionals(command: string, values: Array<string | undefined>): void {
+  const extras = values.filter((value): value is string => typeof value === "string" && value.length > 0);
+  if (extras.length > 0) {
+    throw knbError("invalid_arguments", `knb ${command} received unexpected positional arguments`, {
+      extras,
+      suggestions: [`knb ${command} --json`],
+    });
+  }
 }
 
 function numberFlag(flags: FlagMap, key: string): number | undefined {
@@ -461,78 +792,12 @@ async function readStdinJson(): Promise<unknown> {
 }
 
 function printHelp(): void {
-  console.log(`knb
-
-What this is:
-  KNB is an append-only knowledge ledger for agent research. Store sourced facts as
-  source/claim/question/synthesis/change rows, then read them through the same facade
-  that the CLI uses. The ledger is canonical; views and indexes are disposable outputs.
-
-Typical workflows:
-  Research pass:
-    1. Check orientation: knb status and knb context --collection <c>.
-    2. Preview a batch: knb apply --dry-run --stdin --json.
-    3. Apply the batch, then refresh outputs: knb render --collection <c>; knb index --rebuild; knb check --json.
-    4. Keep one current synthesis per thread by superseding older synthesis rows.
-
-  Handoff:
-    Use knb status for ledger health and row counts.
-    Use knb context --collection <c> --max-tokens N for a compact packet for the next agent.
-
-  Host application:
-    Use openKnb(...).apply/add/query/context/render/check/rebuildIndex so app code and CLI
-    share the same rules, errors, lifecycle state, and projection freshness checks.
-
-Usage:
-  knb init    [--root <dir>] [--config <path>] [--ledger <path>] [--actor <name>] [--force] [--json|--pretty|--ndjson|--text|--quiet]
-  knb status  [--root <dir>] [--json|--pretty|--ndjson|--text|--quiet]
-  knb schema  [--json|--pretty|--ndjson|--text|--quiet]
-  knb apply   (--file ops.json | --json '{...}' | --stdin) [--atomic] [--dry-run]
-  knb add     (--file row.json | --json '{...}' | --stdin)
-  knb get     <id> [<id>...] [--as-of <iso>] [--include-history] [--explain]
-  knb query   [--as-of <iso>] [--kind <kind>] [--collection <c>] [--subject <s>] [--tag <t>] [--text <q>] [--claim-key <k>] [--limit N] [--history] [--full]
-  knb context [--as-of <iso>] [--collection <c>] [--subject <s>] [--tag <t>] [--max-tokens 3000] [--no-warnings]
-  knb render  --collection <c> [--out path] [--as-of <iso>] [--format md]
-  knb check   [--json]
-  knb index   [--rebuild]
-
-Commands:
-  init      Create workspace config, ledger, schema, views, and indexes.
-  status    Cheap orientation packet: workspace, ledger, counts, and projection freshness.
-  schema    Print row and operation contracts plus the JSON Schema.
-  apply     Apply an atomic batch of operations through the apply pipeline; use --dry-run to preview without writing.
-  add       Convenience wrapper for one add operation; identical envelope to apply.
-  get       Fetch full rows by id; default returns only active rows.
-  query     Search active rows by kind, scope, text, and claim key. Use --history to include inactive.
-  context   Build a token-budgeted context packet for a scope.
-  render    Generate a Markdown view for one collection.
-  check     Report parse, validation, state warnings, and projection freshness. Exit 0 if ok, otherwise the typed error code.
-  index     Without --rebuild, report freshness only. With --rebuild, regenerate all V1 indexes.
-
-Output formats:
-  --json    Compact JSON envelope (default when stdout is piped).
-  --pretty  Indented JSON envelope.
-  --ndjson  One JSON line per item plus a final envelope line.
-  --text    Human-readable text (default when stdout is a TTY).
-  --quiet   No output on success; only the error code on failure.
-
-Exit codes:
-  0  ok
-  1  not_found
-  2  invalid_arguments
-  3  validation_failed
-  4  duplicate_blocked
-  5  io_failed
-  6  lock_busy
-  7  broken_reference
-  8  external_dependency_failed
-  9  unsafe_operation_refused
-  10 internal_error
-
-knb check returns the exit code matching the highest-priority issue on failure (parse errors -> io_failed,
-validation errors -> validation_failed). When ok is false purely due to stale or missing projections, the
-envelope is still rendered as a success with data.ok=false and the process exits 0; rebuild via knb index
---rebuild or knb render --collection <c>.
+  console.log(`knb: append-only knowledge ledger
+Usage: knb <cmd> [--root dir] [--json|--text|--pretty|--ndjson|--quiet]
+cmds: knb init, knb status, knb schema, knb apply, knb add, knb get, knb query, knb context, knb render, knb check, knb index, knb profile, knb instance
+profile: list|show|create|replace|delete|check
+instance: show|create|list|set|attach-profile|detach-profile|delete
+exit: 0 ok; 1 not_found; 2 invalid_arguments; 3 validation_failed; 4 duplicate_blocked; 5 io_failed; 6 lock_busy; 7 broken_reference; 8 external_dependency_failed; 9 unsafe_operation_refused; 10 internal_error
 `);
 }
 

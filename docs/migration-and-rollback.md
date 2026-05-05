@@ -6,7 +6,7 @@
 
 ## Generated artifacts
 - `knb/views/` and `knb/indexes/` are disposable. Delete and rebuild via:
-  - `knb render --collection <name>` for views
+  - `knb render --profile <name>` for views
   - `knb index --rebuild` for indexes
 - Both are recomputed deterministically from `knb/ledger.jsonl`.
 
@@ -14,13 +14,13 @@
 - Mechanical in-place repair of `knb/ledger.jsonl` is reserved for:
   - broken JSONL that prevents loading
   - invalid IDs that prevent unique-id checks
-- All other "repairs" go through `change` rows: `retract`, `supersede`, `merge`, `relate`, `patch`.
+- All other "repairs" go through `entry` rows: `retract`, `supersede`, `merge`, `link`, `patch`.
 - `patch` records a mechanical-repair audit entry without rewriting the target row's content.
 
 ## Rollback
 - The ledger is append-only and content-hashed (`LedgerFingerprint.content_hash`).
 - To roll back to a previous ledger state, restore `knb/ledger.jsonl` from version control and rebuild projections via `knb index --rebuild`.
-- There is no in-place delete operation. Removed knowledge is expressed via `change` rows.
+- There is no in-place delete operation. Removed knowledge is expressed via `entry` rows.
 
 ## Release gates
 Run `bun run release-check` before tagging a release:

@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 import {
   APPLY_OPERATION_KINDS,
   ASSESSMENT_LEVELS,
-  CHANGE_ACTIONS,
+  ENTRY_ACTIONS,
   completeDraftRow,
   CONFIDENCE_VALUES,
   EVIDENCE_ROLES,
@@ -16,7 +16,7 @@ import {
   QUESTION_PRIORITIES,
   QUESTION_STATUSES,
   referenceFields,
-  RELATION_TYPES,
+  LINK_TYPES,
   ROW_KINDS,
   rowSamples,
   scopeSlug,
@@ -27,7 +27,7 @@ import {
   validateLedger,
   validateRows,
   type ApplyRequest,
-  type ChangeRow,
+  type EntryRow,
   type ClaimRow,
   type DraftRow,
   type KnbRow,
@@ -51,7 +51,7 @@ describe("contract.constants", () => {
   });
 
   test("ROW_KINDS exposes the five row kinds in fixed order", () => {
-    expect([...ROW_KINDS]).toEqual(["source", "claim", "question", "synthesis", "change"]);
+    expect([...ROW_KINDS]).toEqual(["source", "claim", "question", "synthesis", "entry"]);
   });
 
   test("KIND_PREFIXES maps each kind to its expected prefix", () => {
@@ -59,25 +59,25 @@ describe("contract.constants", () => {
     expect(KIND_PREFIXES.claim).toBe("claim");
     expect(KIND_PREFIXES.question).toBe("q");
     expect(KIND_PREFIXES.synthesis).toBe("synth");
-    expect(KIND_PREFIXES.change).toBe("chg");
+    expect(KIND_PREFIXES.entry).toBe("ent");
     expect(Object.keys(KIND_PREFIXES).sort()).toEqual([...ROW_KINDS].sort());
   });
 
-  test("CHANGE_ACTIONS includes every documented action", () => {
-    expect([...CHANGE_ACTIONS].sort()).toEqual(["merge", "patch", "relate", "retract", "supersede"]);
+  test("ENTRY_ACTIONS includes every documented action", () => {
+    expect([...ENTRY_ACTIONS].sort()).toEqual(["link", "merge", "patch", "retract", "supersede"]);
   });
 
-  test("APPLY_OPERATION_KINDS includes add and every change action", () => {
+  test("APPLY_OPERATION_KINDS includes add and every entry action", () => {
     expect([...APPLY_OPERATION_KINDS].sort()).toEqual(
-      ["add", "merge", "patch", "relate", "retract", "supersede"],
+      ["add", "link", "merge", "patch", "retract", "supersede"],
     );
   });
 
-  test("RELATION_TYPES is exactly the four semantic relations (no lifecycle terms)", () => {
-    expect([...RELATION_TYPES].sort()).toEqual(["context_for", "contradicts", "depends_on", "supports"]);
-    expect(RELATION_TYPES as readonly string[]).not.toContain("supersedes");
-    expect(RELATION_TYPES as readonly string[]).not.toContain("retracts");
-    expect(RELATION_TYPES as readonly string[]).not.toContain("merges");
+  test("LINK_TYPES is exactly the four semantic links (no lifecycle terms)", () => {
+    expect([...LINK_TYPES].sort()).toEqual(["context_for", "contradicts", "depends_on", "supports"]);
+    expect(LINK_TYPES as readonly string[]).not.toContain("supersedes");
+    expect(LINK_TYPES as readonly string[]).not.toContain("retracts");
+    expect(LINK_TYPES as readonly string[]).not.toContain("merges");
   });
 });
 
@@ -123,8 +123,8 @@ describe("contract.rowSamples", () => {
     expect(result.issues).toEqual([]);
   });
 
-  test("change sample validates with no issues", () => {
-    const result = validateRows([samples.source, samples.claim, samples.change]);
+  test("entry sample validates with no issues", () => {
+    const result = validateRows([samples.source, samples.claim, samples.entry]);
     expect(result.ok).toBe(true);
     expect(result.issues).toEqual([]);
   });
@@ -322,7 +322,7 @@ describe("contract.validateLedger.common", () => {
 
   test("rejects scope with all-empty arrays", () => {
     const row = structuredClone(samples.source);
-    row.scope = { collections: [], subjects: [], tags: [] };
+    row.scope = { profiles: [], subjects: [], tags: [] };
     const result = validateLedger(load([row]));
     expect(result.ok).toBe(false);
     expect(codes(result.issues)).toContain("scope_anchor_required");
@@ -519,14 +519,14 @@ describe("contract.validateLedger.source", () => {
     const canonical = structuredClone(samples.source);
     const duplicate = structuredClone(samples.source);
     duplicate.id = "src:example:20260501:merged1x";
-    const merge: ChangeRow = {
+    const merge: EntryRow = {
       schema_version: "knb.v1",
-      id: "chg:example:20260501:merge1x",
-      kind: "change",
+      id: "ent:example:20260501:merge1x",
+      kind: "entry",
       created_at: "2026-05-01T12:05:00Z",
       created_by: "agent:test",
-      scope: { collections: ["example"] },
-      change: {
+      scope: { profiles: ["example"] },
+      entry: {
         action: "merge",
         target_ids: [duplicate.id],
         canonical_id: canonical.id,
@@ -890,132 +890,132 @@ describe("contract.validateLedger.synthesis", () => {
   });
 });
 
-describe("contract.validateLedger.change", () => {
+describe("contract.validateLedger.entry", () => {
   const samples = rowSamples();
 
-  function changeRow(action: string, extras: Record<string, unknown>): ChangeRow {
+  function entryRow(action: string, extras: Record<string, unknown>): EntryRow {
     return {
       schema_version: "knb.v1",
-      id: `chg:example:20260501:${action.slice(0, 6).padEnd(6, "x")}xx`,
-      kind: "change",
+      id: `ent:example:20260501:${action.slice(0, 6).padEnd(6, "x")}xx`,
+      kind: "entry",
       created_at: "2026-05-01T12:05:00Z",
       created_by: "agent:test",
-      scope: { collections: ["example"] },
-      change: { action, ...extras } as ChangeRow["change"],
-    } as ChangeRow;
+      scope: { profiles: ["example"] },
+      entry: { action, ...extras } as EntryRow["entry"],
+    } as EntryRow;
   }
 
-  test("rejects change missing change object with change_object_required", () => {
-    const row = changeRow("retract", {}) as unknown as Record<string, unknown>;
-    delete row.change;
-    const result = validateLedger(load([row as unknown as ChangeRow]));
+  test("rejects entry missing entry object with entry_object_required", () => {
+    const row = entryRow("retract", {}) as unknown as Record<string, unknown>;
+    delete row.entry;
+    const result = validateLedger(load([row as unknown as EntryRow]));
     expect(result.ok).toBe(false);
-    expect(codes(result.issues)).toContain("change_object_required");
+    expect(codes(result.issues)).toContain("entry_object_required");
   });
 
-  test("rejects change with invalid action with change_action_invalid", () => {
-    const row = changeRow("invalidate", { target_ids: [samples.claim.id], reason: "x" });
+  test("rejects entry with invalid action with entry_action_invalid", () => {
+    const row = entryRow("invalidate", { target_ids: [samples.claim.id], reason: "x" });
     const result = validateLedger(load([samples.source, samples.claim, row]));
     expect(result.ok).toBe(false);
-    expect(codes(result.issues)).toContain("change_action_invalid");
+    expect(codes(result.issues)).toContain("entry_action_invalid");
   });
 
-  test("rejects retract missing target_ids with change_target_required", () => {
-    const row = changeRow("retract", { reason: "no targets" });
+  test("rejects retract missing target_ids with entry_target_required", () => {
+    const row = entryRow("retract", { reason: "no targets" });
     const result = validateLedger(load([samples.source, samples.claim, row]));
     expect(result.ok).toBe(false);
-    expect(codes(result.issues)).toContain("change_target_required");
+    expect(codes(result.issues)).toContain("entry_target_required");
   });
 
-  test("rejects retract missing reason with change_reason_required", () => {
-    const row = changeRow("retract", { target_ids: [samples.claim.id] });
+  test("rejects retract missing reason with entry_reason_required", () => {
+    const row = entryRow("retract", { target_ids: [samples.claim.id] });
     const result = validateLedger(load([samples.source, samples.claim, row]));
     expect(result.ok).toBe(false);
-    expect(codes(result.issues)).toContain("change_reason_required");
+    expect(codes(result.issues)).toContain("entry_reason_required");
   });
 
-  test("rejects retract with unresolved target with change_target_unresolved", () => {
-    const row = changeRow("retract", { target_ids: ["claim:missing"], reason: "missing" });
+  test("rejects retract with unresolved target with entry_target_unresolved", () => {
+    const row = entryRow("retract", { target_ids: ["claim:missing"], reason: "missing" });
     const result = validateLedger(load([row]));
     expect(result.ok).toBe(false);
-    expect(codes(result.issues)).toContain("change_target_unresolved");
+    expect(codes(result.issues)).toContain("entry_target_unresolved");
   });
 
   test("retract reports BOTH unresolved targets when given a mix", () => {
-    const row = changeRow("retract", {
+    const row = entryRow("retract", {
       target_ids: ["claim:missing-a", "claim:missing-b", samples.claim.id],
       reason: "test",
     });
     const result = validateLedger(load([samples.source, samples.claim, row]));
     expect(result.ok).toBe(false);
-    const unresolved = result.issues.filter((i) => i.code === "change_target_unresolved");
+    const unresolved = result.issues.filter((i) => i.code === "entry_target_unresolved");
     expect(unresolved).toHaveLength(2);
     expect(unresolved.some((i) => i.message.includes("claim:missing-a"))).toBe(true);
     expect(unresolved.some((i) => i.message.includes("claim:missing-b"))).toBe(true);
   });
 
-  test("rejects supersede missing replacement_id with change_replacement_required", () => {
-    const row = changeRow("supersede", {
+  test("rejects supersede missing replacement_id with entry_replacement_required", () => {
+    const row = entryRow("supersede", {
       target_ids: [samples.claim.id],
       reason: "no replacement",
     });
     const result = validateLedger(load([samples.source, samples.claim, row]));
     expect(result.ok).toBe(false);
-    expect(codes(result.issues)).toContain("change_replacement_required");
+    expect(codes(result.issues)).toContain("entry_replacement_required");
   });
 
-  test("rejects supersede with unresolved replacement_id with change_replacement_unresolved", () => {
-    const row = changeRow("supersede", {
+  test("rejects supersede with unresolved replacement_id with entry_replacement_unresolved", () => {
+    const row = entryRow("supersede", {
       target_ids: [samples.claim.id],
       replacement_id: "claim:does:not:exist",
       reason: "x",
     });
     const result = validateLedger(load([samples.source, samples.claim, row]));
     expect(result.ok).toBe(false);
-    expect(codes(result.issues)).toContain("change_replacement_unresolved");
+    expect(codes(result.issues)).toContain("entry_replacement_unresolved");
   });
 
-  test("rejects merge missing canonical_id with change_canonical_required", () => {
-    const row = changeRow("merge", {
+  test("rejects merge missing canonical_id with entry_canonical_required", () => {
+    const row = entryRow("merge", {
       target_ids: [samples.claim.id],
       reason: "no canonical",
     });
     const result = validateLedger(load([samples.source, samples.claim, row]));
     expect(result.ok).toBe(false);
-    expect(codes(result.issues)).toContain("change_canonical_required");
+    expect(codes(result.issues)).toContain("entry_canonical_required");
   });
 
-  test("rejects merge with unresolved canonical_id with change_canonical_unresolved", () => {
-    const row = changeRow("merge", {
+  test("rejects merge with unresolved canonical_id with entry_canonical_unresolved", () => {
+    const row = entryRow("merge", {
       target_ids: [samples.claim.id],
       canonical_id: "claim:no:such:thing",
       reason: "x",
     });
     const result = validateLedger(load([samples.source, samples.claim, row]));
     expect(result.ok).toBe(false);
-    expect(codes(result.issues)).toContain("change_canonical_unresolved");
+    expect(codes(result.issues)).toContain("entry_canonical_unresolved");
   });
 
-  test("rejects relate missing relation object with change_relation_required", () => {
-    const row = changeRow("relate", {});
+  test("rejects link missing link object with entry_link_required", () => {
+    const row = entryRow("link", {});
     const result = validateLedger(load([row]));
     expect(result.ok).toBe(false);
-    expect(codes(result.issues)).toContain("change_relation_required");
+    expect(codes(result.issues)).toContain("entry_link_required");
   });
 
-  test("rejects relate missing from_id/to_id endpoints", () => {
-    const row = changeRow("relate", {
-      relation: { rel: "supports" },
+  test("rejects link missing from_id/to_id endpoints", () => {
+    const row = entryRow("link", {
+      link: { rel: "supports" },
     });
     const result = validateLedger(load([row]));
     expect(result.ok).toBe(false);
     const found = codes(result.issues);
-    expect(found.filter((c) => c === "change_relation_endpoint_required")).toHaveLength(2);
+    expect(found.filter((c) => c === "entry_link_endpoint_required")).toHaveLength(2);
   });
 
-  test("rejects relate with unresolved endpoints", () => {
-    const row = changeRow("relate", {
-      relation: {
+  test("rejects link with unresolved endpoints", () => {
+    const row = entryRow("link", {
+      link: {
         from_id: "claim:nope-from",
         to_id: "src:nope-to",
         rel: "supports",
@@ -1023,12 +1023,12 @@ describe("contract.validateLedger.change", () => {
     });
     const result = validateLedger(load([row]));
     expect(result.ok).toBe(false);
-    expect(codes(result.issues)).toContain("change_relation_endpoint_unresolved");
+    expect(codes(result.issues)).toContain("entry_link_endpoint_unresolved");
   });
 
-  test("rejects relate with invalid rel with relation_kind_invalid", () => {
-    const row = changeRow("relate", {
-      relation: {
+  test("rejects link with invalid rel with link_kind_invalid", () => {
+    const row = entryRow("link", {
+      link: {
         from_id: samples.claim.id,
         to_id: samples.source.id,
         rel: "supersedes",
@@ -1036,12 +1036,12 @@ describe("contract.validateLedger.change", () => {
     });
     const result = validateLedger(load([samples.source, samples.claim, row]));
     expect(result.ok).toBe(false);
-    expect(codes(result.issues)).toContain("relation_kind_invalid");
+    expect(codes(result.issues)).toContain("link_kind_invalid");
   });
 
-  test("accepts well-formed relate change", () => {
-    const row = changeRow("relate", {
-      relation: {
+  test("accepts well-formed link entry", () => {
+    const row = entryRow("link", {
+      link: {
         from_id: samples.claim.id,
         to_id: samples.source.id,
         rel: "supports",
@@ -1051,114 +1051,114 @@ describe("contract.validateLedger.change", () => {
     expect(result.ok).toBe(true);
   });
 
-  test("rejects patch missing target_id with change_target_required", () => {
-    const row = changeRow("patch", {
+  test("rejects patch missing target_id with entry_target_required", () => {
+    const row = entryRow("patch", {
       patch: [{ op: "replace", path: "/x", value: 1 }],
       reason: "test",
     });
     const result = validateLedger(load([row]));
     expect(result.ok).toBe(false);
-    expect(codes(result.issues)).toContain("change_target_required");
+    expect(codes(result.issues)).toContain("entry_target_required");
   });
 
-  test("rejects patch with empty patch array with change_patch_required", () => {
-    const row = changeRow("patch", {
+  test("rejects patch with empty patch array with entry_patch_required", () => {
+    const row = entryRow("patch", {
       target_id: samples.claim.id,
       patch: [],
       reason: "test",
     });
     const result = validateLedger(load([samples.source, samples.claim, row]));
     expect(result.ok).toBe(false);
-    expect(codes(result.issues)).toContain("change_patch_required");
+    expect(codes(result.issues)).toContain("entry_patch_required");
   });
 
-  test("rejects patch missing patch field with change_patch_required", () => {
-    const row = changeRow("patch", {
+  test("rejects patch missing patch field with entry_patch_required", () => {
+    const row = entryRow("patch", {
       target_id: samples.claim.id,
       reason: "test",
     });
     const result = validateLedger(load([samples.source, samples.claim, row]));
     expect(result.ok).toBe(false);
-    expect(codes(result.issues)).toContain("change_patch_required");
+    expect(codes(result.issues)).toContain("entry_patch_required");
   });
 
-  test("rejects patch missing reason with change_reason_required", () => {
-    const row = changeRow("patch", {
+  test("rejects patch missing reason with entry_reason_required", () => {
+    const row = entryRow("patch", {
       target_id: samples.claim.id,
       patch: [{ op: "replace", path: "/x", value: 1 }],
     });
     const result = validateLedger(load([samples.source, samples.claim, row]));
     expect(result.ok).toBe(false);
-    expect(codes(result.issues)).toContain("change_reason_required");
+    expect(codes(result.issues)).toContain("entry_reason_required");
   });
 
-  test("rejects patch with unresolved target_id with change_target_unresolved", () => {
-    const row = changeRow("patch", {
+  test("rejects patch with unresolved target_id with entry_target_unresolved", () => {
+    const row = entryRow("patch", {
       target_id: "claim:no-exist",
       patch: [{ op: "replace", path: "/x", value: 1 }],
       reason: "test",
     });
     const result = validateLedger(load([row]));
     expect(result.ok).toBe(false);
-    expect(codes(result.issues)).toContain("change_target_unresolved");
+    expect(codes(result.issues)).toContain("entry_target_unresolved");
   });
 });
 
-describe("contract.validateLedger.relations", () => {
+describe("contract.validateLedger.links", () => {
   const samples = rowSamples();
 
-  test("rejects relations as a non-array with relations_invalid", () => {
+  test("rejects links as a non-array with links_invalid", () => {
     const row = structuredClone(samples.claim) as unknown as Record<string, unknown>;
-    row.relations = { target_id: samples.source.id, rel: "supports" };
+    row.links = { target_id: samples.source.id, rel: "supports" };
     const result = validateLedger(load([samples.source, row as unknown as ClaimRow]));
     expect(result.ok).toBe(false);
-    expect(codes(result.issues)).toContain("relations_invalid");
+    expect(codes(result.issues)).toContain("links_invalid");
   });
 
-  test("rejects unresolved relation target with relation_target_unresolved", () => {
+  test("rejects unresolved link target with link_target_unresolved", () => {
     const row = structuredClone(samples.claim);
     row.id = "claim:example:20260501:relmiss1";
-    row.relations = [{ target_id: "claim:missing", rel: "supports" }];
+    row.links = [{ target_id: "claim:missing", rel: "supports" }];
     const result = validateLedger(load([samples.source, row]));
     expect(result.ok).toBe(false);
-    expect(codes(result.issues)).toContain("relation_target_unresolved");
+    expect(codes(result.issues)).toContain("link_target_unresolved");
   });
 
-  test("rejects relation missing target_id with relation_target_required", () => {
+  test("rejects link missing target_id with link_target_required", () => {
     const row = structuredClone(samples.claim);
-    row.relations = [{ rel: "supports" } as never];
+    row.links = [{ rel: "supports" } as never];
     const result = validateLedger(load([samples.source, row]));
     expect(result.ok).toBe(false);
-    expect(codes(result.issues)).toContain("relation_target_required");
+    expect(codes(result.issues)).toContain("link_target_required");
   });
 
-  test("rejects relation with invalid item type with relation_invalid", () => {
+  test("rejects link with invalid item type with link_invalid", () => {
     const row = structuredClone(samples.claim);
-    row.relations = ["not-an-object"] as never;
+    row.links = ["not-an-object"] as never;
     const result = validateLedger(load([samples.source, row]));
     expect(result.ok).toBe(false);
-    expect(codes(result.issues)).toContain("relation_invalid");
+    expect(codes(result.issues)).toContain("link_invalid");
   });
 
-  test("rejects lifecycle terms in semantic relations with relation_kind_invalid", () => {
+  test("rejects lifecycle terms in semantic links with link_kind_invalid", () => {
     const row = structuredClone(samples.claim);
     row.id = "claim:example:20260501:gggg7777";
-    row.relations = [{ target_id: samples.claim.id, rel: "supersedes" as never }];
+    row.links = [{ target_id: samples.claim.id, rel: "supersedes" as never }];
     const result = validateLedger(load([samples.source, samples.claim, row]));
     expect(result.ok).toBe(false);
-    expect(codes(result.issues)).toContain("relation_kind_invalid");
+    expect(codes(result.issues)).toContain("link_kind_invalid");
   });
 
-  test("does not falsely flag rows that lack relations entirely", () => {
+  test("does not falsely flag rows that lack links entirely", () => {
     const result = validateLedger(load([samples.source]));
-    expect(result.issues.some((i) => i.code === "relations_invalid")).toBe(false);
-    expect(result.issues.some((i) => i.code === "relation_target_unresolved")).toBe(false);
+    expect(result.issues.some((i) => i.code === "links_invalid")).toBe(false);
+    expect(result.issues.some((i) => i.code === "link_target_unresolved")).toBe(false);
   });
 
-  test("accepts relations referencing rows defined later in the ledger", () => {
+  test("accepts links referencing rows defined later in the ledger", () => {
     const a = structuredClone(samples.claim);
     a.id = "claim:example:20260501:relfwd11";
-    a.relations = [{ target_id: samples.claim.id, rel: "supports" }];
+    a.links = [{ target_id: samples.claim.id, rel: "supports" }];
     const result = validateLedger(load([samples.source, a, samples.claim]));
     expect(result.ok).toBe(true);
   });
@@ -1285,8 +1285,8 @@ describe("contract.validateApplyRequest", () => {
     expect(result.issues).toEqual([]);
   });
 
-  test("accepts the relate operation sample", () => {
-    const result = validateApplyRequest({ operations: [samples.relate] });
+  test("accepts the link operation sample", () => {
+    const result = validateApplyRequest({ operations: [samples.link] });
     expect(result.ok).toBe(true);
     expect(result.issues).toEqual([]);
   });
@@ -1359,13 +1359,13 @@ describe("contract.validateApplyRequest", () => {
     expect(codes(result.issues)).toContain("operation_canonical_required");
   });
 
-  test("rejects relate without from_id, to_id, rel", () => {
-    const result = validateApplyRequest({ operations: [{ op: "relate" }] });
+  test("rejects link without from_id, to_id, rel", () => {
+    const result = validateApplyRequest({ operations: [{ op: "link" }] });
     expect(result.ok).toBe(false);
     const found = codes(result.issues);
     expect(found).toContain("operation_from_required");
     expect(found).toContain("operation_to_required");
-    expect(found).toContain("relation_kind_invalid");
+    expect(found).toContain("link_kind_invalid");
   });
 
   test("rejects patch without target_id and patch", () => {
@@ -1403,7 +1403,7 @@ describe("contract.completeDraftRow", () => {
   test("produces deterministic id and sets common fields", () => {
     const draft: DraftRow = {
       kind: "claim",
-      scope: { collections: ["example"] },
+      scope: { profiles: ["example"] },
       identity: { claim_key: "x|y" },
       claim: { statement: "x is y", atomic: true },
       time: { precision: "unknown" },
@@ -1420,7 +1420,7 @@ describe("contract.completeDraftRow", () => {
   });
 
   test("same inputs produce same id (determinism)", () => {
-    const draft = { kind: "source", scope: { collections: ["alpha"] } } as DraftRow;
+    const draft = { kind: "source", scope: { profiles: ["alpha"] } } as DraftRow;
     const a = completeDraftRow(draft, deps);
     const b = completeDraftRow(draft, deps);
     expect(a.ok && b.ok).toBe(true);
@@ -1428,7 +1428,7 @@ describe("contract.completeDraftRow", () => {
   });
 
   test("id matches expected format <prefix>:<slug>:<YYYYMMDD>:<random>", () => {
-    const draft = { kind: "source", scope: { collections: ["alpha"] } } as DraftRow;
+    const draft = { kind: "source", scope: { profiles: ["alpha"] } } as DraftRow;
     const result = completeDraftRow(draft, deps);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -1441,10 +1441,10 @@ describe("contract.completeDraftRow", () => {
       ["claim", "claim"],
       ["question", "q"],
       ["synthesis", "synth"],
-      ["change", "chg"],
+      ["entry", "ent"],
     ];
     for (const [kind, prefix] of expectations) {
-      const draft = { kind, scope: { collections: ["x"] } } as DraftRow;
+      const draft = { kind, scope: { profiles: ["x"] } } as DraftRow;
       const result = completeDraftRow(draft, deps);
       expect(result.ok).toBe(true);
       if (!result.ok) continue;
@@ -1452,10 +1452,10 @@ describe("contract.completeDraftRow", () => {
     }
   });
 
-  test("scope-slug priority: collections beats subjects beats tags", () => {
+  test("scope-slug priority: profiles beats subjects beats tags", () => {
     const collFirst = {
       kind: "claim",
-      scope: { collections: ["a-coll"], subjects: ["b-subj"], tags: ["c-tag"] },
+      scope: { profiles: ["a-coll"], subjects: ["b-subj"], tags: ["c-tag"] },
     } as DraftRow;
     const r1 = completeDraftRow(collFirst, deps);
     expect(r1.ok && r1.row.id.split(":")[1]).toBe("a-coll");
@@ -1469,10 +1469,10 @@ describe("contract.completeDraftRow", () => {
     expect(r3.ok && r3.row.id.split(":")[1]).toBe("c-tag");
   });
 
-  test("scope-slug priority: collections=[] still falls through to subjects", () => {
+  test("scope-slug priority: profiles=[] still falls through to subjects", () => {
     const draft = {
       kind: "claim",
-      scope: { collections: [], subjects: ["only-sub"] },
+      scope: { profiles: [], subjects: ["only-sub"] },
     } as DraftRow;
     const result = completeDraftRow(draft, deps);
     expect(result.ok).toBe(true);
@@ -1483,7 +1483,7 @@ describe("contract.completeDraftRow", () => {
   test("scope-slug sanitizes special characters (slashes, colons, spaces)", () => {
     const draft = {
       kind: "claim",
-      scope: { collections: ["My Project: alpha/beta"] },
+      scope: { profiles: ["My Project: alpha/beta"] },
     } as DraftRow;
     const result = completeDraftRow(draft, deps);
     expect(result.ok).toBe(true);
@@ -1495,7 +1495,7 @@ describe("contract.completeDraftRow", () => {
   test("scope-slug strips leading/trailing dashes after sanitization", () => {
     const draft = {
       kind: "claim",
-      scope: { collections: ["___edge___"] },
+      scope: { profiles: ["___edge___"] },
     } as DraftRow;
     const result = completeDraftRow(draft, deps);
     expect(result.ok).toBe(true);
@@ -1520,7 +1520,7 @@ describe("contract.completeDraftRow", () => {
   });
 
   test("rejects invalid kind with kind_invalid", () => {
-    const draft = { kind: "blob", scope: { collections: ["x"] } } as unknown as DraftRow;
+    const draft = { kind: "blob", scope: { profiles: ["x"] } } as unknown as DraftRow;
     const result = completeDraftRow(draft, deps);
     expect(result.ok).toBe(false);
     if (result.ok) return;
@@ -1528,7 +1528,7 @@ describe("contract.completeDraftRow", () => {
   });
 
   test("rejects missing kind with kind_invalid", () => {
-    const draft = { scope: { collections: ["x"] } } as unknown as DraftRow;
+    const draft = { scope: { profiles: ["x"] } } as unknown as DraftRow;
     const result = completeDraftRow(draft, deps);
     expect(result.ok).toBe(false);
     if (result.ok) return;
@@ -1544,7 +1544,7 @@ describe("contract.completeDraftRow", () => {
 
   test("rejects when deps.now() returns invalid date with now_invalid", () => {
     const result = completeDraftRow(
-      { kind: "source", scope: { collections: ["x"] } } as DraftRow,
+      { kind: "source", scope: { profiles: ["x"] } } as DraftRow,
       { ...deps, now: () => new Date("not-a-date") },
     );
     expect(result.ok).toBe(false);
@@ -1556,7 +1556,7 @@ describe("contract.completeDraftRow", () => {
     const draft: DraftRow = {
       kind: "source",
       id: "src:custom:20260101:custom01",
-      scope: { collections: ["custom"] },
+      scope: { profiles: ["custom"] },
     } as DraftRow;
     const result = completeDraftRow(draft, deps);
     expect(result.ok).toBe(true);
@@ -1567,7 +1567,7 @@ describe("contract.completeDraftRow", () => {
     const draft: DraftRow = {
       kind: "source",
       id: "",
-      scope: { collections: ["custom"] },
+      scope: { profiles: ["custom"] },
     } as DraftRow;
     const result = completeDraftRow(draft, deps);
     expect(result.ok).toBe(true);
@@ -1579,7 +1579,7 @@ describe("contract.completeDraftRow", () => {
   test("YMD in id matches deps.now() in UTC", () => {
     const newYearsEveLate = new Date("2026-12-31T23:59:59.999Z");
     const result = completeDraftRow(
-      { kind: "source", scope: { collections: ["x"] } } as DraftRow,
+      { kind: "source", scope: { profiles: ["x"] } } as DraftRow,
       { ...deps, now: () => newYearsEveLate },
     );
     expect(result.ok).toBe(true);
@@ -1589,7 +1589,7 @@ describe("contract.completeDraftRow", () => {
 
   test("uses deps.actor in created_by", () => {
     const result = completeDraftRow(
-      { kind: "source", scope: { collections: ["x"] } } as DraftRow,
+      { kind: "source", scope: { profiles: ["x"] } } as DraftRow,
       { ...deps, actor: "agent:custom-actor" },
     );
     expect(result.ok).toBe(true);
@@ -1600,7 +1600,7 @@ describe("contract.completeDraftRow", () => {
   test("invokes randomIdPart with expected byte count (4)", () => {
     const calls: number[] = [];
     completeDraftRow(
-      { kind: "source", scope: { collections: ["x"] } } as DraftRow,
+      { kind: "source", scope: { profiles: ["x"] } } as DraftRow,
       {
         ...deps,
         randomIdPart: (bytes) => {
@@ -1619,23 +1619,23 @@ describe("contract.scopeSlug", () => {
   });
 
   test("returns undefined for scope with all-empty arrays", () => {
-    expect(scopeSlug({ collections: [], subjects: [], tags: [] })).toBeUndefined();
+    expect(scopeSlug({ profiles: [], subjects: [], tags: [] })).toBeUndefined();
   });
 
-  test("prefers collections over subjects and tags", () => {
-    expect(scopeSlug({ collections: ["a"], subjects: ["b"], tags: ["c"] })).toBe("a");
+  test("prefers profiles over subjects and tags", () => {
+    expect(scopeSlug({ profiles: ["a"], subjects: ["b"], tags: ["c"] })).toBe("a");
   });
 
-  test("falls back to subjects when collections is empty", () => {
-    expect(scopeSlug({ collections: [], subjects: ["b"], tags: ["c"] })).toBe("b");
+  test("falls back to subjects when profiles is empty", () => {
+    expect(scopeSlug({ profiles: [], subjects: ["b"], tags: ["c"] })).toBe("b");
   });
 
-  test("falls back to tags when collections and subjects are empty", () => {
+  test("falls back to tags when profiles and subjects are empty", () => {
     expect(scopeSlug({ tags: ["c"] })).toBe("c");
   });
 
   test("slugifies", () => {
-    expect(scopeSlug({ collections: ["Hello, World!"] })).toBe("hello-world");
+    expect(scopeSlug({ profiles: ["Hello, World!"] })).toBe("hello-world");
   });
 });
 
@@ -1648,7 +1648,7 @@ describe("contract.referenceFields", () => {
         source_ids: [samples.source.id],
         evidence: [{ source_id: samples.source.id, role: "supports", summary: "Evidence." }],
       },
-      relations: [{ target_id: samples.question.id, rel: "context_for" }],
+      links: [{ target_id: samples.question.id, rel: "context_for" }],
     };
     const question: QuestionRow = {
       ...samples.question,
@@ -1657,7 +1657,7 @@ describe("contract.referenceFields", () => {
         source_ids: [samples.source.id],
         evidence: [{ source_id: samples.source.id, role: "supports", summary: "Evidence." }],
       },
-      relations: [{ target_id: samples.claim.id, rel: "depends_on" }],
+      links: [{ target_id: samples.claim.id, rel: "depends_on" }],
     };
     const synthesis: SynthesisRow = {
       ...samples.synthesis,
@@ -1665,22 +1665,22 @@ describe("contract.referenceFields", () => {
         source_ids: [samples.source.id],
         evidence: [{ source_id: samples.source.id, role: "supports", summary: "Evidence." }],
       },
-      relations: [{ target_id: samples.claim.id, rel: "supports" }],
+      links: [{ target_id: samples.claim.id, rel: "supports" }],
     };
-    const change: ChangeRow = {
-      ...samples.change,
-      change: {
+    const entry: EntryRow = {
+      ...samples.entry,
+      entry: {
         action: "supersede",
         target_ids: [samples.claim.id],
         replacement_id: "claim:contract:20260501:replace1",
         canonical_id: "claim:contract:20260501:canon001",
         target_id: samples.question.id,
-        relation: { from_id: samples.claim.id, to_id: samples.question.id, rel: "context_for" },
+        link: { from_id: samples.claim.id, to_id: samples.question.id, rel: "context_for" },
         reason: "Exercise all reference slots.",
       },
     };
 
-    const slots = [claim, question, synthesis, change].flatMap((row) =>
+    const slots = [claim, question, synthesis, entry].flatMap((row) =>
       [...referenceFields(row)].map((slot) => ({
         kind: slot.kind,
         path: slot.path,
@@ -1691,23 +1691,23 @@ describe("contract.referenceFields", () => {
     expect(slots).toEqual([
       { kind: "source", path: "provenance.source_ids[0]", value: samples.source.id },
       { kind: "source", path: "provenance.evidence[0].source_id", value: samples.source.id },
-      { kind: "any", path: "relations[0].target_id", value: samples.question.id },
+      { kind: "any", path: "links[0].target_id", value: samples.question.id },
       { kind: "source", path: "provenance.source_ids[0]", value: samples.source.id },
       { kind: "source", path: "provenance.evidence[0].source_id", value: samples.source.id },
-      { kind: "any", path: "relations[0].target_id", value: samples.claim.id },
+      { kind: "any", path: "links[0].target_id", value: samples.claim.id },
       { kind: "claim", path: "question.answer_claim_id", value: samples.claim.id },
       { kind: "source", path: "provenance.source_ids[0]", value: samples.source.id },
       { kind: "source", path: "provenance.evidence[0].source_id", value: samples.source.id },
-      { kind: "any", path: "relations[0].target_id", value: samples.claim.id },
+      { kind: "any", path: "links[0].target_id", value: samples.claim.id },
       { kind: "claim", path: "synthesis.basis.claim_ids[0]", value: samples.claim.id },
       { kind: "question", path: "synthesis.basis.question_ids[0]", value: samples.question.id },
       { kind: "source", path: "synthesis.basis.source_ids[0]", value: samples.source.id },
-      { kind: "any", path: "change.target_ids[0]", value: samples.claim.id },
-      { kind: "any", path: "change.target_id", value: samples.question.id },
-      { kind: "any", path: "change.replacement_id", value: "claim:contract:20260501:replace1" },
-      { kind: "any", path: "change.canonical_id", value: "claim:contract:20260501:canon001" },
-      { kind: "any", path: "change.relation.from_id", value: samples.claim.id },
-      { kind: "any", path: "change.relation.to_id", value: samples.question.id },
+      { kind: "any", path: "entry.target_ids[0]", value: samples.claim.id },
+      { kind: "any", path: "entry.target_id", value: samples.question.id },
+      { kind: "any", path: "entry.replacement_id", value: "claim:contract:20260501:replace1" },
+      { kind: "any", path: "entry.canonical_id", value: "claim:contract:20260501:canon001" },
+      { kind: "any", path: "entry.link.from_id", value: samples.claim.id },
+      { kind: "any", path: "entry.link.to_id", value: samples.question.id },
     ]);
 
     const evidenceSlot = [...referenceFields(claim)].find(
@@ -1758,14 +1758,14 @@ describe("contract.jsonSchema", () => {
     expect(schema.properties.kind.enum).toEqual([...ROW_KINDS]);
   });
 
-  test("change.action enum equals CHANGE_ACTIONS exactly", () => {
+  test("entry.action enum equals ENTRY_ACTIONS exactly", () => {
     const schema = jsonSchema() as Record<string, any>;
-    expect(schema.$defs.change.properties.action.enum).toEqual([...CHANGE_ACTIONS]);
+    expect(schema.$defs.entry.properties.action.enum).toEqual([...ENTRY_ACTIONS]);
   });
 
-  test("relation.rel enum equals RELATION_TYPES exactly", () => {
+  test("link.rel enum equals LINK_TYPES exactly", () => {
     const schema = jsonSchema() as Record<string, any>;
-    expect(schema.$defs.relation.properties.rel.enum).toEqual([...RELATION_TYPES]);
+    expect(schema.$defs.link.properties.rel.enum).toEqual([...LINK_TYPES]);
   });
 
   test("source.type enum equals SOURCE_TYPES exactly", () => {
@@ -1823,10 +1823,10 @@ describe("contract.jsonSchema", () => {
     );
   });
 
-  test("scope anyOf demands at least one of collections/subjects/tags", () => {
+  test("scope anyOf demands at least one of profiles/subjects/tags", () => {
     const schema = jsonSchema() as Record<string, any>;
     const required = schema.$defs.scope.anyOf.map((b: { required: string[] }) => b.required[0]);
-    expect(required.sort()).toEqual(["collections", "subjects", "tags"]);
+    expect(required.sort()).toEqual(["profiles", "subjects", "tags"]);
   });
 
   test("source anyOf demands at least one of uri/raw_path/content_hash", () => {

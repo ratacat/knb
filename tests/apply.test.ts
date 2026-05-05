@@ -7,7 +7,7 @@ import { applyOperations, previewApplyOperations, type ApplyDeps } from "../src/
 import type {
   ApplyOperation,
   ApplyRequest,
-  ChangeRow,
+  EntryRow,
   ClaimRow,
   KnbRow,
   QuestionRow,
@@ -21,7 +21,7 @@ let workDir: string;
 
 const FIXED_DATE = new Date("2026-05-01T12:00:00Z");
 
-const ID_REGEX = /^(src|claim|q|synth|chg):[a-z0-9-]+:\d{8}:[a-zA-Z0-9]{8}$/;
+const ID_REGEX = /^(src|claim|q|synth|ent):[a-z0-9-]+:\d{8}:[a-zA-Z0-9]{8}$/;
 
 beforeEach(async () => {
   workDir = await mkdtemp(join(tmpdir(), "knb-apply-"));
@@ -66,7 +66,7 @@ function makeDeps(overrides?: {
 
 const SOURCE_DRAFT = {
   kind: "source" as const,
-  scope: { collections: ["example"] },
+  scope: { profiles: ["example"] },
   source: {
     type: "web_page" as const,
     title: "Example",
@@ -80,7 +80,7 @@ const SOURCE_DRAFT = {
 function buildClaimDraft(overrides?: { uri?: string; statement?: string }) {
   return {
     kind: "claim" as const,
-    scope: { collections: ["example"] },
+    scope: { profiles: ["example"] },
     identity: { claim_key: "example|exists" },
     claim: {
       statement: overrides?.statement ?? "Example exists.",
@@ -135,7 +135,7 @@ describe("applyOperations", () => {
       kind: "source",
       created_at: "2026-05-01T12:00:00Z",
       created_by: "agent:test",
-      scope: { collections: ["preview"] },
+      scope: { profiles: ["preview"] },
       source: { type: "web_page", title: "Preview", uri: "https://example.com/preview" },
       provenance: { acquisition: { method: "manual" } },
     };
@@ -149,7 +149,7 @@ describe("applyOperations", () => {
             op: "add",
             row: {
               kind: "claim",
-              scope: { collections: ["preview"] },
+              scope: { profiles: ["preview"] },
               identity: { claim_key: "preview|validates" },
               claim: { statement: "Preview validates against the existing ledger.", atomic: true },
               time: { precision: "unknown" },
@@ -213,11 +213,11 @@ describe("applyOperations", () => {
         {
           operations: [
             {
-              op: "relate",
+              op: "link",
               from_id: seed.created[0]?.id ?? "",
               to_id: seed.created[1]?.id ?? "",
               rel: "partial_answer_to" as never,
-              scope: { collections: ["example"] },
+              scope: { profiles: ["example"] },
             },
           ],
         },
@@ -232,7 +232,7 @@ describe("applyOperations", () => {
     const issues = (caught as {
       details?: { issues?: Array<{ code?: string; op_index?: number; op_path?: string }> };
     }).details?.issues ?? [];
-    const relIssue = issues.find((issue) => issue.code === "relation_kind_invalid");
+    const relIssue = issues.find((issue) => issue.code === "link_kind_invalid");
     expect(relIssue?.op_index).toBe(0);
     expect(relIssue?.op_path).toBe("operations[0].rel");
     expect(await readLedgerText()).toBe(before);
@@ -332,7 +332,7 @@ describe("applyOperations", () => {
     expect(parsed.created_by).toBe("agent:test");
     expect(parsed.schema_version).toBe("knb.v1");
     expect(parsed.kind).toBe("source");
-    expect(parsed.scope.collections).toEqual(["example"]);
+    expect(parsed.scope.profiles).toEqual(["example"]);
     expect(parsed.source.uri).toBe("https://example.com");
 
     // fingerprint_after must equal a fresh load
@@ -348,7 +348,7 @@ describe("applyOperations", () => {
 
   test("ID format and prefix coverage for all 5 kinds", async () => {
     // source first (claim/synth/question reference it)
-    const sourceIds = ["sssssssa", "ccccccca", "qqqqqqqa", "ssssssss", "chggchgg"];
+    const sourceIds = ["sssssssa", "ccccccca", "qqqqqqqa", "ssssssss", "enttentt"];
     let i = 0;
     const claim = {
       ...buildClaimDraft(),
@@ -358,12 +358,12 @@ describe("applyOperations", () => {
     };
     const question = {
       kind: "question" as const,
-      scope: { collections: ["example"] },
+      scope: { profiles: ["example"] },
       question: { text: "Why?", status: "open" as const, priority: "low" as const },
     };
     const synthesis = {
       kind: "synthesis" as const,
-      scope: { collections: ["example"] },
+      scope: { profiles: ["example"] },
       synthesis: {
         title: "T",
         summary: "S",
@@ -389,18 +389,18 @@ describe("applyOperations", () => {
     expect(result.created[1]?.id).toMatch(/^claim:example:20260501:[a-zA-Z0-9]{8}$/);
     expect(result.created[2]?.id).toMatch(/^q:example:20260501:[a-zA-Z0-9]{8}$/);
     expect(result.created[3]?.id).toMatch(/^synth:example:20260501:[a-zA-Z0-9]{8}$/);
-    expect(result.created[4]?.id).toMatch(/^chg:example:20260501:[a-zA-Z0-9]{8}$/);
+    expect(result.created[4]?.id).toMatch(/^ent:example:20260501:[a-zA-Z0-9]{8}$/);
 
     expect(result.created[0]?.kind).toBe("source");
     expect(result.created[1]?.kind).toBe("claim");
     expect(result.created[2]?.kind).toBe("question");
     expect(result.created[3]?.kind).toBe("synthesis");
-    expect(result.created[4]?.kind).toBe("change");
+    expect(result.created[4]?.kind).toBe("entry");
 
   });
 
-  test("scope-slug priority: collections > subjects > tags", async () => {
-    // collections wins
+  test("scope-slug priority: profiles > subjects > tags", async () => {
+    // profiles wins
     const ranked = await applyOperations(
       {
         operations: [
@@ -408,7 +408,7 @@ describe("applyOperations", () => {
             op: "add",
             row: {
               ...SOURCE_DRAFT,
-              scope: { collections: ["alpha"], subjects: ["Beta"], tags: ["gamma"] },
+              scope: { profiles: ["alpha"], subjects: ["Beta"], tags: ["gamma"] },
             },
           },
         ],
@@ -665,12 +665,12 @@ describe("applyOperations", () => {
     };
     const questionDraft = {
       kind: "question" as const,
-      scope: { collections: ["example"] },
+      scope: { profiles: ["example"] },
       question: { text: "Why?", status: "open" as const },
     };
     const synthesisDraft = {
       kind: "synthesis" as const,
-      scope: { collections: ["example"] },
+      scope: { profiles: ["example"] },
       synthesis: {
         title: "T",
         summary: "S",
@@ -711,7 +711,7 @@ describe("applyOperations", () => {
     };
     const questionDraft = {
       kind: "question" as const,
-      scope: { collections: ["example"] },
+      scope: { profiles: ["example"] },
       question: {
         text: "Q?",
         status: "resolved" as const,
@@ -735,11 +735,11 @@ describe("applyOperations", () => {
     expect(qRow.question.answer_claim_id).toBe(clId);
   });
 
-  test("reference resolved in relations[].target_id on an add", async () => {
+  test("reference resolved in links[].target_id on an add", async () => {
     const claimDraft = {
       ...buildClaimDraft(),
       provenance: { evidence: [{ source_id: "$src", role: "supports" as const, summary: "ok" }] },
-      relations: [{ target_id: "$src", rel: "context_for" as const }],
+      links: [{ target_id: "$src", rel: "context_for" as const }],
     };
     const ids = ["srcsrc01", "claimrel"];
     let i = 0;
@@ -754,7 +754,7 @@ describe("applyOperations", () => {
     );
     const srcId = result.created[0]?.id as string;
     const claimRow = JSON.parse((await readLedgerText()).trim().split("\n")[1] as string) as ClaimRow;
-    expect(claimRow.relations?.[0]?.target_id).toBe(srcId);
+    expect(claimRow.links?.[0]?.target_id).toBe(srcId);
   });
 
   test("provided id on add is preserved", async () => {
@@ -774,7 +774,7 @@ describe("applyOperations", () => {
       kind: "source",
       created_at: "2026-01-01T00:00:00Z",
       created_by: "agent:seed",
-      scope: { collections: ["example"] },
+      scope: { profiles: ["example"] },
       source: { type: "web_page", title: "Existing", uri: "https://existing.example" },
       provenance: { acquisition: { method: "manual" } },
     };
@@ -824,7 +824,7 @@ describe("applyOperations", () => {
       kind: "source",
       created_at: "2026-01-01T00:00:00Z",
       created_by: "agent:seed",
-      scope: { collections: ["example"] },
+      scope: { profiles: ["example"] },
       source: { type: "web_page", title: "Existing", uri: "https://existing.example" },
       provenance: { acquisition: { method: "manual" } },
     };
@@ -849,7 +849,7 @@ describe("applyOperations", () => {
       kind: "source",
       created_at: "2026-01-01T00:00:00Z",
       created_by: "agent:seed",
-      scope: { collections: ["example"] },
+      scope: { profiles: ["example"] },
       source: { type: "web_page", title: "Existing", uri: "https://existing.example" },
       provenance: { acquisition: { method: "manual" } },
     };
@@ -880,14 +880,14 @@ describe("applyOperations", () => {
     expect(await pathExists(lockPath())).toBe(false);
   });
 
-  test("retract appends a single change row with derived scope and complete chg fields", async () => {
+  test("retract appends a single entry row with derived scope and complete entry fields", async () => {
     const claim: ClaimRow = {
       schema_version: "knb.v1",
       id: "claim:example:20260101:target00",
       kind: "claim",
       created_at: "2026-01-01T00:00:00Z",
       created_by: "agent:seed",
-      scope: { collections: ["physics"], subjects: ["Newton"] },
+      scope: { profiles: ["physics"], subjects: ["Newton"] },
       identity: { claim_key: "k" },
       claim: { statement: "x", atomic: true },
       time: { precision: "unknown" },
@@ -904,7 +904,7 @@ describe("applyOperations", () => {
       kind: "source",
       created_at: "2026-01-01T00:00:00Z",
       created_by: "agent:seed",
-      scope: { collections: ["physics"] },
+      scope: { profiles: ["physics"] },
       source: { type: "web_page", title: "S", uri: "https://example.com/s" },
       provenance: { acquisition: { method: "manual" } },
     };
@@ -915,24 +915,24 @@ describe("applyOperations", () => {
     };
     const result = await applyOperations(request, makeDeps());
     expect(result.created).toHaveLength(1);
-    expect(result.created[0]?.kind).toBe("change");
+    expect(result.created[0]?.kind).toBe("entry");
     const onDisk = await readLedgerText();
     const lines = onDisk.trim().split("\n");
     expect(lines).toHaveLength(3);
-    const change = JSON.parse(lines[lines.length - 1] as string) as ChangeRow;
-    expect(change.kind).toBe("change");
-    expect(change.schema_version).toBe("knb.v1");
-    expect(change.created_at).toBe(FIXED_DATE.toISOString());
-    expect(change.created_by).toBe("agent:test");
-    expect(change.id).toBe("chg:physics:20260501:abcd0001");
-    expect(change.change.action).toBe("retract");
-    expect(change.change.target_ids).toEqual([claim.id]);
-    expect(change.change.reason).toBe("Wrong premise");
-    expect(change.scope.collections).toEqual(["physics"]);
-    expect(change.change.relation).toBeUndefined();
-    expect(change.change.replacement_id).toBeUndefined();
-    expect(change.change.canonical_id).toBeUndefined();
-    expect(change.change.patch).toBeUndefined();
+    const entry = JSON.parse(lines[lines.length - 1] as string) as EntryRow;
+    expect(entry.kind).toBe("entry");
+    expect(entry.schema_version).toBe("knb.v1");
+    expect(entry.created_at).toBe(FIXED_DATE.toISOString());
+    expect(entry.created_by).toBe("agent:test");
+    expect(entry.id).toBe("ent:physics:20260501:abcd0001");
+    expect(entry.entry.action).toBe("retract");
+    expect(entry.entry.target_ids).toEqual([claim.id]);
+    expect(entry.entry.reason).toBe("Wrong premise");
+    expect(entry.scope.profiles).toEqual(["physics"]);
+    expect(entry.entry.link).toBeUndefined();
+    expect(entry.entry.replacement_id).toBeUndefined();
+    expect(entry.entry.canonical_id).toBeUndefined();
+    expect(entry.entry.patch).toBeUndefined();
   });
 
   test("supersede with explicit op.scope overrides derivation; reason and replacement preserved", async () => {
@@ -942,7 +942,7 @@ describe("applyOperations", () => {
       kind: "claim",
       created_at: "2026-01-01T00:00:00Z",
       created_by: "agent:seed",
-      scope: { collections: ["foo"] },
+      scope: { profiles: ["foo"] },
       identity: { claim_key: "k" },
       claim: { statement: "x", atomic: true },
       time: { precision: "unknown" },
@@ -959,7 +959,7 @@ describe("applyOperations", () => {
       kind: "claim",
       created_at: "2026-01-01T00:00:00Z",
       created_by: "agent:seed",
-      scope: { collections: ["foo"] },
+      scope: { profiles: ["foo"] },
       identity: { claim_key: "k2" },
       claim: { statement: "y", atomic: true },
       time: { precision: "unknown" },
@@ -976,7 +976,7 @@ describe("applyOperations", () => {
       kind: "source",
       created_at: "2026-01-01T00:00:00Z",
       created_by: "agent:seed",
-      scope: { collections: ["foo"] },
+      scope: { profiles: ["foo"] },
       source: { type: "web_page", title: "S", uri: "https://example.com/s" },
       provenance: { acquisition: { method: "manual" } },
     };
@@ -989,30 +989,30 @@ describe("applyOperations", () => {
           target_ids: [claim.id],
           replacement_id: replacement.id,
           reason: "Better claim",
-          scope: { collections: ["override-scope"] },
+          scope: { profiles: ["override-scope"] },
         },
       ],
     };
     const result = await applyOperations(request, makeDeps());
     const onDisk = await readLedgerText();
-    const change = JSON.parse(onDisk.trim().split("\n").pop() as string) as ChangeRow;
-    expect(change.change.action).toBe("supersede");
-    expect(change.change.replacement_id).toBe(replacement.id);
-    expect(change.change.target_ids).toEqual([claim.id]);
-    expect(change.change.reason).toBe("Better claim");
-    expect(change.scope.collections).toEqual(["override-scope"]);
-    expect(change.id).toBe("chg:override-scope:20260501:abcd0001");
-    expect(result.created[0]?.kind).toBe("change");
+    const entry = JSON.parse(onDisk.trim().split("\n").pop() as string) as EntryRow;
+    expect(entry.entry.action).toBe("supersede");
+    expect(entry.entry.replacement_id).toBe(replacement.id);
+    expect(entry.entry.target_ids).toEqual([claim.id]);
+    expect(entry.entry.reason).toBe("Better claim");
+    expect(entry.scope.profiles).toEqual(["override-scope"]);
+    expect(entry.id).toBe("ent:override-scope:20260501:abcd0001");
+    expect(result.created[0]?.kind).toBe("entry");
   });
 
-  test("merge produces change row with target_ids, canonical_id, derived scope, and reason", async () => {
+  test("merge produces entry row with target_ids, canonical_id, derived scope, and reason", async () => {
     const a: SourceRow = {
       schema_version: "knb.v1",
       id: "src:bar:20260101:aaaaa000",
       kind: "source",
       created_at: "2026-01-01T00:00:00Z",
       created_by: "agent:seed",
-      scope: { collections: ["bar"] },
+      scope: { profiles: ["bar"] },
       source: { type: "web_page", title: "A", uri: "https://example.com/a" },
       provenance: { acquisition: { method: "manual" } },
     };
@@ -1031,23 +1031,23 @@ describe("applyOperations", () => {
     };
     await applyOperations(request, makeDeps());
     const onDisk = await readLedgerText();
-    const change = JSON.parse(onDisk.trim().split("\n").pop() as string) as ChangeRow;
-    expect(change.change.action).toBe("merge");
-    expect(change.change.target_ids).toEqual([b.id]);
-    expect(change.change.canonical_id).toBe(a.id);
-    expect(change.change.reason).toBe("Same source");
-    expect(change.scope.collections).toEqual(["bar"]);
-    expect(change.id).toBe("chg:bar:20260501:abcd0001");
+    const entry = JSON.parse(onDisk.trim().split("\n").pop() as string) as EntryRow;
+    expect(entry.entry.action).toBe("merge");
+    expect(entry.entry.target_ids).toEqual([b.id]);
+    expect(entry.entry.canonical_id).toBe(a.id);
+    expect(entry.entry.reason).toBe("Same source");
+    expect(entry.scope.profiles).toEqual(["bar"]);
+    expect(entry.id).toBe("ent:bar:20260501:abcd0001");
   });
 
-  test("relate produces a change row with change.relation populated and derived scope", async () => {
+  test("link produces an entry row with entry.link populated and derived scope", async () => {
     const a: SourceRow = {
       schema_version: "knb.v1",
       id: "src:rel:20260101:aaaaa000",
       kind: "source",
       created_at: "2026-01-01T00:00:00Z",
       created_by: "agent:seed",
-      scope: { collections: ["rel"] },
+      scope: { profiles: ["rel"] },
       source: { type: "web_page", title: "A", uri: "https://example.com/a" },
       provenance: { acquisition: { method: "manual" } },
     };
@@ -1057,7 +1057,7 @@ describe("applyOperations", () => {
     const request: ApplyRequest = {
       operations: [
         {
-          op: "relate",
+          op: "link",
           from_id: a.id,
           to_id: b.id,
           rel: "supports",
@@ -1068,26 +1068,26 @@ describe("applyOperations", () => {
     };
     await applyOperations(request, makeDeps());
     const onDisk = await readLedgerText();
-    const change = JSON.parse(onDisk.trim().split("\n").pop() as string) as ChangeRow;
-    expect(change.change.action).toBe("relate");
-    expect(change.change.relation?.from_id).toBe(a.id);
-    expect(change.change.relation?.to_id).toBe(b.id);
-    expect(change.change.relation?.rel).toBe("supports");
-    expect(change.change.relation?.rationale).toBe("A backs B");
-    expect(change.change.relation?.strength).toBe("high");
-    expect(change.scope.collections).toEqual(["rel"]);
-    // a relate op never produces inline relations[] on the change row
-    expect((change as unknown as { relations?: unknown }).relations).toBeUndefined();
+    const entry = JSON.parse(onDisk.trim().split("\n").pop() as string) as EntryRow;
+    expect(entry.entry.action).toBe("link");
+    expect(entry.entry.link?.from_id).toBe(a.id);
+    expect(entry.entry.link?.to_id).toBe(b.id);
+    expect(entry.entry.link?.rel).toBe("supports");
+    expect(entry.entry.link?.rationale).toBe("A backs B");
+    expect(entry.entry.link?.strength).toBe("high");
+    expect(entry.scope.profiles).toEqual(["rel"]);
+    // a link op never produces inline links[] on the entry row
+    expect((entry as unknown as { links?: unknown }).links).toBeUndefined();
   });
 
-  test("patch produces change row; original target row on disk is NOT mutated", async () => {
+  test("patch produces entry row; original target row on disk is NOT mutated", async () => {
     const claim: ClaimRow = {
       schema_version: "knb.v1",
       id: "claim:patch:20260101:tgt00000",
       kind: "claim",
       created_at: "2026-01-01T00:00:00Z",
       created_by: "agent:seed",
-      scope: { collections: ["patch"] },
+      scope: { profiles: ["patch"] },
       identity: { claim_key: "k" },
       claim: { statement: "x", atomic: true },
       time: { precision: "unknown" },
@@ -1104,7 +1104,7 @@ describe("applyOperations", () => {
       kind: "source",
       created_at: "2026-01-01T00:00:00Z",
       created_by: "agent:seed",
-      scope: { collections: ["patch"] },
+      scope: { profiles: ["patch"] },
       source: { type: "web_page", title: "S", uri: "https://example.com/s" },
       provenance: { acquisition: { method: "manual" } },
     };
@@ -1130,23 +1130,23 @@ describe("applyOperations", () => {
     expect(lines).toHaveLength(3);
     // claim row line is byte-identical
     expect(lines[1]).toBe(beforeClaimLine);
-    const change = JSON.parse(lines[2] as string) as ChangeRow;
-    expect(change.change.action).toBe("patch");
-    expect(change.change.target_id).toBe(claim.id);
-    expect(change.change.patch).toEqual(patchOps);
-    expect(change.change.reason).toBe("typo");
+    const entry = JSON.parse(lines[2] as string) as EntryRow;
+    expect(entry.entry.action).toBe("patch");
+    expect(entry.entry.target_id).toBe(claim.id);
+    expect(entry.entry.patch).toEqual(patchOps);
+    expect(entry.entry.reason).toBe("typo");
     // patch sets target_id (not target_ids)
-    expect(change.change.target_ids).toBeUndefined();
+    expect(entry.entry.target_ids).toBeUndefined();
   });
 
-  test("derived scope falls back to first target's first anchor when targets share NO collection/subject/tag", async () => {
+  test("derived scope falls back to first target's first anchor when targets share NO profile/subject/tag", async () => {
     const source: SourceRow = {
       schema_version: "knb.v1",
       id: "src:nosharc:20260101:src00000",
       kind: "source",
       created_at: "2026-01-01T00:00:00Z",
       created_by: "agent:seed",
-      scope: { collections: ["seed-coll"] },
+      scope: { profiles: ["seed-coll"] },
       source: { type: "web_page", title: "S", uri: "https://example.com/s" },
       provenance: { acquisition: { method: "manual" } },
     };
@@ -1156,7 +1156,7 @@ describe("applyOperations", () => {
       kind: "claim",
       created_at: "2026-01-01T00:00:00Z",
       created_by: "agent:seed",
-      scope: { collections: ["foo-first", "alpha"] },
+      scope: { profiles: ["foo-first", "alpha"] },
       identity: { claim_key: "k1" },
       claim: { statement: "x", atomic: true },
       time: { precision: "unknown" },
@@ -1166,7 +1166,7 @@ describe("applyOperations", () => {
     const c2: ClaimRow = {
       ...c1,
       id: "claim:bardiff:20260101:ctwo0000",
-      scope: { collections: ["bar-different"] },
+      scope: { profiles: ["bar-different"] },
       identity: { claim_key: "k2" },
     };
     await seedLedger([source, c1, c2]);
@@ -1175,16 +1175,16 @@ describe("applyOperations", () => {
       operations: [{ op: "retract", target_ids: [c1.id, c2.id], reason: "no overlap" }],
     };
     await applyOperations(request, makeDeps());
-    const change = JSON.parse((await readLedgerText()).trim().split("\n").pop() as string) as ChangeRow;
+    const entry = JSON.parse((await readLedgerText()).trim().split("\n").pop() as string) as EntryRow;
     // Falls back to first target's first anchor (foo-first)
-    expect(change.scope.collections).toEqual(["foo-first"]);
-    expect(change.id).toBe("chg:foo-first:20260501:abcd0001");
+    expect(entry.scope.profiles).toEqual(["foo-first"]);
+    expect(entry.id).toBe("ent:foo-first:20260501:abcd0001");
   });
 
   test("validation failure inside callback writes nothing and releases the lock", async () => {
     const badDraft = {
       kind: "claim" as const,
-      scope: { collections: ["example"] },
+      scope: { profiles: ["example"] },
       // missing identity / claim / time / provenance / assessment
     };
 
@@ -1205,7 +1205,7 @@ describe("applyOperations", () => {
     expect(await pathExists(lockPath())).toBe(false);
   });
 
-  test("relations[].target_id pointing at unknown id is caught by final validation; ledger unchanged", async () => {
+  test("links[].target_id pointing at unknown id is caught by final validation; ledger unchanged", async () => {
     const claimDraft = {
       ...buildClaimDraft(),
       provenance: {
@@ -1214,7 +1214,7 @@ describe("applyOperations", () => {
       // Manually injected target_id that's not a $alias and not in snapshot.
       // resolveRef will reject it as broken_reference because it's neither $-prefixed
       // nor a known id.
-      relations: [{ target_id: "src:nope:nope:nope0000", rel: "context_for" as const }],
+      links: [{ target_id: "src:nope:nope:nope0000", rel: "context_for" as const }],
     };
     let thrown: unknown;
     try {
@@ -1242,7 +1242,7 @@ describe("applyOperations", () => {
       kind: "source",
       created_at: "2026-01-01T00:00:00Z",
       created_by: "agent:seed",
-      scope: { collections: ["example"] },
+      scope: { profiles: ["example"] },
       source: { type: "web_page", title: "S", uri: "https://example.com/s" },
       provenance: { acquisition: { method: "manual" } },
     };
@@ -1251,7 +1251,7 @@ describe("applyOperations", () => {
 
     const synthDraft = {
       kind: "synthesis" as const,
-      scope: { collections: ["example"] },
+      scope: { profiles: ["example"] },
       synthesis: {
         title: "T",
         summary: "S",
@@ -1285,7 +1285,7 @@ describe("applyOperations", () => {
       kind: "source",
       created_at: "2026-01-01T00:00:00Z",
       created_by: "agent:seed",
-      scope: { collections: ["example"] },
+      scope: { profiles: ["example"] },
       source: { type: "web_page", title: "Existing", uri: "https://existing.example" },
       provenance: { acquisition: { method: "manual" } },
     };
@@ -1339,7 +1339,7 @@ describe("applyOperations", () => {
       kind: "source",
       created_at: "2026-01-01T00:00:00Z",
       created_by: "agent:seed",
-      scope: { collections: ["example"] },
+      scope: { profiles: ["example"] },
       source: { type: "web_page", title: "S", uri: "https://duplicate.example" },
       provenance: { acquisition: { method: "manual" } },
     };
@@ -1522,7 +1522,7 @@ describe("applyOperations", () => {
             as: "q",
             row: {
               kind: "question",
-              scope: { collections: ["example"] },
+              scope: { profiles: ["example"] },
               question: { text: "Open?", status: "open" },
             },
           },
@@ -1530,7 +1530,7 @@ describe("applyOperations", () => {
             op: "add",
             row: {
               kind: "synthesis",
-              scope: { collections: ["example"] },
+              scope: { profiles: ["example"] },
               synthesis: {
                 title: "S",
                 summary: "Summary",
@@ -1557,14 +1557,14 @@ describe("applyOperations", () => {
     expect(source.provenance.acquisition?.query).toBe("keep me");
   });
 
-  test("retract two claims sharing a collection: derived scope is the intersection", async () => {
+  test("retract two claims sharing a profile: derived scope is the intersection", async () => {
     const source: SourceRow = {
       schema_version: "knb.v1",
       id: "src:shared:20260101:src00000",
       kind: "source",
       created_at: "2026-01-01T00:00:00Z",
       created_by: "agent:seed",
-      scope: { collections: ["shared"] },
+      scope: { profiles: ["shared"] },
       source: { type: "web_page", title: "S", uri: "https://example.com/s" },
       provenance: { acquisition: { method: "manual" } },
     };
@@ -1574,7 +1574,7 @@ describe("applyOperations", () => {
       kind: "claim",
       created_at: "2026-01-01T00:00:00Z",
       created_by: "agent:seed",
-      scope: { collections: ["shared", "alpha"] },
+      scope: { profiles: ["shared", "alpha"] },
       identity: { claim_key: "k1" },
       claim: { statement: "x", atomic: true },
       time: { precision: "unknown" },
@@ -1586,7 +1586,7 @@ describe("applyOperations", () => {
     const c2: ClaimRow = {
       ...c1,
       id: "claim:shared:20260101:c2000000",
-      scope: { collections: ["shared", "beta"] },
+      scope: { profiles: ["shared", "beta"] },
       identity: { claim_key: "k2" },
     };
     await seedLedger([source, c1, c2]);
@@ -1596,13 +1596,13 @@ describe("applyOperations", () => {
     };
     await applyOperations(request, makeDeps());
     const onDisk = await readLedgerText();
-    const change = JSON.parse(onDisk.trim().split("\n").pop() as string) as ChangeRow;
-    expect(change.scope.collections).toEqual(["shared"]);
+    const entry = JSON.parse(onDisk.trim().split("\n").pop() as string) as EntryRow;
+    expect(entry.scope.profiles).toEqual(["shared"]);
   });
 
-  test("retract via $op alias from a same-batch add resolves correctly in change.target_ids", async () => {
+  test("retract via $op alias from a same-batch add resolves correctly in entry.target_ids", async () => {
     // Add a claim and immediately retract it in the same batch.
-    const ids = ["src1add0", "claimad0", "chgop001"];
+    const ids = ["src1add0", "claimad0", "entop001"];
     let i = 0;
     const claimDraft = {
       ...buildClaimDraft(),
@@ -1620,8 +1620,8 @@ describe("applyOperations", () => {
     );
     expect(result.created).toHaveLength(3);
     const claimId = result.created[1]?.id as string;
-    const change = JSON.parse((await readLedgerText()).trim().split("\n").pop() as string) as ChangeRow;
-    expect(change.change.target_ids).toEqual([claimId]);
+    const entry = JSON.parse((await readLedgerText()).trim().split("\n").pop() as string) as EntryRow;
+    expect(entry.entry.target_ids).toEqual([claimId]);
   });
 
   test("supersede via $alias for replacement_id resolves correctly in same batch", async () => {
@@ -1632,7 +1632,7 @@ describe("applyOperations", () => {
       kind: "claim",
       created_at: "2026-01-01T00:00:00Z",
       created_by: "agent:seed",
-      scope: { collections: ["supbat"] },
+      scope: { profiles: ["supbat"] },
       identity: { claim_key: "old" },
       claim: { statement: "old", atomic: true },
       time: { precision: "unknown" },
@@ -1649,16 +1649,16 @@ describe("applyOperations", () => {
       kind: "source",
       created_at: "2026-01-01T00:00:00Z",
       created_by: "agent:seed",
-      scope: { collections: ["supbat"] },
+      scope: { profiles: ["supbat"] },
       source: { type: "web_page", title: "S", uri: "https://example.com/sb" },
       provenance: { acquisition: { method: "manual" } },
     };
     await seedLedger([seedSource, seedClaim]);
-    const ids = ["newclai1", "chgsup01"];
+    const ids = ["newclai1", "entsup01"];
     let i = 0;
     const newClaimDraft = {
       kind: "claim" as const,
-      scope: { collections: ["supbat"] },
+      scope: { profiles: ["supbat"] },
       identity: { claim_key: "new" },
       claim: { statement: "new", atomic: true },
       time: { precision: "unknown" as const },
@@ -1680,13 +1680,13 @@ describe("applyOperations", () => {
       makeDeps({ randomIdPart: () => ids[i++] as string }),
     );
     const newId = result.created[0]?.id as string;
-    const change = JSON.parse((await readLedgerText()).trim().split("\n").pop() as string) as ChangeRow;
-    expect(change.change.replacement_id).toBe(newId);
-    expect(change.change.target_ids).toEqual([seedClaim.id]);
+    const entry = JSON.parse((await readLedgerText()).trim().split("\n").pop() as string) as EntryRow;
+    expect(entry.entry.replacement_id).toBe(newId);
+    expect(entry.entry.target_ids).toEqual([seedClaim.id]);
   });
 
   test("merge via $alias for canonical_id resolves in same batch", async () => {
-    const ids = ["aaaa00aa", "bbbb00bb", "chgmerg1"];
+    const ids = ["aaaa00aa", "bbbb00bb", "entmerg1"];
     let i = 0;
     const result = await applyOperations(
       {
@@ -1709,14 +1709,14 @@ describe("applyOperations", () => {
     );
     const aId = result.created[0]?.id as string;
     const bId = result.created[1]?.id as string;
-    const change = JSON.parse((await readLedgerText()).trim().split("\n").pop() as string) as ChangeRow;
-    expect(change.change.action).toBe("merge");
-    expect(change.change.canonical_id).toBe(aId);
-    expect(change.change.target_ids).toEqual([bId]);
+    const entry = JSON.parse((await readLedgerText()).trim().split("\n").pop() as string) as EntryRow;
+    expect(entry.entry.action).toBe("merge");
+    expect(entry.entry.canonical_id).toBe(aId);
+    expect(entry.entry.target_ids).toEqual([bId]);
   });
 
-  test("relate via $alias for from_id and to_id resolves in same batch", async () => {
-    const ids = ["aaaa11aa", "bbbb11bb", "chgrel11"];
+  test("link via $alias for from_id and to_id resolves in same batch", async () => {
+    const ids = ["aaaa11aa", "bbbb11bb", "entlink1"];
     let i = 0;
     const result = await applyOperations(
       {
@@ -1727,20 +1727,20 @@ describe("applyOperations", () => {
             as: "b",
             row: { ...SOURCE_DRAFT, source: { ...SOURCE_DRAFT.source, uri: "https://example.com/rb" } },
           },
-          { op: "relate", from_id: "$a", to_id: "$b", rel: "supports" },
+          { op: "link", from_id: "$a", to_id: "$b", rel: "supports" },
         ],
       },
       makeDeps({ randomIdPart: () => ids[i++] as string }),
     );
     const aId = result.created[0]?.id as string;
     const bId = result.created[1]?.id as string;
-    const change = JSON.parse((await readLedgerText()).trim().split("\n").pop() as string) as ChangeRow;
-    expect(change.change.relation?.from_id).toBe(aId);
-    expect(change.change.relation?.to_id).toBe(bId);
+    const entry = JSON.parse((await readLedgerText()).trim().split("\n").pop() as string) as EntryRow;
+    expect(entry.entry.link?.from_id).toBe(aId);
+    expect(entry.entry.link?.to_id).toBe(bId);
   });
 
   test("patch via $alias for target_id resolves in same batch", async () => {
-    const ids = ["claim001", "chgptch1"];
+    const ids = ["claim001", "entptch1"];
     let i = 0;
     const claimDraft = {
       ...buildClaimDraft(),
@@ -1752,13 +1752,13 @@ describe("applyOperations", () => {
       kind: "source",
       created_at: "2026-01-01T00:00:00Z",
       created_by: "agent:seed",
-      scope: { collections: ["patchbatch"] },
+      scope: { profiles: ["patchbatch"] },
       source: { type: "web_page", title: "S", uri: "https://example.com/pb" },
       provenance: { acquisition: { method: "manual" } },
     };
     await seedLedger([seedSource]);
     // Use a scope matching "patchbatch" so derivation works
-    const claim2 = { ...claimDraft, scope: { collections: ["patchbatch"] } };
+    const claim2 = { ...claimDraft, scope: { profiles: ["patchbatch"] } };
     const result = await applyOperations(
       {
         operations: [
@@ -1774,8 +1774,8 @@ describe("applyOperations", () => {
       makeDeps({ randomIdPart: () => ids[i++] as string }),
     );
     const claimId = result.created[0]?.id as string;
-    const change = JSON.parse((await readLedgerText()).trim().split("\n").pop() as string) as ChangeRow;
-    expect(change.change.target_id).toBe(claimId);
+    const entry = JSON.parse((await readLedgerText()).trim().split("\n").pop() as string) as EntryRow;
+    expect(entry.entry.target_id).toBe(claimId);
   });
 
   test("pre-existing ledger validation errors abort apply with validation_failed before any write", async () => {
@@ -1783,7 +1783,7 @@ describe("applyOperations", () => {
     const broken = {
       id: "claim:bad:20260101:broken00",
       kind: "claim",
-      scope: { collections: ["bad"] },
+      scope: { profiles: ["bad"] },
       identity: { claim_key: "k" },
       claim: { statement: "x", atomic: true },
       time: { precision: "unknown" },
@@ -1825,7 +1825,7 @@ describe("applyOperations", () => {
       makeDeps({ randomIdPart: () => ids[i++] as string }),
     );
     expect(result.created.map((c) => c.op)).toEqual([0, 1, 2]);
-    expect(result.created.map((c) => c.kind)).toEqual(["source", "claim", "change"]);
+    expect(result.created.map((c) => c.kind)).toEqual(["source", "claim", "entry"]);
     expect(result.created[0]?.as).toBe("src");
     expect(result.created[1]?.as).toBe("cl");
     expect(result.created[2]?.as).toBeUndefined();

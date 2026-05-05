@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { openKnb, type Knb, type OpenKnbOptions } from "../src/index";
-import type { ApplyOperation, ApplyRequest, DraftRow, ExternalRef } from "../src/core/contract";
+import type { DraftRow, ExternalRef } from "../src/core/contract";
 import { isKnbError } from "../src/core/errors";
 import { readSnapshot, type ReadSnapshotFreshnessProbe } from "../src/core/read-snapshot";
 
@@ -40,10 +40,10 @@ async function openTestKnb(): Promise<Knb> {
   return openKnb(options);
 }
 
-function sourceDraft(collection: string, uri = `https://example.com/${collection}`, title = "Source"): DraftRow {
+function sourceDraft(profile: string, uri = `https://example.com/${profile}`, title = "Source"): DraftRow {
   return {
     kind: "source",
-    scope: { collections: [collection] },
+    scope: { profiles: [profile] },
     source: { type: "web_page", title, uri },
     provenance: { acquisition: { method: "manual" } },
   } as DraftRow;
@@ -51,7 +51,7 @@ function sourceDraft(collection: string, uri = `https://example.com/${collection
 
 function claimDraft(
   sourceRef: string,
-  collection: string,
+  profile: string,
   statement: string,
   claimKey?: string,
   extras: {
@@ -63,7 +63,7 @@ function claimDraft(
   const claimShape: Record<string, unknown> = { statement, atomic: true };
   const draft: Record<string, unknown> = {
     kind: "claim",
-    scope: { collections: [collection] },
+    scope: { profiles: [profile] },
     ...(extras.external_refs !== undefined ? { external_refs: extras.external_refs } : {}),
     identity: claimKey ? { claim_key: claimKey } : {},
     claim: claimShape,
@@ -77,10 +77,10 @@ function claimDraft(
   return draft as DraftRow;
 }
 
-function synthDraft(collection: string, claimRef: string, title = "Synthesis", summary = "Sums it up."): DraftRow {
+function synthDraft(profile: string, claimRef: string, title = "Synthesis", summary = "Sums it up."): DraftRow {
   return {
     kind: "synthesis",
-    scope: { collections: [collection] },
+    scope: { profiles: [profile] },
     synthesis: {
       title,
       summary,
@@ -90,10 +90,10 @@ function synthDraft(collection: string, claimRef: string, title = "Synthesis", s
   } as DraftRow;
 }
 
-function questionDraft(collection: string, text = "What remains open?"): DraftRow {
+function questionDraft(profile: string, text = "What remains open?"): DraftRow {
   return {
     kind: "question",
-    scope: { collections: [collection] },
+    scope: { profiles: [profile] },
     question: { text, status: "open" },
   } as DraftRow;
 }
@@ -144,7 +144,7 @@ describe("read-side integration: get through the facade", () => {
     expect(got.not_found.sort()).toEqual(["missing-one", "missing-two"].sort());
   });
 
-  test("get with explain on a retracted claim returns history with the retract change", async () => {
+  test("get with explain on a retracted claim returns history with the retract entry", async () => {
     const knb = await openTestKnb();
     const seed = await knb.apply({
       operations: [
@@ -170,12 +170,12 @@ describe("read-side integration: get through the facade", () => {
     expect(row.explanation?.history.length).toBeGreaterThanOrEqual(1);
     const entry = row.explanation!.history[0]!;
     expect(entry.action).toBe("retract");
-    expect(typeof entry.change_id).toBe("string");
+    expect(typeof entry.entry_id).toBe("string");
   });
 });
 
 describe("read-side integration: query through the facade", () => {
-  test("query filters by collection AND kind", async () => {
+  test("query filters by profile AND kind", async () => {
     const knb = await openTestKnb();
     await knb.apply({
       operations: [
@@ -186,7 +186,7 @@ describe("read-side integration: query through the facade", () => {
       ],
     });
 
-    const result = await knb.query({ collection: "alpha", kinds: ["claim"] });
+    const result = await knb.query({ profile: "alpha", kinds: ["claim"] });
     expect(result.rows.length).toBe(1);
     expect(result.rows[0]?.kind).toBe("claim");
     expect(result.rows[0]?.text).toBe("Alpha statement.");
@@ -312,7 +312,7 @@ describe("read-side integration: asOf through the facade", () => {
     expect(beforeClaim.not_found).toEqual([claimId]);
 
     const queryAtClaim = await knb.query({
-      collection: "asof",
+      profile: "asof",
       kinds: ["claim"],
       asOf: "2026-05-01T01:30:00Z",
     });
@@ -320,23 +320,23 @@ describe("read-side integration: asOf through the facade", () => {
     expect(queryAtClaim.rows[0]?.status).toBe("active");
 
     const queryAfterRetract = await knb.query({
-      collection: "asof",
+      profile: "asof",
       kinds: ["claim"],
       includeHistory: true,
       asOf: "2026-05-01T02:30:00Z",
     });
     expect(queryAfterRetract.rows.map((row) => [row.id, row.status])).toEqual([[claimId, "retracted"]]);
 
-    const contextAtClaim = await knb.context({ collection: "asof", asOf: "2026-05-01T01:30:00Z" });
+    const contextAtClaim = await knb.context({ profile: "asof", asOf: "2026-05-01T01:30:00Z" });
     expect(contextAtClaim.key_claims.map((claim) => claim.id)).toEqual([claimId]);
     expect(contextAtClaim.syntheses.map((synthesis) => synthesis.title)).toEqual(["AsOf Synthesis"]);
     expect(contextAtClaim.open_questions).toEqual([]);
 
-    const contextAfterQuestion = await knb.context({ collection: "asof", asOf: "2026-05-01T03:30:00Z" });
+    const contextAfterQuestion = await knb.context({ profile: "asof", asOf: "2026-05-01T03:30:00Z" });
     expect(contextAfterQuestion.key_claims.map((claim) => claim.id)).not.toContain(claimId);
     expect(contextAfterQuestion.open_questions.map((question) => question.text)).toEqual(["Question after cutoff?"]);
 
-    const renderResult = await knb.render({ collection: "asof", asOf: "2026-05-01T01:30:00Z" });
+    const renderResult = await knb.render({ profile: "asof", asOf: "2026-05-01T01:30:00Z" });
     const markdown = await readFile(renderResult.path, "utf8");
     expect(markdown).toContain("Time-travel claim.");
     expect(markdown).toContain("Historical synthesis.");
@@ -382,7 +382,7 @@ describe("read-side integration: context through the facade", () => {
       ],
     });
 
-    const result = await knb.context({ collection: "ctx", maxTokens: 5 });
+    const result = await knb.context({ profile: "ctx", maxTokens: 5 });
     expect(result.truncated).toBe(true);
     // Truncation should have removed at least one item.
     expect(result.key_claims.length).toBeLessThan(3);
@@ -397,20 +397,20 @@ describe("read-side integration: context through the facade", () => {
       ],
     });
 
-    const result = await knb.context({ collection: "warn" });
+    const result = await knb.context({ profile: "warn" });
     const codes = result.warnings.map((w) => w.code);
     expect(codes).toContain("info_gap_no_active_synthesis");
   });
 });
 
 describe("read-side integration: status and check through the facade", () => {
-  test("status reflects state warnings when a change targets a missing id", async () => {
+  test("status reflects state warnings when an entry targets a missing id", async () => {
     const knb = await openTestKnb();
-    // Append a retract change row with an unresolved target by writing directly,
+    // Append a retract entry row with an unresolved target by writing directly,
     // but make it pass validation by also preinserting the target_id row.
     // Instead, exercise this by adding two claims, retracting one, then writing
     // a second retract that references the already-retracted row. This produces
-    // change_target_inactive — a state warning.
+    // entry_target_inactive — a state warning.
     const seed = await knb.apply({
       operations: [
         { op: "add", row: sourceDraft("warns"), as: "src" },
@@ -438,7 +438,7 @@ describe("read-side integration: status and check through the facade", () => {
     const knb = await openTestKnb();
     await knb.apply({ operations: [{ op: "add", row: sourceDraft("validfail") }] });
     // Append a row missing required fields (no kind, no scope, etc.).
-    const bad = { schema_version: "knb.v1", id: "bad:1", created_at: "2026-05-01T12:00:00Z", created_by: "x", scope: { collections: ["validfail"] } };
+    const bad = { schema_version: "knb.v1", id: "bad:1", created_at: "2026-05-01T12:00:00Z", created_by: "x", scope: { profiles: ["validfail"] } };
     await appendFile(join(workDir, "knb", "ledger.jsonl"), `${JSON.stringify(bad)}\n`, "utf8");
     const result = await knb.check();
     expect(result.ok).toBe(false);
@@ -448,7 +448,7 @@ describe("read-side integration: status and check through the facade", () => {
   test("check projection_freshness flips fresh -> stale after appending a row", async () => {
     const knb = await openTestKnb();
     await knb.apply({ operations: [{ op: "add", row: sourceDraft("fresh") }] });
-    await knb.render({ collection: "fresh" });
+    await knb.render({ profile: "fresh" });
     await knb.rebuildIndex();
 
     const initial = await knb.check();
@@ -527,7 +527,7 @@ describe("readSnapshot - validity transitions", () => {
       kind: "source",
       created_at: ts,
       created_by: "agent:test",
-      scope: { collections: ["warn-only"] },
+      scope: { profiles: ["warn-only"] },
       source: { type: "web_page", title: "Second", uri: "https://dup.example/w" },
       provenance: { acquisition: { method: "manual" } },
     };
@@ -543,7 +543,7 @@ describe("readSnapshot - validity transitions", () => {
       id: "bad:1",
       created_at: ts,
       created_by: "x",
-      scope: { collections: ["warn-only"] },
+      scope: { profiles: ["warn-only"] },
     };
     await appendFile(join(workDir, "knb", "ledger.jsonl"), `${JSON.stringify(bad)}\n`, "utf8");
     const errSnap = await readSnapshot({ workspace: knb.workspace });
@@ -623,7 +623,7 @@ describe("readSnapshot - freshness probe wiring", () => {
           statusOf: () => undefined,
           canonicalIdOf: (id) => id,
           explain: () => undefined,
-          relationGraph: () => ({ all: () => [], outgoing: () => [], incoming: () => [] }),
+          linkGraph: () => ({ all: () => [], outgoing: () => [], incoming: () => [] }),
         };
       },
     });
@@ -650,7 +650,7 @@ describe("read-side integration: status row counts", () => {
     expect(status.active_counts_by_kind.source).toBe(1);
     expect(status.active_counts_by_kind.claim).toBe(1);
     expect(status.inactive_counts_by_status.retracted).toBe(1);
-    // row_count is the raw ledger row count (sources + claims + the retract change row).
+    // row_count is the raw ledger row count (sources + claims + the retract entry row).
     expect(status.row_count).toBe(4);
   });
 });
@@ -660,8 +660,8 @@ describe("read-side integration: query filter coverage", () => {
     const knb = await openTestKnb();
     await knb.apply({
       operations: [
-        { op: "add", row: { ...sourceDraft("tags"), scope: { collections: ["tags"], tags: ["green"] } }, as: "sg" },
-        { op: "add", row: { ...sourceDraft("tags", "https://b.example/y"), scope: { collections: ["tags"], tags: ["red"] } }, as: "sr" },
+        { op: "add", row: { ...sourceDraft("tags"), scope: { profiles: ["tags"], tags: ["green"] } }, as: "sg" },
+        { op: "add", row: { ...sourceDraft("tags", "https://b.example/y"), scope: { profiles: ["tags"], tags: ["red"] } }, as: "sr" },
       ],
     });
     const greens = await knb.query({ tag: "green" });
@@ -672,8 +672,8 @@ describe("read-side integration: query filter coverage", () => {
 
     await knb.apply({
       operations: [
-        { op: "add", row: { ...sourceDraft("subj", "https://s.example/a"), scope: { collections: ["subj"], subjects: ["Alpha"] } } },
-        { op: "add", row: { ...sourceDraft("subj", "https://s.example/b", "Other"), scope: { collections: ["subj"], subjects: ["Beta"] } } },
+        { op: "add", row: { ...sourceDraft("subj", "https://s.example/a"), scope: { profiles: ["subj"], subjects: ["Alpha"] } } },
+        { op: "add", row: { ...sourceDraft("subj", "https://s.example/b", "Other"), scope: { profiles: ["subj"], subjects: ["Beta"] } } },
       ],
     });
     const alpha = await knb.query({ subject: "Alpha" });
@@ -713,11 +713,11 @@ describe("read-side integration: context reflects effective state", () => {
     });
     const claimId = seed.created[1]?.id ?? "";
 
-    const before = await knb.context({ collection: "ctx2" });
+    const before = await knb.context({ profile: "ctx2" });
     expect(before.key_claims.some((c) => c.id === claimId)).toBe(true);
 
     await knb.apply({ operations: [{ op: "retract", target_ids: [claimId], reason: "no" }] });
-    const after = await knb.context({ collection: "ctx2" });
+    const after = await knb.context({ profile: "ctx2" });
     expect(after.key_claims.some((c) => c.id === claimId)).toBe(false);
   });
 });

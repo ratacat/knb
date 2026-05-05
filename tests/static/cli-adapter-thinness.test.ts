@@ -31,7 +31,7 @@ const FORBIDDEN_RUNTIME_CALLS = [
   "buildContext",
   "classifyClaim",
   "applyOperations",
-  "renderCollection",
+  "renderView",
   "rebuildIndexes",
   "checkFreshness",
 ];

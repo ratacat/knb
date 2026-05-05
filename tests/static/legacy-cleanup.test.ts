@@ -7,7 +7,6 @@ import {
   readSourceFiles,
   repoPath,
   stripComments,
-  stripCommentsAndStrings,
 } from "./_helpers";
 
 const CLI_FILE = "src/cli.ts";
@@ -25,8 +24,22 @@ const SRC_FILES = [
   "src/core/projections.ts",
   "src/core/query.ts",
   "src/core/read-snapshot.ts",
+  "src/core/source-citations.ts",
   "src/core/state.ts",
   "src/core/workspace.ts",
+];
+
+const CURRENT_DOC_FILES = [
+  "AGENTS.md",
+  "ARCHITECTURE.md",
+  "README.md",
+  "knb/README.md",
+  "research.md",
+  "docs/library-usage.md",
+  "docs/migration-and-rollback.md",
+  "docs/design/agent-first-cli.md",
+  "docs/design/context-scoring-spike.md",
+  "docs/design/pro-refactor.md",
 ];
 
 const LEGACY_DISPATCH_PATTERNS: Array<{ label: string; rx: RegExp }> = [
@@ -53,6 +66,19 @@ const KB_SHORTHAND_PATTERNS: Array<{ label: string; rx: RegExp }> = [
   { label: "export interface KB", rx: /\bexport\s+interface\s+KB[A-Z_0-9]/g },
   { label: "import { KB", rx: /\bimport\s*\{\s*KB[A-Z_0-9]/g },
   { label: 'from "kb"', rx: /from\s*["']kb["']/g },
+];
+
+const RETIRED_SCOPE_EDGE_PATTERNS: Array<{ label: string; rx: RegExp }> = [
+  { label: "collection", rx: /\bcollections?\b/g },
+  { label: "relation", rx: /\brelations?\b/g },
+  { label: "relate", rx: /\brelate\b/g },
+  { label: "scope.collections", rx: /\bscope\.collections\b/g },
+  { label: "includeChanges", rx: /\bincludeChanges\b/g },
+  { label: "renderCollection", rx: /\brenderCollection\b/g },
+  { label: "active-by-collection", rx: /\bactive-by-collection\b/g },
+  { label: "ChangeRow", rx: /\bChangeRow\b/g },
+  { label: "RelationType", rx: /\bRelationType\b/g },
+  { label: "RELATION_TYPES", rx: /\bRELATION_TYPES\b/g },
 ];
 
 function findPrintHelpBody(stripped: string): string | null {
@@ -196,6 +222,33 @@ describe("legacy command and naming cleanup (bd-2f7.6)", () => {
     expect(violations).toEqual([]);
   });
 
+  test("current source and docs do not reintroduce retired collection/relation terminology", async () => {
+    const srcFiles = await readSourceFiles(SRC_FILES);
+    const violations: string[] = [];
+    for (const file of srcFiles) {
+      for (const { label, rx } of RETIRED_SCOPE_EDGE_PATTERNS) {
+        const matches = findMatches(file.strippedComments, rx);
+        if (matches.length > 0) {
+          violations.push(describeViolations(file, label, matches));
+        }
+      }
+    }
+
+    for (const rel of CURRENT_DOC_FILES) {
+      const raw = await readMarkdownIfExists(rel);
+      if (raw === null) continue;
+      const text = stripHtmlComments(raw);
+      for (const { label, rx } of RETIRED_SCOPE_EDGE_PATTERNS) {
+        const matches = findMatches(text, rx);
+        if (matches.length > 0) {
+          violations.push(`${rel}: forbidden "${label}" (${matches.length}x)`);
+        }
+      }
+    }
+
+    expect(violations).toEqual([]);
+  });
+
   test("scanner detects forbidden case dispatch in negative fixture", () => {
     const bad = `switch (command) {\n  case "validate":\n    return runLegacyValidate();\n  case "apply":\n    return runApply();\n}`;
     const stripped = stripComments(bad);
@@ -220,5 +273,13 @@ describe("legacy command and naming cleanup (bd-2f7.6)", () => {
     const bad = `const SCHEMA = "kb.v1";`;
     const matches = findMatches(bad, /kb\.v1/g);
     expect(matches.length).toBe(1);
+  });
+
+  test("scanner detects retired relation terminology in negative fixture", () => {
+    const bad = "scope.collections and RelationType should not come back.";
+    const collectionMatches = findMatches(bad, /\bscope\.collections\b/g);
+    const relationMatches = findMatches(bad, /\bRelationType\b/g);
+    expect(collectionMatches.length).toBe(1);
+    expect(relationMatches.length).toBe(1);
   });
 });

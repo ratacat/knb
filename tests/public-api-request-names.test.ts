@@ -1,22 +1,26 @@
 import { describe, expect, test } from "bun:test";
-import { mkdir, mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { openKnb } from "../src/index";
 import type {
+  ApplyResult,
   ApplyRequest,
+  CheckResult,
   ContextRequest,
   GetRequest,
+  IndexResult,
   QueryRequest,
   RenderRequest,
+  RenderResult,
 } from "../src/index";
 
 type HasKey<T, K extends PropertyKey> = K extends keyof T ? true : false;
 type Not<T extends boolean> = T extends true ? false : true;
 type Expect<T extends true> = T;
 
-type PublicRequestNamesUseCamelCase = [
+export type PublicRequestNamesUseCamelCase = [
   Expect<HasKey<ApplyRequest, "runId">>,
   Expect<Not<HasKey<ApplyRequest, "run_id">>>,
   Expect<HasKey<ContextRequest, "includeWarnings">>,
@@ -40,18 +44,26 @@ type PublicRequestNamesUseCamelCase = [
   Expect<HasKey<RenderRequest, "asOf">>,
 ];
 
+export type PublicFacadeResultTypesAreExported = [
+  Expect<HasKey<ApplyResult, "run_id">>,
+  Expect<HasKey<ApplyResult, "created">>,
+  Expect<HasKey<CheckResult, "projection_freshness">>,
+  Expect<HasKey<IndexResult, "indexes">>,
+  Expect<HasKey<RenderResult, "metadata">>,
+];
+
 const typecheckPublicRequestExamples = [
   {
     operations: [],
     runId: "run_public_camel",
   } satisfies ApplyRequest,
   {
-    collection: "public",
+    profile: "public",
     includeWarnings: false,
     maxTokens: 1000,
   } satisfies ContextRequest,
   {
-    collection: "public",
+    profile: "public",
     claimKey: "public|fact",
   } satisfies QueryRequest,
   {
@@ -59,7 +71,7 @@ const typecheckPublicRequestExamples = [
     includeHistory: true,
   } satisfies GetRequest,
   {
-    collection: "public",
+    profile: "public",
     asOf: "2026-05-01T12:30:00Z",
   } satisfies RenderRequest,
 ];
@@ -90,7 +102,7 @@ describe("public facade request option names", () => {
             as: "src",
             row: {
               kind: "source",
-              scope: { collections: ["public"] },
+              scope: { profiles: ["public"] },
               source: { type: "web_page", title: "Public request source", uri: "https://example.com/public" },
               provenance: { acquisition: { method: "manual" } },
             },
@@ -100,7 +112,7 @@ describe("public facade request option names", () => {
             as: "claim",
             row: {
               kind: "claim",
-              scope: { collections: ["public"] },
+              scope: { profiles: ["public"] },
               external_refs: [{ system: "x", id: "123" }],
               identity: { claim_key: "public|fact" },
               claim: {
@@ -119,13 +131,13 @@ describe("public facade request option names", () => {
       expect(result.run_id).toBe("run_public_camel");
 
       const query = await knb.query({
-        collection: "public",
+        profile: "public",
         claimKey: "public|fact",
       });
       expect(query.rows.map((row) => row.id)).toEqual([result.created[1]!.id]);
 
       const context = await knb.context({
-        collection: "public",
+        profile: "public",
         includeWarnings: false,
         maxTokens: 1000,
       });
@@ -135,7 +147,7 @@ describe("public facade request option names", () => {
       const got = await knb.get([result.created[1]!.id], { includeHistory: true });
       expect(got.rows).toHaveLength(1);
 
-      const rendered = await knb.render({ collection: "public", asOf: "2026-05-01T12:30:00.000Z" });
+      const rendered = await knb.render({ profile: "public", asOf: "2026-05-01T12:30:00.000Z" });
       expect(rendered.metadata.options.asOf).toBe("2026-05-01T12:30:00.000Z");
       expect(await readFile(rendered.path, "utf8")).toContain("Public facade request names are camelCase.");
     } finally {

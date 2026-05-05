@@ -15,9 +15,11 @@ const knb = await openKnb({
 
 `openKnb` resolves the workspace (`.knb/config.json`, `knb/ledger.jsonl`), the acting identity, and runtime adapters. Pass `runtime: { clock, randomIdPart }` to inject deterministic time and IDs for tests.
 
+One workspace is one KNB instance. Rows can belong to one or more profiles through `scope.profiles`, and the facade methods accept `profile` filters for profile-scoped reads and renders.
+
 ## Facade methods
 
-Each method returns a typed domain result. None of them know about TTYs or JSON envelopes; that is the CLI's job.
+Each method returns a typed domain result exported from the package root, for example `ApplyResult`, `CheckResult`, `RenderResult`, and `IndexResult`. None of them know about TTYs or JSON envelopes; that is the CLI's job.
 
 ### `init(options?)`
 
@@ -51,8 +53,8 @@ Primary write. Atomic by default; rejects forward references, unresolved IDs, an
 ```ts
 await knb.apply({
   operations: [
-    { op: "add", as: "src", row: { kind: "source", scope: { collections: ["x"] }, source: { type: "web_page", title: "T", uri: "https://x" }, provenance: { acquisition: { method: "manual" } } } },
-    { op: "add", row: { kind: "claim", scope: { collections: ["x"] }, claim: { statement: "X is true.", atomic: true }, time: { precision: "unknown" }, provenance: { evidence: [{ source_id: "$src", role: "supports", summary: "stated" }] }, assessment: { confidence: "medium" } } },
+    { op: "add", as: "src", row: { kind: "source", scope: { profiles: ["x"] }, source: { type: "web_page", title: "T", uri: "https://x" }, provenance: { acquisition: { method: "manual" } } } },
+    { op: "add", row: { kind: "claim", scope: { profiles: ["x"] }, claim: { statement: "X is true.", atomic: true }, time: { precision: "unknown" }, provenance: { evidence: [{ source_id: "$src", role: "supports", summary: "stated" }] }, assessment: { confidence: "medium" } } },
   ],
 });
 ```
@@ -64,7 +66,7 @@ Convenience wrapper for one `add` operation. Identical envelope to `apply`.
 ```ts
 await knb.add({
   kind: "question",
-  scope: { collections: ["x"] },
+  scope: { profiles: ["x"] },
   question: { text: "Is X always true?", status: "open" },
 });
 ```
@@ -79,12 +81,12 @@ const result = await knb.get(["claim:x:20260501:abc12345"], { explain: true });
 
 ### `query(request)`
 
-Deterministic retrieval over effective state. Filter by `kind`, `collection`, `subject`, `tag`, `text`, `claimKey`, `asOf`, status, history, and limit.
+Deterministic retrieval over effective state. Filter by `kinds`, `profile`, `subject`, `tag`, `text`, `claimKey`, `asOf`, status, history, and limit.
 
 ```ts
 const result = await knb.query({
-  kind: "claim",
-  collection: "x",
+  kinds: ["claim"],
+  profile: "x",
   claimKey: "topic|fact",
   limit: 20,
 });
@@ -92,11 +94,11 @@ const result = await knb.query({
 
 ### `context(request)`
 
-Build a token-budgeted research packet (syntheses, key claims, open questions, sources, warnings). Drops lower-value details first when over budget.
+Build a token-budgeted research packet (syntheses, key records, open questions, sources, warnings). The current response field is still `key_claims` while `claim` remains the V1 storage name. Drops lower-value details first when over budget.
 
 ```ts
 const ctx = await knb.context({
-  collection: "x",
+  profile: "x",
   maxTokens: 3000,
   includeWarnings: true,
 });
@@ -108,10 +110,10 @@ Public TypeScript facade request fields are camelCase. CLI flags are kebab-case 
 
 ### `render(request)`
 
-Generate a Markdown view for one collection. Writes the view and a sidecar metadata file under `knb/views/`.
+Generate a Markdown view for the instance or one profile, subject, or tag. Writes the view and a sidecar metadata file under `knb/views/`.
 
 ```ts
-await knb.render({ collection: "x", format: "md" });
+await knb.render({ profile: "x", format: "md" });
 ```
 
 ### `check()`
@@ -124,7 +126,7 @@ const report = await knb.check();
 
 ### `rebuildIndex()`
 
-Rebuild the V1 disposable indexes (active by ID, by collection, claim keys, source URIs/hashes) from current effective state.
+Rebuild the V1 disposable indexes (active by ID, by profile, claim keys, source URIs/hashes) from current effective state.
 
 ```ts
 await knb.rebuildIndex();

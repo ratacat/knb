@@ -97,12 +97,12 @@ describe("apply and add write-path ownership (bd-3p4.6)", () => {
     expect(/\bappendFile\s*\(/.test(body!)).toBe(false);
   });
 
-  test("cli.ts does not construct change rows directly", async () => {
+  test("cli.ts does not construct entry rows directly", async () => {
     const files = await readSourceFiles([CLI_FILE]);
     const cli = files[0]!;
     const violations: string[] = [];
     const stringSensitive: Array<{ label: string; rx: RegExp }> = [
-      { label: 'kind: "change"', rx: /\bkind\s*:\s*["']change["']/g },
+      { label: 'kind: "entry"', rx: /\bkind\s*:\s*["']entry["']/g },
     ];
     const codeOnly: Array<{ label: string; rx: RegExp }> = [
       { label: "applyOperations(", rx: /\bapplyOperations\s*\(/g },
@@ -186,12 +186,12 @@ describe("apply and add write-path ownership (bd-3p4.6)", () => {
     expect(matches.length).toBe(1);
   });
 
-  test("scanner detects forbidden change-row construction in negative fixture", () => {
+  test("scanner detects forbidden entry-row construction in negative fixture", () => {
     const bad = `
-      const row = { kind: "change", action: "retract", target_id: id };
+      const row = { kind: "entry", action: "retract", target_id: id };
     `;
     const scanned = stripComments(bad);
-    const matches = findMatches(scanned, /\bkind\s*:\s*["']change["']/g);
+    const matches = findMatches(scanned, /\bkind\s*:\s*["']entry["']/g);
     expect(matches.length).toBe(1);
   });
 

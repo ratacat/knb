@@ -18,6 +18,7 @@ export type CommandError = {
   code: KnbErrorCode;
   message: string;
   details?: Record<string, unknown>;
+  suggestions?: string[];
 };
 
 export type CommandResult<T = unknown> =
@@ -48,7 +49,14 @@ export function failure(
 ): CommandResult {
   const exit_code = meta.exit_code ?? exitCodeForError(error.code);
   const errorEnvelope: CommandError = { code: error.code, message: error.message };
-  if (error.details !== undefined) errorEnvelope.details = error.details;
+  if (error.details !== undefined) {
+    const suggestions = Array.isArray(error.details.suggestions)
+      ? error.details.suggestions.filter((item): item is string => typeof item === "string" && item.length > 0)
+      : [];
+    if (suggestions.length > 0) errorEnvelope.suggestions = suggestions;
+    const { suggestions: _suggestions, ...details } = error.details;
+    if (Object.keys(details).length > 0) errorEnvelope.details = details;
+  }
   const result: CommandResult = {
     ok: false,
     error: errorEnvelope,

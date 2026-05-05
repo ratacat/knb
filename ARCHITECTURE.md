@@ -6,24 +6,33 @@ For full command contracts, output envelopes, and lifecycle details, see [docs/d
 
 ## Event Model
 
-Rows in `knb/ledger.jsonl` are canonical events. `source`, `claim`, `question`, and `synthesis` rows introduce knowledge artifacts. `change` rows are lifecycle events that retract, supersede, merge, relate, or patch earlier rows. `EffectiveState` is the deterministic projection of those events at a point in time; read paths consume `EffectiveState`, not raw ledger rows.
+Rows in `knb/ledger.jsonl` are canonical events. `source`, `claim`, `question`, and `synthesis` rows introduce knowledge artifacts. `entry` rows retract, supersede, merge, link, or patch earlier rows. `EffectiveState` is the deterministic projection of those events at a point in time; read paths consume `EffectiveState`, not raw ledger rows.
+
+Terminology direction: use **record** for domain and profile language, **link** for typed semantic edges, and **entry** for append-only ledger mutations. `link` and `entry` are current storage/API terms. `source`, `claim`, `question`, and `synthesis` remain legacy knowledge row kinds until records replace them. This restores the old `bd-2v6c`/`bd-2v6c.1` decision rather than treating `record` as tentative.
+
+## Profiles And Instances
+
+- A **profile** is a named vocabulary and rule set layered on top of the general `knb.v1` row model. Profiles define domain record types, required profile fields, link conventions, and agent instructions. Examples: `research.v1`, `trade_map.v1`.
+- An **instance** is one concrete filesystem workspace with its own ledger, views, indexes, and config. An instance may use one profile or combine multiple profiles when a single ledger needs both vocabularies.
+- Rows can declare profile membership through `scope.profiles`, which also supports profile-scoped reads and renders. Profile membership is not a filesystem boundary.
+- Profile-specific record data currently lives in `claim.qualifiers`, the canonical extension slot. Profile docs should name their own fields directly; agents do not need to use "qualifiers" as domain language.
 
 ## Core Modules
 
 | Module | Responsibility | Interface seam |
 | --- | --- | --- |
 | `src/core/apply.ts` | Validate semantic write operations, complete draft rows, and produce appendable rows. | `applyOperations` through the `Knb.apply` facade, with `ApplyResult` and generated `run_id`. |
-| `src/core/context.ts` | Build token-budgeted research packets from effective state, including ranked syntheses, claims, questions, sources, and warnings. | `buildContext`, `ContextRequest`, and `ContextResult`. |
+| `src/core/context.ts` | Build token-budgeted research packets from effective state, including ranked syntheses, records, questions, sources, and warnings. | `buildContext`, `ContextRequest`, and `ContextResult`. |
 | `src/core/contract.ts` | Own row types, operation types, constants, validation, draft completion, samples, reference walking, and JSON Schema. | `KnbRow`, `ApplyOperation`, `validateLedger`, `validateApplyRequest`, `jsonSchema`, `referenceFields`. |
 | `src/core/errors.ts` | Define typed domain errors and map them to CLI exit codes. | `KnbErrorCode`, `knbError`, `fromUnknown`, `exitCodeForError`. |
 | `src/core/knb.ts` | Public library facade that wires workspace, ledger, read snapshots, writes, queries, context, rendering, indexes, and runtime adapters. | `openKnb`, `Knb`, `OpenKnbOptions`, public request/result types. |
 | `src/core/ledger.ts` | Own JSONL loading, parse diagnostics, fingerprints, lock-protected append transactions, and durable flush behavior. | `loadLedger`, `writeLedger`, `LedgerFingerprint`, `LedgerSnapshot`. |
 | `src/core/output.ts` | Render CLI success/failure envelopes and human text without changing domain results. | `success`, `failure`, `render`, `CommandResult`. |
-| `src/core/projections.ts` | Render Markdown views, rebuild disposable indexes, write projection metadata, and report freshness. | `ProjectionArtifactStore`, `JsonProjectionArtifactStore`, `renderCollection`, `rebuildIndexes`, `checkFreshness`. |
+| `src/core/projections.ts` | Render Markdown views, rebuild disposable indexes, write projection metadata, and report freshness. | `ProjectionArtifactStore`, `JsonProjectionArtifactStore`, `renderView`, `rebuildIndexes`, `checkFreshness`. |
 | `src/core/query.ts` | Retrieve active or historical rows from effective state with deterministic filtering and ranking. | `executeQuery`, `executeGet`, `QueryRequest`, `GetRequest`. |
 | `src/core/read-snapshot.ts` | Build one read-side packet from ledger load, validation, state projection, and projection freshness. | `readSnapshot`, `KnbReadSnapshot`, injected loader/validator/projector/freshness seams. |
-| `src/core/source-citations.ts` | Build source URI/hash to referencing-claim vocabulary for projections. | `SourceCitationIndex`, `buildSourceCitationIndex`. |
-| `src/core/state.ts` | Project loaded ledger rows into current or as-of effective state, lifecycle explanations, relation graph, and warnings. | `buildEffectiveState`, `EffectiveState`, `EffectiveRow`, `StateOptions`. |
+| `src/core/source-citations.ts` | Build source URI/hash to referencing record ids for projections. | `SourceCitationIndex`, `buildSourceCitationIndex`. |
+| `src/core/state.ts` | Project loaded ledger rows into current or as-of effective state, lifecycle explanations, link graph, and warnings. | `buildEffectiveState`, `EffectiveState`, `EffectiveRow`, `StateOptions`. |
 | `src/core/workspace.ts` | Resolve workspace paths, config, actor identity, and runtime command execution. | `openWorkspace`, `KnbWorkspace`, `OpenWorkspaceOptions`. |
 
 ## Context Ranking
@@ -34,19 +43,24 @@ Context ranking is deterministic and private. The public request controls scope,
 
 `ProjectionArtifactStore` owns generated views, indexes, sidecar metadata, and freshness checks. Generated projection files are disposable artifacts, not read-side authority. Canonical reads always load the ledger, validate it, and project `EffectiveState`. V1 ships only `JsonProjectionArtifactStore`; see [ADR-0002](docs/adr/0002-projection-store-seam-jsonl-only.md).
 
-Rendered Markdown views are structured for skimming: a top table of contents, stable row anchors derived from row ids, claim-key clusters derived from `EffectiveState`, an explicit unkeyed-claims section, open questions, and cited sources with counts from `SourceCitationIndex`. Views may change layout, but sidecar metadata keeps the projection envelope shape stable.
+Rendered Markdown views are structured for skimming: a top table of contents, stable row anchors derived from row ids, legacy claim-key clusters derived from `EffectiveState`, an explicit unkeyed-records section, open questions, and cited sources with counts from `SourceCitationIndex`. Views may change layout, but sidecar metadata keeps the projection envelope shape stable.
 
 ## Vocabulary
 
-- Row kinds: `source`, `claim`, `question`, `synthesis`, and `change`.
-- Change actions: `retract`, `supersede`, `merge`, `relate`, and `patch`.
-- Identity fields: `claim_key` anchors semantic claim identity; `external_refs` links rows to outside systems.
-- Scope fields: `collections`, `subjects`, and `tags` filter and group rows.
+- Record: the preferred domain/profile term for the knowledge card unit.
+- Link: the preferred term for typed semantic edges between records.
+- Entry: the preferred term for append-only ledger mutations.
+- Legacy knowledge row kinds: current storage still exposes `source`, `claim`, `question`, and `synthesis` until records replace them.
+- Profile: a named vocabulary and rules package applied within an instance.
+- Instance: one filesystem-backed KNB workspace with its own canonical ledger and generated projections.
+- Entry actions: `retract`, `supersede`, `merge`, `link`, and `patch`; storage persists them under `entry.action`.
+- Identity fields: legacy `claim_key` anchors semantic record identity; `external_refs` links rows to outside systems.
+- Scope fields: `profiles`, `subjects`, and `tags` filter and group rows. `profiles` records profile membership; instances remain filesystem workspaces.
 - Time precision values: `instant`, `hour`, `day`, `month`, `year`, `range`, and `unknown`.
-- `EffectiveState`: projected active/inactive row state plus lifecycle explanations, relation graph, and state warnings.
+- `EffectiveState`: projected active/inactive row state plus lifecycle explanations, link graph, and state warnings.
 - `LedgerFingerprint`: canonical ledger identity computed from path, row count, bytes, last row id, and content hash.
 - `run_id`: per-apply transaction id stored in core apply results and row provenance. Public TypeScript callers pass `runId`; persisted/core rows use `run_id`.
-- `SourceCitationIndex`: source URI/hash to referencing claim ids for generated projections.
+- `SourceCitationIndex`: source URI/hash to referencing record ids for generated projections.
 
 ## Naming
 

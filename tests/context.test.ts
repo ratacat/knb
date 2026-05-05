@@ -21,7 +21,7 @@ function source(id: string, overrides: Partial<SourceRow["source"]> = {}): Sourc
     kind: "source",
     created_at: "2026-05-01T12:00:00Z",
     created_by: "agent:test",
-    scope: { collections: ["alpha"], subjects: ["Subject A"], tags: ["fact"] },
+    scope: { profiles: ["alpha"], subjects: ["Subject A"], tags: ["fact"] },
     source: {
       type: "web_page",
       title: `Source ${id}`,
@@ -42,7 +42,7 @@ function claim(
     contested?: boolean;
     statement?: string;
     created_at?: string;
-    collection?: string;
+    profile?: string;
     evidenceCount?: number;
     external_refs?: ClaimRow["external_refs"];
   } = {},
@@ -60,7 +60,7 @@ function claim(
     created_at: options.created_at ?? "2026-05-01T12:01:00Z",
     created_by: "agent:test",
     scope: {
-      collections: [options.collection ?? "alpha"],
+      profiles: [options.profile ?? "alpha"],
       subjects: ["Subject A"],
       tags: ["fact"],
     },
@@ -86,7 +86,7 @@ function question(
     priority?: "high" | "medium" | "low";
     text?: string;
     status?: "open" | "resolved" | "archived";
-    collection?: string;
+    profile?: string;
     created_at?: string;
   } = {},
 ): QuestionRow {
@@ -96,7 +96,7 @@ function question(
     kind: "question",
     created_at: options.created_at ?? "2026-05-01T12:02:00Z",
     created_by: "agent:test",
-    scope: { collections: [options.collection ?? "alpha"] },
+    scope: { profiles: [options.profile ?? "alpha"] },
     question: {
       text: options.text ?? "Why?",
       status: options.status ?? "open",
@@ -113,7 +113,7 @@ function synthesis(
     title?: string;
     created_at?: string;
     sourceIds?: string[];
-    collection?: string;
+    profile?: string;
   } = {},
 ): SynthesisRow {
   return {
@@ -122,7 +122,7 @@ function synthesis(
     kind: "synthesis",
     created_at: options.created_at ?? "2026-05-01T12:03:00Z",
     created_by: "agent:test",
-    scope: { collections: [options.collection ?? "alpha"] },
+    scope: { profiles: [options.profile ?? "alpha"] },
     synthesis: {
       title: options.title ?? `Synthesis ${id}`,
       summary: `Summary for ${id}.`,
@@ -250,7 +250,7 @@ describe("buildContext", () => {
 
     const beforeQuestion = buildContext(
       buildEffectiveState(load([s1, c1, syn1, q1]), { asOf: "2026-05-01T01:30:00Z" }),
-      { collection: "alpha" },
+      { profile: "alpha" },
     );
 
     expect(beforeQuestion.key_claims.map((row) => row.statement)).toEqual(["As-of context claim."]);
@@ -317,15 +317,25 @@ describe("buildContext", () => {
     expect(totalSelected).toBeLessThan(6);
   });
 
-  test("collection filter limits returned rows", () => {
+  test("profile filter limits returned rows", () => {
     const s1 = source("src1", {});
-    const c1 = claim("c1", ["src1"], { collection: "alpha" });
-    const c2 = claim("c2", ["src1"], { collection: "beta" });
+    const c1 = claim("c1", ["src1"], { profile: "alpha" });
+    const c2 = claim("c2", ["src1"], { profile: "beta" });
     const state = fixtureState([s1, c1, c2]);
-    const result = buildContext(state, { collection: "beta" });
+    const result = buildContext(state, { profile: "beta" });
     expect(result.key_claims.length).toBe(1);
     expect(result.key_claims[0]!.id).toBe("c2");
-    expect(result.meta.collection).toBe("beta");
+    expect(result.meta.profile).toBe("beta");
+  });
+
+  test("profile context includes sources cited by selected claims even when the source has a different profile", () => {
+    const s1 = source("srcShared");
+    s1.scope = { profiles: ["research.v1"] };
+    const c1 = claim("cTrade", ["srcShared"], { profile: "trade_map.v1" });
+    const state = fixtureState([s1, c1]);
+    const result = buildContext(state, { profile: "trade_map.v1" });
+    expect(result.key_claims.map((c) => c.id)).toEqual(["cTrade"]);
+    expect(result.sources.map((s) => s.id)).toEqual(["srcShared"]);
   });
 
   test("ranking: high importance synthesis appears before low, recency breaks ties", () => {
@@ -356,7 +366,7 @@ describe("buildContext", () => {
     ).json() as ContextRankingGolden;
     const state = fixtureState(iranCracksLikeRows());
 
-    const implicitDefault = buildContext(state, { collection: "alpha", includeWarnings: false });
+    const implicitDefault = buildContext(state, { profile: "alpha", includeWarnings: false });
 
     expect(contextRanking(implicitDefault)).toEqual(golden);
   });
@@ -389,34 +399,34 @@ describe("buildContext", () => {
   test("includeWarnings true passes through state warnings", () => {
     const s1 = source("src1");
     const c1 = claim("c1", ["src1"]);
-    const danglingChange: KnbRow = {
+    const danglingEntry: KnbRow = {
       schema_version: "knb.v1",
-      id: "chgDangling",
-      kind: "change",
+      id: "entDangling",
+      kind: "entry",
       created_at: "2026-05-01T13:00:00Z",
       created_by: "agent:test",
-      scope: { collections: ["alpha"] },
-      change: { action: "retract", target_ids: ["missing-id"], reason: "test" },
+      scope: { profiles: ["alpha"] },
+      entry: { action: "retract", target_ids: ["missing-id"], reason: "test" },
     };
-    const state = fixtureState([s1, c1, danglingChange]);
+    const state = fixtureState([s1, c1, danglingEntry]);
     const result = buildContext(state, { includeWarnings: true });
-    const stateForwarded = result.warnings.find((w) => w.code === "state_change_target_missing");
+    const stateForwarded = result.warnings.find((w) => w.code === "state_entry_target_missing");
     expect(stateForwarded).toBeDefined();
   });
 
   test("includeWarnings false suppresses warnings entirely", () => {
     const s1 = source("src1");
     const c1 = claim("c1", ["src1"]);
-    const danglingChange: KnbRow = {
+    const danglingEntry: KnbRow = {
       schema_version: "knb.v1",
-      id: "chgDangling",
-      kind: "change",
+      id: "entDangling",
+      kind: "entry",
       created_at: "2026-05-01T13:00:00Z",
       created_by: "agent:test",
-      scope: { collections: ["alpha"] },
-      change: { action: "retract", target_ids: ["missing-id"], reason: "test" },
+      scope: { profiles: ["alpha"] },
+      entry: { action: "retract", target_ids: ["missing-id"], reason: "test" },
     };
-    const state = fixtureState([s1, c1, danglingChange]);
+    const state = fixtureState([s1, c1, danglingEntry]);
     const result = buildContext(state, { includeWarnings: false });
     expect(result.warnings.length).toBe(0);
   });
@@ -668,12 +678,12 @@ describe("buildContext - sources cleanup and metadata", () => {
     const c1 = claim("c1", ["srcDuplicate"]);
     const merge: KnbRow = {
       schema_version: "knb.v1",
-      id: "chgMergeSource",
-      kind: "change",
+      id: "entMergeSource",
+      kind: "entry",
       created_at: "2026-05-01T13:00:00Z",
       created_by: "agent:test",
-      scope: { collections: ["alpha"] },
-      change: {
+      scope: { profiles: ["alpha"] },
+      entry: {
         action: "merge",
         target_ids: ["srcDuplicate"],
         canonical_id: "srcCanonical",
@@ -845,18 +855,18 @@ describe("buildContext - warnings", () => {
   test("state warnings forwarded with state_ prefix preserve message", () => {
     const s1 = source("src1");
     const c1 = claim("c1", ["src1"]);
-    const danglingChange: KnbRow = {
+    const danglingEntry: KnbRow = {
       schema_version: "knb.v1",
-      id: "chgDangling",
-      kind: "change",
+      id: "entDangling",
+      kind: "entry",
       created_at: "2026-05-01T13:00:00Z",
       created_by: "agent:test",
-      scope: { collections: ["alpha"] },
-      change: { action: "retract", target_ids: ["missing-id"], reason: "test" },
+      scope: { profiles: ["alpha"] },
+      entry: { action: "retract", target_ids: ["missing-id"], reason: "test" },
     };
-    const state = fixtureState([s1, c1, danglingChange]);
+    const state = fixtureState([s1, c1, danglingEntry]);
     const r = buildContext(state, { includeWarnings: true });
-    const fwd = r.warnings.find((w) => w.code === "state_change_target_missing");
+    const fwd = r.warnings.find((w) => w.code === "state_entry_target_missing");
     expect(fwd).toBeDefined();
     expect(fwd!.code.startsWith("state_")).toBe(true);
     expect(fwd!.message).toContain("missing-id");
@@ -888,7 +898,7 @@ describe("buildContext - scope and meta", () => {
     const cAlpha = claim("cAlpha", ["src1"]);
     const cBeta: ClaimRow = {
       ...claim("cBeta", ["src1"]),
-      scope: { collections: ["alpha"], subjects: ["Subject B"], tags: ["fact"] },
+      scope: { profiles: ["alpha"], subjects: ["Subject B"], tags: ["fact"] },
     };
     const state = fixtureState([s1, cAlpha, cBeta]);
     const r = buildContext(state, { subject: "Subject B" });
@@ -901,7 +911,7 @@ describe("buildContext - scope and meta", () => {
     const c1 = claim("c1", ["src1"]);
     const cOtherTag: ClaimRow = {
       ...claim("cOtherTag", ["src1"]),
-      scope: { collections: ["alpha"], subjects: ["Subject A"], tags: ["other"] },
+      scope: { profiles: ["alpha"], subjects: ["Subject A"], tags: ["other"] },
     };
     const state = fixtureState([s1, c1, cOtherTag]);
     const r = buildContext(state, { tag: "fact" });
@@ -909,12 +919,12 @@ describe("buildContext - scope and meta", () => {
     expect(r.key_claims.map((c) => c.id)).toEqual(["c1"]);
   });
 
-  test("no scope filter leaves meta without collection/subject/tag", () => {
+  test("no scope filter leaves meta without profile/subject/tag", () => {
     const s1 = source("src1");
     const c1 = claim("c1", ["src1"]);
     const state = fixtureState([s1, c1]);
     const r = buildContext(state);
-    expect(r.meta.collection).toBeUndefined();
+    expect(r.meta.profile).toBeUndefined();
     expect(r.meta.subject).toBeUndefined();
     expect(r.meta.tag).toBeUndefined();
   });

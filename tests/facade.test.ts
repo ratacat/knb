@@ -10,10 +10,8 @@ import {
   jsonSchema,
   rowSamples,
   operationSamples,
-  type ApplyOperation,
-  type ChangeRow,
+  type EntryRow,
   type ClaimRow,
-  type QuestionRow,
   type SourceRow,
 } from "../src/core/contract";
 import { isKnbError } from "../src/core/errors";
@@ -62,7 +60,7 @@ function freshSourceRow(id = "src:facade:20260501:aaaa1111"): SourceRow {
     kind: "source",
     created_at: "2026-05-01T12:00:00Z",
     created_by: "agent:test",
-    scope: { collections: ["facade"] },
+    scope: { profiles: ["facade"] },
     source: {
       type: "web_page",
       title: "Facade source",
@@ -79,7 +77,7 @@ function freshClaimRow(sourceId: string, id = "claim:facade:20260501:bbbb2222"):
     kind: "claim",
     created_at: "2026-05-01T12:01:00Z",
     created_by: "agent:test",
-    scope: { collections: ["facade"] },
+    scope: { profiles: ["facade"] },
     identity: { claim_key: "facade|exists" },
     claim: { statement: "Facade exists.", atomic: true },
     time: { precision: "unknown" },
@@ -91,15 +89,15 @@ function freshClaimRow(sourceId: string, id = "claim:facade:20260501:bbbb2222"):
   };
 }
 
-function freshRetractChange(targetId: string, id = "chg:facade:20260501:cccc3333"): ChangeRow {
+function freshRetractEntry(targetId: string, id = "ent:facade:20260501:cccc3333"): EntryRow {
   return {
     schema_version: "knb.v1",
     id,
-    kind: "change",
+    kind: "entry",
     created_at: "2026-05-01T12:02:00Z",
     created_by: "agent:test",
-    scope: { collections: ["facade"] },
-    change: {
+    scope: { profiles: ["facade"] },
+    entry: {
       action: "retract",
       target_ids: [targetId],
       reason: "test retract",
@@ -213,7 +211,7 @@ describe("openKnb", () => {
     });
     const result = await knb.add({
       kind: "source",
-      scope: { collections: ["clocktest"] },
+      scope: { profiles: ["clocktest"] },
       source: { type: "web_page", title: "X", uri: "https://example.com/x" },
       provenance: { acquisition: { method: "manual" } },
     });
@@ -242,7 +240,7 @@ describe("openKnb", () => {
           op: "add",
           row: {
             kind: "source",
-            scope: { collections: ["preview"] },
+            scope: { profiles: ["preview"] },
             source: { type: "web_page", title: "Preview", uri: "https://example.com/preview" },
             provenance: { acquisition: { method: "manual" } },
           },
@@ -281,7 +279,7 @@ describe("openKnb", () => {
 
   test("openKnb with no options falls back to cwd as root", async () => {
     const cwdProvider = () => workDir;
-    // We can't change real process.cwd, but we can pass an empty options object
+    // We can't entry real process.cwd, but we can pass an empty options object
     // and rely on env/cwd defaults. Provide cwd to keep test hermetic.
     const knb = await openKnb({ env: {}, cwd: cwdProvider });
     expect(knb.workspace.root).toBe(workDir);
@@ -400,6 +398,92 @@ describe("Knb.init", () => {
   });
 });
 
+describe("Knb profile and instance management", () => {
+  test("creates, attaches, lists, and shows a profile definition", async () => {
+    const knb = await openKnb(makeOpenOptions());
+    await knb.init();
+
+    const created = await knb.createProfile(
+      "trade_map.v1",
+      {
+        display_name: "Trade Map",
+        description: "Maps actors, assets, constraints, and predictions.",
+        record_types: [{ type: "prediction", required_fields: ["value"] }],
+        link_types: [{ rel: "depends_on" }],
+        agent_instructions: ["Use prediction for forward-looking records."],
+      },
+      { attach: true },
+    );
+
+    expect(created.created).toBe(true);
+    expect(created.attached).toBe(true);
+    expect(created.path).toBe(join(".knb", "profiles", "trade_map.v1.json"));
+    expect(await pathExists(join(workDir, ".knb", "profiles", "trade_map.v1.json"))).toBe(true);
+
+    const shown = await knb.showProfile("trade_map.v1");
+    expect(shown.profile.display_name).toBe("Trade Map");
+    expect(shown.attached).toBe(true);
+
+    const listed = await knb.listProfiles({ attachedOnly: true });
+    expect(listed.profiles.map((profile) => profile.profile_id)).toEqual(["trade_map.v1"]);
+    expect(listed.profiles[0]?.defined).toBe(true);
+    expect(listed.profiles[0]?.attached).toBe(true);
+
+    const config = JSON.parse(await readFile(join(workDir, ".knb", "config.json"), "utf8")) as { profiles?: string[] };
+    expect(config.profiles).toEqual(["trade_map.v1"]);
+  });
+
+  test("profile delete refuses definitions referenced by ledger rows", async () => {
+    const knb = await openKnb(makeOpenOptions());
+    await knb.init();
+    await knb.createProfile("research.v1", { display_name: "Research" });
+    await knb.add({
+      kind: "source",
+      scope: { profiles: ["research.v1"] },
+      source: { type: "web_page", title: "Research source", uri: "https://example.com/research-source" },
+      provenance: { acquisition: { method: "manual" } },
+    });
+
+    let thrown: unknown;
+    try {
+      await knb.deleteProfile("research.v1", { confirm: "research.v1" });
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect(isKnbError(thrown)).toBe(true);
+    if (!isKnbError(thrown)) throw new Error("expected KnbError");
+    expect(thrown.code).toBe("unsafe_operation_refused");
+    expect(thrown.details?.referenced_rows).toBe(1);
+  });
+
+  test("creates an instance config and manages attached profiles", async () => {
+    const knb = await openKnb(makeOpenOptions());
+    const created = await knb.createInstance({
+      instanceId: "research-main",
+      profiles: ["research.v1"],
+      actor: "agent:instance-test",
+    });
+
+    expect(created.instance_id).toBe("research-main");
+    expect(created.profiles).toEqual(["research.v1"]);
+    expect(created.actor).toBe("agent:instance-test");
+    expect(await pathExists(join(workDir, ".knb", "config.json"))).toBe(true);
+
+    const attached = await knb.attachInstanceProfile("trade_map.v1");
+    expect(attached.attached_profiles).toEqual(["research.v1", "trade_map.v1"]);
+    expect(attached.changed).toBe(true);
+
+    const detached = await knb.detachInstanceProfile("research.v1");
+    expect(detached.attached_profiles).toEqual(["trade_map.v1"]);
+    expect(detached.changed).toBe(true);
+
+    const shown = await knb.showInstance();
+    expect(shown.instance_id).toBe("research-main");
+    expect(shown.profiles).toEqual(["trade_map.v1"]);
+  });
+});
+
 describe("Knb.status", () => {
   test("empty workspace returns row_count 0 and clean counts", async () => {
     const knb = await openKnb({ ...makeOpenOptions(), actor: "agent:test" });
@@ -454,10 +538,10 @@ describe("Knb.status", () => {
     expect(status.validation_error_count).toBeGreaterThanOrEqual(1);
   });
 
-  test("after retract change, inactive_counts_by_status.retracted is 1", async () => {
+  test("after retract entry, inactive_counts_by_status.retracted is 1", async () => {
     const source = freshSourceRow();
     const claim = freshClaimRow(source.id);
-    const retract = freshRetractChange(claim.id);
+    const retract = freshRetractEntry(claim.id);
     await seedLedger(jsonl([source, claim, retract]));
     const knb = await openKnb(makeOpenOptions());
     const status = await knb.status();
@@ -470,8 +554,8 @@ describe("Knb.status", () => {
   test("retracting an already-retracted target produces a state warning", async () => {
     const source = freshSourceRow();
     const claim = freshClaimRow(source.id);
-    const retract1 = freshRetractChange(claim.id, "chg:facade:20260501:cccc3333");
-    const retract2 = freshRetractChange(claim.id, "chg:facade:20260501:cccc4444");
+    const retract1 = freshRetractEntry(claim.id, "ent:facade:20260501:cccc3333");
+    const retract2 = freshRetractEntry(claim.id, "ent:facade:20260501:cccc4444");
     retract2.created_at = "2026-05-01T12:03:00Z";
     await seedLedger(jsonl([source, claim, retract1, retract2]));
     const knb = await openKnb(makeOpenOptions());
@@ -499,7 +583,7 @@ describe("Knb.status", () => {
     expect(before.row_count).toBe(0);
     await knb.add({
       kind: "source",
-      scope: { collections: ["after"] },
+      scope: { profiles: ["after"] },
       source: { type: "web_page", title: "x", uri: "https://example.com/after" },
       provenance: { acquisition: { method: "manual" } },
     });
@@ -545,21 +629,21 @@ describe("Knb.schema", () => {
     const knb = await openKnb(makeOpenOptions());
     const result = await knb.schema();
     const kinds = result.row_samples.map((row) => row.kind).sort();
-    expect(kinds).toEqual(["change", "claim", "question", "source", "synthesis"]);
+    expect(kinds).toEqual(["claim", "entry", "question", "source", "synthesis"]);
   });
 
   test("operation_samples covers all 6 operation kinds", async () => {
     const knb = await openKnb(makeOpenOptions());
     const result = await knb.schema();
     const ops = result.operation_samples.map((op) => op.op).sort();
-    expect(ops).toEqual(["add", "merge", "patch", "relate", "retract", "supersede"]);
+    expect(ops).toEqual(["add", "link", "merge", "patch", "retract", "supersede"]);
     const samples = operationSamples();
     expect(result.operation_samples).toEqual([
       samples.add,
       samples.retract,
       samples.supersede,
       samples.merge,
-      samples.relate,
+      samples.link,
       samples.patch,
     ]);
   });
@@ -673,7 +757,7 @@ describe("Knb facade methods on empty workspace", () => {
 
     let rErr: unknown;
     try {
-      await knb.render({ collection: "x" });
+      await knb.render({ profile: "x" });
     } catch (error) {
       rErr = error;
     }
@@ -703,7 +787,7 @@ describe("Knb facade methods on empty workspace", () => {
     });
     const draft = {
       kind: "source" as const,
-      scope: { collections: ["wrap"] },
+      scope: { profiles: ["wrap"] },
       source: { type: "web_page" as const, title: "x", uri: "https://example.com/wrap" },
       provenance: { acquisition: { method: "manual" } },
     };

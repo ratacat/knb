@@ -3,7 +3,7 @@ import { buildEffectiveState } from "../src/core/state";
 import { executeGet, executeQuery } from "../src/core/query";
 import { isKnbError } from "../src/core/errors";
 import type {
-  ChangeRow,
+  EntryRow,
   ClaimRow,
   KnbRow,
   LoadedRow,
@@ -23,7 +23,7 @@ function makeSource(id: string, overrides: Partial<SourceRow> = {}): SourceRow {
     kind: "source",
     created_at: "2026-05-01T12:00:00Z",
     created_by: "agent:test",
-    scope: { collections: ["alpha"], subjects: ["Alpha"] },
+    scope: { profiles: ["alpha"], subjects: ["Alpha"] },
     source: {
       type: "web_page",
       title: "Alpha example source",
@@ -42,7 +42,7 @@ function makeClaim(id: string, sourceId: string, overrides: Partial<ClaimRow> = 
     kind: "claim",
     created_at: "2026-05-01T12:01:00Z",
     created_by: "agent:test",
-    scope: { collections: ["alpha"], subjects: ["Alpha"], tags: ["fact"] },
+    scope: { profiles: ["alpha"], subjects: ["Alpha"], tags: ["fact"] },
     identity: { claim_key: `key|${id}` },
     claim: { statement: `Statement ${id}.`, atomic: true },
     time: { precision: "unknown", valid_at: "2026-04-29T00:00:00Z" },
@@ -62,7 +62,7 @@ function makeQuestion(id: string, overrides: Partial<QuestionRow> = {}): Questio
     kind: "question",
     created_at: "2026-05-01T12:02:00Z",
     created_by: "agent:test",
-    scope: { collections: ["alpha"] },
+    scope: { profiles: ["alpha"] },
     question: { text: "What is the answer?", status: "open" },
     ...overrides,
   };
@@ -79,7 +79,7 @@ function makeSynthesis(
     kind: "synthesis",
     created_at: "2026-05-01T12:03:00Z",
     created_by: "agent:test",
-    scope: { collections: ["alpha"] },
+    scope: { profiles: ["alpha"] },
     synthesis: {
       title: "Synthesis title",
       summary: "Summary text.",
@@ -90,15 +90,15 @@ function makeSynthesis(
   };
 }
 
-function makeChange(id: string, change: ChangeRow["change"], createdAt = "2026-05-01T13:00:00Z"): ChangeRow {
+function makeEntry(id: string, entry: EntryRow["entry"], createdAt = "2026-05-01T13:00:00Z"): EntryRow {
   return {
     schema_version: "knb.v1",
     id,
-    kind: "change",
+    kind: "entry",
     created_at: createdAt,
     created_by: "agent:test",
-    scope: { collections: ["alpha"] },
-    change,
+    scope: { profiles: ["alpha"] },
+    entry,
   };
 }
 
@@ -113,25 +113,25 @@ function buildFixture(): {
   claimBeta: ClaimRow;
   question: QuestionRow;
   synthesis: SynthesisRow;
-  supersedeChange: ChangeRow;
-  retractChange: ChangeRow;
+  supersedeEntry: EntryRow;
+  retractEntry: EntryRow;
   rows: LoadedRow[];
 } {
   const source = makeSource("src:alpha:20260501:aaaa1111");
   const betaSource = makeSource("src:beta:20260501:bbbb1111", {
-    scope: { collections: ["beta"], subjects: ["Beta"] },
+    scope: { profiles: ["beta"], subjects: ["Beta"] },
     source: { type: "web_page", title: "Beta example", uri: "https://example.com/beta" },
   });
 
   const claimA = makeClaim("claim:alpha:20260501:aaaa2222", source.id, {
     identity: { claim_key: "alpha|exists" },
     claim: { statement: "The example pattern shows up here.", atomic: true },
-    scope: { collections: ["alpha"], subjects: ["Alpha"], tags: ["fact"] },
+    scope: { profiles: ["alpha"], subjects: ["Alpha"], tags: ["fact"] },
   });
   const claimB = makeClaim("claim:alpha:20260501:bbbb3333", source.id, {
     identity: { claim_key: "alpha|other" },
     claim: { statement: "Another claim with no special words.", atomic: true },
-    scope: { collections: ["alpha"], subjects: ["Alpha"], tags: ["fact", "important"] },
+    scope: { profiles: ["alpha"], subjects: ["Alpha"], tags: ["fact", "important"] },
   });
   const claimSuperseded = makeClaim("claim:alpha:20260501:cccc4444", source.id, {
     identity: { claim_key: "alpha|old" },
@@ -148,7 +148,7 @@ function buildFixture(): {
   const claimBeta = makeClaim("claim:beta:20260501:ffff7777", betaSource.id, {
     identity: { claim_key: "beta|fact" },
     claim: { statement: "Beta-only claim with example word.", atomic: true },
-    scope: { collections: ["beta"], subjects: ["Beta"], tags: ["fact"] },
+    scope: { profiles: ["beta"], subjects: ["Beta"], tags: ["fact"] },
   });
 
   const question = makeQuestion("q:alpha:20260501:qqqq8888", {
@@ -164,13 +164,13 @@ function buildFixture(): {
     },
   });
 
-  const supersedeChange = makeChange("chg:alpha:20260501:supr0001", {
+  const supersedeEntry = makeEntry("ent:alpha:20260501:supr0001", {
     action: "supersede",
     target_ids: [claimSuperseded.id],
     replacement_id: claimReplacement.id,
     reason: "improved",
   }, "2026-05-01T13:00:00Z");
-  const retractChange = makeChange("chg:alpha:20260501:retr0002", {
+  const retractEntry = makeEntry("ent:alpha:20260501:retr0002", {
     action: "retract",
     target_ids: [claimRetracted.id],
     reason: "wrong",
@@ -187,8 +187,8 @@ function buildFixture(): {
     claimBeta,
     question,
     synthesis,
-    supersedeChange,
-    retractChange,
+    supersedeEntry,
+    retractEntry,
   ]);
 
   return {
@@ -202,8 +202,8 @@ function buildFixture(): {
     claimBeta,
     question,
     synthesis,
-    supersedeChange,
-    retractChange,
+    supersedeEntry,
+    retractEntry,
     rows,
   };
 }
@@ -217,8 +217,8 @@ describe("executeQuery - filtering", () => {
       created_at: "2026-05-01T01:00:00Z",
       claim: { statement: "As-of query claim.", atomic: true },
     });
-    const retract = makeChange(
-      "chg:alpha:20260501:asof3333",
+    const retract = makeEntry(
+      "ent:alpha:20260501:asof3333",
       { action: "retract", target_ids: [claim.id], reason: "later" },
       "2026-05-01T02:00:00Z",
     );
@@ -226,24 +226,24 @@ describe("executeQuery - filtering", () => {
 
     const beforeRetract = executeQuery(
       buildEffectiveState(rows, { asOf: "2026-05-01T01:30:00Z" }),
-      { collection: "alpha", kinds: ["claim"] },
+      { profile: "alpha", kinds: ["claim"] },
     );
     expect(beforeRetract.rows.map((row) => [row.id, row.status])).toEqual([[claim.id, "active"]]);
 
     const afterRetract = executeQuery(
       buildEffectiveState(rows, { asOf: "2026-05-01T02:30:00Z" }),
-      { collection: "alpha", kinds: ["claim"] },
+      { profile: "alpha", kinds: ["claim"] },
     );
     expect(afterRetract.rows).toEqual([]);
 
     const history = executeQuery(
       buildEffectiveState(rows, { asOf: "2026-05-01T02:30:00Z" }),
-      { collection: "alpha", kinds: ["claim"], includeHistory: true },
+      { profile: "alpha", kinds: ["claim"], includeHistory: true },
     );
     expect(history.rows.map((row) => [row.id, row.status])).toEqual([[claim.id, "retracted"]]);
   });
 
-  test("empty request returns all active rows in ledger order with score 1, no change rows", () => {
+  test("empty request returns all active rows in ledger order with score 1, no entry rows", () => {
     const fx = buildFixture();
     const state = buildEffectiveState(fx.rows);
     const result = executeQuery(state, {});
@@ -271,10 +271,10 @@ describe("executeQuery - filtering", () => {
     expect(result.rows.length).toBe(4);
   });
 
-  test("collection filter limits results to that collection", () => {
+  test("profile filter limits results to that profile", () => {
     const fx = buildFixture();
     const state = buildEffectiveState(fx.rows);
-    const result = executeQuery(state, { collection: "beta" });
+    const result = executeQuery(state, { profile: "beta" });
     const ids = result.rows.map((r) => r.id).sort();
     expect(ids).toEqual([fx.betaSource.id, fx.claimBeta.id].sort());
   });
@@ -408,12 +408,12 @@ describe("executeQuery - limit and shape", () => {
     expect(result.rows[0]?.row).toBeUndefined();
   });
 
-  test("kinds: ['change'] returns change rows (overrides default hide)", () => {
+  test("kinds: ['entry'] returns entry rows (overrides default hide)", () => {
     const fx = buildFixture();
     const state = buildEffectiveState(fx.rows);
-    const result = executeQuery(state, { kinds: ["change"] });
+    const result = executeQuery(state, { kinds: ["entry"] });
     const ids = result.rows.map((r) => r.id).sort();
-    expect(ids).toEqual([fx.supersedeChange.id, fx.retractChange.id].sort());
+    expect(ids).toEqual([fx.supersedeEntry.id, fx.retractEntry.id].sort());
   });
 
   test("deterministic tie-breaking - same input yields same output order", () => {
@@ -596,7 +596,7 @@ describe("executeQuery - score determinism (exact values)", () => {
     });
     const noTermClaim = makeClaim("claim:exact:20260501:gggg7777", src.id, {
       identity: { claim_key: "key|none" },
-      claim: { statement: "Unrelated.", atomic: true },
+      claim: { statement: "Disconnected.", atomic: true },
     });
 
     const stateForId = buildEffectiveState(load([src, idMatchClaim]));
@@ -670,7 +670,7 @@ describe("executeQuery - score determinism (exact values)", () => {
     const c = makeClaim("claim:syn:20260501:bbbb2222", src.id);
     const synth = makeSynthesis("synth:syn:20260501:cccc3333", [c.id], {
       synthesis: {
-        title: "Unrelated heading",
+        title: "Disconnected heading",
         summary: "Mentions noteworthy phrase here.",
         basis: { claim_ids: [c.id] },
         status: "active",
@@ -769,18 +769,18 @@ describe("executeQuery - tie-break stability", () => {
 });
 
 describe("executeQuery - filter combinations", () => {
-  test("collection + kind + text intersect correctly", () => {
+  test("profile + kind + text intersect correctly", () => {
     const fx = buildFixture();
     const state = buildEffectiveState(fx.rows);
     const result = executeQuery(state, {
-      collection: "beta",
+      profile: "beta",
       kinds: ["claim"],
       text: "example",
     });
     expect(result.rows.map((r) => r.id)).toEqual([fx.claimBeta.id]);
   });
 
-  test("kinds: [] (empty array) behaves as kinds unset (default-hide change rows)", () => {
+  test("kinds: [] (empty array) behaves as kinds unset (default-hide entry rows)", () => {
     const fx = buildFixture();
     const state = buildEffectiveState(fx.rows);
     const empty = executeQuery(state, { kinds: [] });
@@ -835,7 +835,7 @@ describe("executeQuery - row shape - source_ids and time", () => {
     const canonical = makeSource("src:alpha:20260501:canonical");
     const duplicate = makeSource("src:alpha:20260501:duplicate");
     const c = makeClaim("claim:alpha:20260501:mergedsrc", duplicate.id);
-    const merge = makeChange("chg:alpha:20260501:mergesrc", {
+    const merge = makeEntry("ent:alpha:20260501:mergesrc", {
       action: "merge",
       target_ids: [duplicate.id],
       canonical_id: canonical.id,
@@ -963,7 +963,7 @@ describe("executeQuery - empty/single-row workspaces", () => {
   test("only-inactive workspace returns no active rows by default", () => {
     const src = makeSource("src:inactive:20260501:aaaa1111");
     const c = makeClaim("claim:inactive:20260501:bbbb2222", src.id);
-    const retract = makeChange("chg:inactive:20260501:cccc3333", {
+    const retract = makeEntry("ent:inactive:20260501:cccc3333", {
       action: "retract",
       target_ids: [c.id],
       reason: "wrong",

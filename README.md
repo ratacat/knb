@@ -1,6 +1,6 @@
 # knb
 
-`knb` is a small JSONL knowledge base for AI-assisted research. It keeps sourced claims, open questions, and synthesis in one append-only ledger that agents can audit and rebuild from scratch.
+`knb` is a small JSONL knowledge base for AI-assisted research. It keeps sourced records, open questions, and synthesis in one append-only ledger that agents can audit and rebuild from scratch.
 
 The CLI is designed for agents, not for hand-operated note taking. It favors explicit commands, JSON envelopes, stable exit codes, and append-only writes over a cozy human interface.
 
@@ -8,7 +8,7 @@ Repository: https://github.com/ratacat/knb
 
 ## How agents use it
 
-`knb` is for research state that needs to survive across agent turns. A good row is small, sourced, and easy to invalidate later. Agents should not paste a whole dossier into one blob if they can store the source, split the claims, leave open questions, and write a short synthesis.
+`knb` is for research state that needs to survive across agent turns. A good record is small, sourced, and easy to invalidate later. Agents should not paste a whole dossier into one blob if they can store the source, split the records, leave open questions, and write a short synthesis.
 
 The loop is usually:
 
@@ -17,19 +17,20 @@ The loop is usually:
 3. Run `check`.
 4. Render views or rebuild indexes when another agent or human needs the projected output.
 
-The ledger is append-only on purpose. If a claim is wrong, an agent writes a `change` row that retracts or supersedes it. That gives later agents the full trail instead of a silently edited note.
+The ledger is append-only on purpose. If a record is wrong, an agent writes an `entry` row that retracts or supersedes it. That gives later agents the full trail instead of a silently edited note.
 
-Reads come from the effective state, not raw file scans. That means queries, context packets, renders, and collection summaries all respect retractions, supersession, merges, and historical `--as-of` cutoffs.
+Reads come from the effective state, not raw file scans. That means queries, context packets, renders, and profile summaries all respect retractions, supersession, merges, and historical `--as-of` cutoffs.
 
 ## What it stores
 
 The canonical model is `knb.v1`.
 
+- `record`: the preferred domain term for a knowledge card; current storage still exposes the legacy row kinds below
 - `source`: where knowledge came from
-- `claim`: the smallest useful proposition
+- `claim`: legacy storage kind for the smallest useful proposition
 - `question`: unresolved uncertainty
 - `synthesis`: readable interpretation
-- `change`: lifecycle events such as retractions, supersession, merges, relation changes, and repairs
+- `entry`: append-only ledger mutation for retractions, supersession, merges, links, and repairs
 
 Only `knb/ledger.jsonl` is canonical. `knb/views/` and `knb/indexes/` are generated projections. Delete and rebuild them whenever they get stale.
 
@@ -56,7 +57,7 @@ Before writing, ask for the current shape of the workspace:
 
 ```bash
 knb status --json
-knb context --collection my-topic --max-tokens 3000 --json
+knb context --profile my-topic --max-tokens 3000 --json
 ```
 
 Commit a batch only after the candidate rows are ready:
@@ -74,7 +75,7 @@ knb check --json
 Generate disposable outputs for handoff or inspection:
 
 ```bash
-knb render --collection my-topic --format md --out knb/views/my-topic.md --json
+knb render --profile my-topic --format md --out knb/views/my-topic.md --json
 knb index --rebuild
 ```
 
@@ -87,26 +88,30 @@ knb add --file row.json --json
 For targeted reads, query the effective state:
 
 ```bash
-knb query --kind claim --collection my-topic --json
+knb query --kind claim --profile my-topic --json
 ```
 
 ## CLI reference
 
 ```bash
-knb init    [--root <dir>] [--config <path>] [--ledger <path>] [--actor <name>] [--force] [--json]
-knb status  [--root <dir>] [--json]
-knb schema  [--json]
+knb <command> [--root <dir>] [--config <path>] [--ledger <path>] [--json]
+knb init    [--actor <name>] [--force]
+knb status
+knb schema
 knb apply   (--file ops.json | --json '{...}' | --stdin) [--atomic] [--dry-run]
 knb add     (--file row.json | --json '{...}' | --stdin)
 knb get     <id> [<id>...] [--as-of <iso>] [--include-history] [--explain]
-knb query   [--as-of <iso>] [--kind claim] [--collection topic] [--subject name] [--tag tag] [--text text] [--claim-key key] [--limit N] [--history] [--full] [--json]
-knb context [--as-of <iso>] [--collection topic] [--subject name] [--tag tag] [--max-tokens 3000] [--no-warnings] [--json]
-knb render  --collection topic [--out knb/views/topic.md] [--as-of <iso>] [--format md] [--json]
-knb check   [--json]
+knb query   [--as-of <iso>] [--kind claim] [--profile topic] [--subject name] [--tag tag] [--text text] [--claim-key key] [--limit N] [--history] [--full] [--json]
+knb context [--as-of <iso>] [--profile topic] [--subject name] [--tag tag] [--max-tokens 3000] [--no-warnings] [--json]
+knb render  --profile topic [--out knb/views/topic.md] [--as-of <iso>] [--format md] [--json]
+knb check
 knb index   [--rebuild]
 ```
 
-`apply` and `add` use the same locked write path. They validate the full batch before touching the ledger, so duplicate IDs, unresolved source references, unresolved relation targets, and kind-specific shape errors fail cleanly.
+Workspace flags are global and accepted by every command.
+Unknown flags fail with `invalid_arguments`.
+
+`apply` and `add` use the same locked write path. They validate the full batch before touching the ledger, so duplicate IDs, unresolved source references, unresolved link targets, and kind-specific shape errors fail cleanly.
 
 `get`, `query`, `context`, and `render` accept `--as-of <iso>` for historical reads.
 
@@ -135,7 +140,7 @@ const result = await knb.apply({
       op: "add",
       row: {
         kind: "source",
-        scope: { collections: ["example"] },
+        scope: { profiles: ["example"] },
         source: { type: "web_page", title: "Example", uri: "https://example.com" },
         provenance: { acquisition: { method: "manual" } },
       },

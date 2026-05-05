@@ -18,8 +18,16 @@ import type { KnbWorkspace } from "./workspace";
 
 export type RenderFormat = "md";
 
+type RenderScope = {
+  profile?: string;
+  subject?: string;
+  tag?: string;
+};
+
 export type RenderRequest = {
-  collection: string;
+  profile?: string;
+  subject?: string;
+  tag?: string;
   format?: RenderFormat;
   out?: string;
   asOf?: string;
@@ -48,7 +56,10 @@ export type ProjectionMetadata = {
 };
 
 export type RenderResult = {
-  collection: string;
+  view: string;
+  profile?: string;
+  subject?: string;
+  tag?: string;
   format: RenderFormat;
   path: string;
   bytes_written: number;
@@ -85,7 +96,7 @@ export type FreshnessReport = {
 };
 
 export type ProjectionArtifactStore = {
-  renderCollection(
+  renderView(
     state: EffectiveState,
     ledger_fingerprint: LedgerFingerprint,
     request: RenderRequest,
@@ -106,7 +117,7 @@ export type ClaimKeyClusters = {
 
 export const V1_INDEX_NAMES = [
   "active-by-id",
-  "active-by-collection",
+  "active-by-profile",
   "active-claims-by-key",
   "active-sources-by-uri",
   "active-sources-by-content-hash",
@@ -121,12 +132,12 @@ export class JsonProjectionArtifactStore implements ProjectionArtifactStore {
     private readonly clock: ProjectionClock = () => new Date(),
   ) {}
 
-  renderCollection(
+  renderView(
     state: EffectiveState,
     ledger_fingerprint: LedgerFingerprint,
     request: RenderRequest,
   ): Promise<RenderResult> {
-    return renderCollection(state, this.workspace, ledger_fingerprint, request, { clock: this.clock });
+    return renderView(state, this.workspace, ledger_fingerprint, request, { clock: this.clock });
   }
 
   rebuildIndexes(state: EffectiveState, ledger_fingerprint: LedgerFingerprint): Promise<IndexResult> {
@@ -138,27 +149,23 @@ export class JsonProjectionArtifactStore implements ProjectionArtifactStore {
   }
 }
 
-export async function renderCollection(
+export async function renderView(
   state: EffectiveState,
   workspace: KnbWorkspace,
   ledger_fingerprint: LedgerFingerprint,
   request: RenderRequest,
   options: ProjectionWriteOptions = {},
 ): Promise<RenderResult> {
-  const collection = typeof request.collection === "string" ? request.collection.trim() : "";
-  if (collection.length === 0) {
-    throw knbError("validation_failed", "Render request requires a non-empty collection", {
-      collection: request.collection,
-    });
-  }
+  const scope = renderScope(request);
   const format: RenderFormat = request.format ?? "md";
   if (format !== "md") {
     throw knbError("validation_failed", `Unsupported render format: ${format}`, { format });
   }
 
-  const outPath = resolveViewPath(workspace, collection, request.out);
+  const view = renderScopeSlug(scope);
+  const outPath = resolveViewPath(workspace, view, request.out);
 
-  const body = buildMarkdown(state, collection, ledger_fingerprint);
+  const body = buildMarkdown(state, scope, ledger_fingerprint);
   await mkdir(dirname(outPath), { recursive: true });
   await writeFile(outPath, body, "utf8");
   const bytesWritten = Buffer.byteLength(body, "utf8");
@@ -168,14 +175,15 @@ export async function renderCollection(
     kind: "view",
     target: workspaceRelative(workspace, outPath),
     ledger: ledgerMeta(ledger_fingerprint),
-    options: projectionOptions({ collection, format, asOf: request.asOf }),
+    options: projectionOptions({ ...scope, format, asOf: request.asOf }),
     generated_at: projectionTimestamp(options),
   };
   const metadataPath = `${outPath}.meta.json`;
   await writeFile(metadataPath, `${JSON.stringify(metadata, null, 2)}\n`, "utf8");
 
   return {
-    collection,
+    view,
+    ...scope,
     format,
     path: outPath,
     bytes_written: bytesWritten,
@@ -190,13 +198,13 @@ export async function rebuildIndexes(
   ledger_fingerprint: LedgerFingerprint,
   options: ProjectionWriteOptions = {},
 ): Promise<IndexResult> {
-  const activeRows = state.rows({ status: "active", includeChanges: false });
+  const activeRows = state.rows({ status: "active", includeEntries: false });
   const indexesDir = workspace.paths.indexes;
   await mkdir(indexesDir, { recursive: true });
 
   const builders: Record<V1IndexName, () => unknown> = {
     "active-by-id": () => buildActiveById(activeRows),
-    "active-by-collection": () => buildActiveByCollection(activeRows),
+    "active-by-profile": () => buildActiveByProfile(activeRows),
     "active-claims-by-key": () => buildActiveClaimsByKey(activeRows),
     "active-sources-by-uri": () => buildActiveSourcesByUri(activeRows),
     "active-sources-by-content-hash": () => buildActiveSourcesByContentHash(activeRows),
@@ -306,10 +314,50 @@ export function buildClaimKeyClusters(rows: Iterable<EffectiveRow>): ClaimKeyClu
   };
 }
 
-function resolveViewPath(workspace: KnbWorkspace, collection: string, out: string | undefined): string {
+function renderScope(request: RenderRequest): RenderScope {
+  const scope: RenderScope = {};
+  const profile = cleanSelector(request.profile);
+  const subject = cleanSelector(request.subject);
+  const tag = cleanSelector(request.tag);
+  if (request.profile !== undefined && profile === undefined) {
+    throw knbError("validation_failed", "Render request profile must not be empty", { profile: request.profile });
+  }
+  if (request.subject !== undefined && subject === undefined) {
+    throw knbError("validation_failed", "Render request subject must not be empty", { subject: request.subject });
+  }
+  if (request.tag !== undefined && tag === undefined) {
+    throw knbError("validation_failed", "Render request tag must not be empty", { tag: request.tag });
+  }
+  if (profile) scope.profile = profile;
+  if (subject) scope.subject = subject;
+  if (tag) scope.tag = tag;
+  return scope;
+}
+
+function cleanSelector(value: string | undefined): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+
+function renderScopeSlug(scope: RenderScope): string {
+  if (scope.profile) return scope.profile;
+  if (scope.subject) return `subject-${scope.subject}`;
+  if (scope.tag) return `tag-${scope.tag}`;
+  return "instance";
+}
+
+function renderScopeLabel(scope: RenderScope): string {
+  if (scope.profile) return scope.profile;
+  if (scope.subject) return scope.subject;
+  if (scope.tag) return scope.tag;
+  return "Instance";
+}
+
+function resolveViewPath(workspace: KnbWorkspace, view: string, out: string | undefined): string {
   const viewsRoot = resolve(workspace.paths.views);
   if (out === undefined || out === null || out.length === 0) {
-    return join(viewsRoot, `${sanitizeCollection(collection)}.md`);
+    return join(viewsRoot, `${sanitizeViewSlug(view)}.md`);
   }
   const candidate = isAbsolute(out) ? resolve(out) : resolve(viewsRoot, out);
   const normalized = normalize(candidate);
@@ -324,8 +372,8 @@ function resolveViewPath(workspace: KnbWorkspace, collection: string, out: strin
   return normalized;
 }
 
-function sanitizeCollection(collection: string): string {
-  return collection.replace(/[\\/:*?"<>|\x00-\x1f]/g, "_");
+function sanitizeViewSlug(view: string): string {
+  return view.replace(/[\\/:*?"<>|\x00-\x1f]/g, "_");
 }
 
 function workspaceRelative(workspace: KnbWorkspace, target: string): string {
@@ -357,10 +405,11 @@ function projectionOptions(options: Record<string, unknown>): Record<string, unk
 
 function buildMarkdown(
   state: EffectiveState,
-  collection: string,
+  scope: RenderScope,
   ledger_fingerprint: LedgerFingerprint,
 ): string {
-  const active = state.rows({ status: "active", collection, includeChanges: false });
+  const allActive = state.rows({ status: "active", includeEntries: false });
+  const active = state.rows({ status: "active", ...scope, includeEntries: false });
 
   const syntheses = active
     .map((er) => er.row)
@@ -391,13 +440,13 @@ function buildMarkdown(
     );
   }
 
-  const sources = active
+  const sources = allActive
     .map((er) => er.row)
     .filter((row): row is SourceRow => row.kind === "source" && citedSourceIds.has(row.id))
     .sort(byCreatedAscThenId);
   const sourceCitationIndex = buildSourceCitationIndex(state);
 
-  const title = titleize(collection);
+  const title = titleize(renderScopeLabel(scope));
   const lines: string[] = [];
   lines.push(`# ${title}`, "");
   lines.push(
@@ -527,16 +576,16 @@ function buildActiveById(rows: EffectiveRow[]): Record<string, { kind: string; s
   return out;
 }
 
-function buildActiveByCollection(rows: EffectiveRow[]): Record<string, string[]> {
+function buildActiveByProfile(rows: EffectiveRow[]): Record<string, string[]> {
   const map = new Map<string, string[]>();
   for (const effective of rows) {
-    const collections = effective.row.scope.collections;
-    if (!Array.isArray(collections)) continue;
-    for (const collection of collections) {
-      if (typeof collection !== "string" || collection.length === 0) continue;
-      const list = map.get(collection) ?? [];
+    const profiles = effective.row.scope.profiles;
+    if (!Array.isArray(profiles)) continue;
+    for (const profile of profiles) {
+      if (typeof profile !== "string" || profile.length === 0) continue;
+      const list = map.get(profile) ?? [];
       list.push(effective.row.id);
-      map.set(collection, list);
+      map.set(profile, list);
     }
   }
   const sortedKeys = [...map.keys()].sort((a, b) => a.localeCompare(b));

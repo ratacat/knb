@@ -5,7 +5,7 @@
 
 export const KNB_SCHEMA_VERSION = "knb.v1" as const;
 
-export const ROW_KINDS = ["source", "claim", "question", "synthesis", "change"] as const;
+export const ROW_KINDS = ["source", "claim", "question", "synthesis", "entry"] as const;
 export const QUESTION_STATUSES = ["open", "resolved", "archived"] as const;
 export const QUESTION_PRIORITIES = ["low", "medium", "high"] as const;
 export const SYNTHESIS_STATUSES = ["active", "archived"] as const;
@@ -26,31 +26,31 @@ export const SOURCE_TYPES = [
   "web_page",
   "other",
 ] as const;
-export const RELATION_TYPES = [
+export const LINK_TYPES = [
   "supports",
   "contradicts",
   "depends_on",
   "context_for",
 ] as const;
-export const CHANGE_ACTIONS = ["retract", "supersede", "merge", "relate", "patch"] as const;
+export const ENTRY_ACTIONS = ["retract", "supersede", "merge", "link", "patch"] as const;
 export const EVIDENCE_ROLES = ["supports", "contradicts", "context"] as const;
-export const APPLY_OPERATION_KINDS = ["add", "retract", "supersede", "merge", "relate", "patch"] as const;
+export const APPLY_OPERATION_KINDS = ["add", "retract", "supersede", "merge", "link", "patch"] as const;
 export const KIND_PREFIXES = {
   source: "src",
   claim: "claim",
   question: "q",
   synthesis: "synth",
-  change: "chg",
+  entry: "ent",
 } as const;
 
 export type KnbRowKind = (typeof ROW_KINDS)[number];
-export type RelationType = (typeof RELATION_TYPES)[number];
-export type ChangeAction = (typeof CHANGE_ACTIONS)[number];
+export type LinkType = (typeof LINK_TYPES)[number];
+export type EntryAction = (typeof ENTRY_ACTIONS)[number];
 export type AssessmentLevel = (typeof ASSESSMENT_LEVELS)[number];
 export type ApplyOperationKind = (typeof APPLY_OPERATION_KINDS)[number];
 
 export type Scope = {
-  collections?: string[];
+  profiles?: string[];
   subjects?: string[];
   tags?: string[];
   language?: string | null;
@@ -136,17 +136,17 @@ export type Assessment = {
   uncertainty?: string;
 };
 
-export type Relation = {
+export type Link = {
   target_id: string;
-  rel: RelationType;
+  rel: LinkType;
   strength?: "low" | "medium" | "high";
   rationale?: string;
 };
 
-export type ChangeRelation = {
+export type EntryLink = {
   from_id: string;
   to_id: string;
-  rel: RelationType;
+  rel: LinkType;
   strength?: "low" | "medium" | "high";
   rationale?: string;
 };
@@ -193,7 +193,7 @@ export type ClaimRow = KnbRowCommon & {
   time: Time;
   provenance: Provenance;
   assessment: Assessment;
-  relations?: Relation[];
+  links?: Link[];
 };
 
 export type QuestionRow = KnbRowCommon & {
@@ -209,7 +209,7 @@ export type QuestionRow = KnbRowCommon & {
   time?: Time;
   provenance?: Provenance;
   assessment?: Assessment;
-  relations?: Relation[];
+  links?: Link[];
 };
 
 export type SynthesisRow = KnbRowCommon & {
@@ -227,24 +227,24 @@ export type SynthesisRow = KnbRowCommon & {
   };
   provenance?: Provenance;
   assessment?: Assessment;
-  relations?: Relation[];
+  links?: Link[];
 };
 
-export type ChangeRow = KnbRowCommon & {
-  kind: "change";
-  change: {
-    action: ChangeAction;
+export type EntryRow = KnbRowCommon & {
+  kind: "entry";
+  entry: {
+    action: EntryAction;
     target_ids?: string[];
     target_id?: string;
     replacement_id?: string;
     canonical_id?: string;
     reason?: string;
-    relation?: ChangeRelation;
+    link?: EntryLink;
     patch?: Array<Record<string, unknown>>;
   };
 };
 
-export type KnbRow = SourceRow | ClaimRow | QuestionRow | SynthesisRow | ChangeRow;
+export type KnbRow = SourceRow | ClaimRow | QuestionRow | SynthesisRow | EntryRow;
 
 export type Ref = string;
 
@@ -278,12 +278,12 @@ export function* referenceFields(row: KnbRow | DraftRow): Iterable<RefSlot> {
     }
   }
 
-  const relations = record.relations;
-  if (Array.isArray(relations)) {
-    for (let index = 0; index < relations.length; index += 1) {
-      const relation = relations[index];
-      if (!isRecord(relation)) continue;
-      const slot = objectRefSlot(relation, "target_id", "any", `relations[${index}].target_id`);
+  const links = record.links;
+  if (Array.isArray(links)) {
+    for (let index = 0; index < links.length; index += 1) {
+      const link = links[index];
+      if (!isRecord(link)) continue;
+      const slot = objectRefSlot(link, "target_id", "any", `links[${index}].target_id`);
       if (slot) yield slot;
     }
   }
@@ -301,19 +301,19 @@ export function* referenceFields(row: KnbRow | DraftRow): Iterable<RefSlot> {
     yield* arrayRefSlots(synthesis.basis.source_ids, "source", "synthesis.basis.source_ids");
   }
 
-  const change = record.change;
-  if (isRecord(change)) {
-    yield* arrayRefSlots(change.target_ids, "any", "change.target_ids");
-    const targetSlot = objectRefSlot(change, "target_id", "any", "change.target_id");
+  const entry = record.entry;
+  if (isRecord(entry)) {
+    yield* arrayRefSlots(entry.target_ids, "any", "entry.target_ids");
+    const targetSlot = objectRefSlot(entry, "target_id", "any", "entry.target_id");
     if (targetSlot) yield targetSlot;
-    const replacementSlot = objectRefSlot(change, "replacement_id", "any", "change.replacement_id");
+    const replacementSlot = objectRefSlot(entry, "replacement_id", "any", "entry.replacement_id");
     if (replacementSlot) yield replacementSlot;
-    const canonicalSlot = objectRefSlot(change, "canonical_id", "any", "change.canonical_id");
+    const canonicalSlot = objectRefSlot(entry, "canonical_id", "any", "entry.canonical_id");
     if (canonicalSlot) yield canonicalSlot;
-    if (isRecord(change.relation)) {
-      const fromSlot = objectRefSlot(change.relation, "from_id", "any", "change.relation.from_id");
+    if (isRecord(entry.link)) {
+      const fromSlot = objectRefSlot(entry.link, "from_id", "any", "entry.link.from_id");
       if (fromSlot) yield fromSlot;
-      const toSlot = objectRefSlot(change.relation, "to_id", "any", "change.relation.to_id");
+      const toSlot = objectRefSlot(entry.link, "to_id", "any", "entry.link.to_id");
       if (toSlot) yield toSlot;
     }
   }
@@ -371,10 +371,10 @@ export type ApplyOperation =
       as?: string;
     }
   | {
-      op: "relate";
+      op: "link";
       from_id: Ref;
       to_id: Ref;
-      rel: RelationType;
+      rel: LinkType;
       strength?: "low" | "medium" | "high";
       rationale?: string;
       scope?: Scope;
@@ -475,10 +475,10 @@ export function validateLedger(rows: LoadedRow[], parseIssues: ValidationIssue[]
     if (kind === "claim") validateClaim(loaded as LoadedRow & { row: ClaimRow }, issues);
     if (kind === "question") validateQuestion(loaded, issues);
     if (kind === "synthesis") validateSynthesis(loaded as LoadedRow & { row: SynthesisRow }, issues);
-    if (kind === "change") validateChange(loaded as LoadedRow & { row: ChangeRow }, byId, issues);
+    if (kind === "entry") validateEntry(loaded as LoadedRow & { row: EntryRow }, byId, issues);
 
     validateSourceRefs(loaded, sourceIds, issues);
-    validateRelations(loaded, byId, issues);
+    validateLinks(loaded, byId, issues);
   }
 
   validateSynthesisBasis(rows, byId, issues);
@@ -491,13 +491,13 @@ function collectInactiveSourceIds(rows: LoadedRow[], byId: RowMap): Set<string> 
   const inactive = new Set<string>();
   for (const loaded of rows) {
     const row = loaded.row;
-    if ((row as { kind?: unknown }).kind !== "change") continue;
-    const change = (row as ChangeRow).change;
-    if (!isRecord(change)) continue;
-    const action = stringValue(change.action);
+    if ((row as { kind?: unknown }).kind !== "entry") continue;
+    const entry = (row as EntryRow).entry;
+    if (!isRecord(entry)) continue;
+    const action = stringValue(entry.action);
     if (action !== "retract" && action !== "supersede" && action !== "merge") continue;
-    if (!Array.isArray(change.target_ids)) continue;
-    for (const targetId of change.target_ids) {
+    if (!Array.isArray(entry.target_ids)) continue;
+    for (const targetId of entry.target_ids) {
       if (typeof targetId !== "string" || targetId.length === 0) continue;
       const target = byId.get(targetId);
       if (target?.kind === "source") inactive.add(targetId);
@@ -561,7 +561,7 @@ export function completeDraftRow(draft: DraftRow, deps: DraftCompletionDeps): Dr
     issues.push({
       level: "error",
       code: "scope_anchor_required",
-      message: "scope must include at least one collection, subject, or tag",
+      message: "scope must include at least one profile, subject, or tag",
       path: "scope",
     });
     return { ok: false, issues };
@@ -571,7 +571,7 @@ export function completeDraftRow(draft: DraftRow, deps: DraftCompletionDeps): Dr
     issues.push({
       level: "error",
       code: "scope_anchor_required",
-      message: "scope must include at least one collection, subject, or tag",
+      message: "scope must include at least one profile, subject, or tag",
       path: "scope",
     });
     return { ok: false, issues };
@@ -608,19 +608,19 @@ export function generateId(
 
 export function scopeSlug(scope: Scope): string | undefined {
   const candidate =
-    scope.collections?.[0] ?? scope.subjects?.[0] ?? scope.tags?.[0] ?? undefined;
+    scope.profiles?.[0] ?? scope.subjects?.[0] ?? scope.tags?.[0] ?? undefined;
   if (!candidate) return undefined;
   return slugify(candidate);
 }
 
-export function rowSamples(): { source: SourceRow; claim: ClaimRow; question: QuestionRow; synthesis: SynthesisRow; change: ChangeRow } {
+export function rowSamples(): { source: SourceRow; claim: ClaimRow; question: QuestionRow; synthesis: SynthesisRow; entry: EntryRow } {
   const source: SourceRow = {
     schema_version: KNB_SCHEMA_VERSION,
     id: "src:example:20260501:aaaa1111",
     kind: "source",
     created_at: "2026-05-01T12:00:00Z",
     created_by: "agent:example",
-    scope: { collections: ["example"], subjects: ["Example"] },
+    scope: { profiles: ["research.v1"], subjects: ["Example"] },
     source: {
       type: "web_page",
       title: "Example source",
@@ -637,7 +637,7 @@ export function rowSamples(): { source: SourceRow; claim: ClaimRow; question: Qu
     kind: "claim",
     created_at: "2026-05-01T12:01:00Z",
     created_by: "agent:example",
-    scope: { collections: ["example"], subjects: ["Example"], tags: ["fact"] },
+    scope: { profiles: ["research.v1"], subjects: ["Example"], tags: ["fact"] },
     identity: { claim_key: "example|exists" },
     claim: {
       statement: "Example exists.",
@@ -663,7 +663,7 @@ export function rowSamples(): { source: SourceRow; claim: ClaimRow; question: Qu
     kind: "question",
     created_at: "2026-05-01T12:02:00Z",
     created_by: "agent:example",
-    scope: { collections: ["example"], subjects: ["Example"] },
+    scope: { profiles: ["research.v1"], subjects: ["Example"] },
     question: {
       text: "Does the example always exist?",
       status: "open",
@@ -677,7 +677,7 @@ export function rowSamples(): { source: SourceRow; claim: ClaimRow; question: Qu
     kind: "synthesis",
     created_at: "2026-05-01T12:03:00Z",
     created_by: "agent:example",
-    scope: { collections: ["example"], subjects: ["Example"] },
+    scope: { profiles: ["research.v1"], subjects: ["Example"] },
     synthesis: {
       title: "Example synthesis",
       summary: "Examples usually exist when referenced.",
@@ -690,21 +690,21 @@ export function rowSamples(): { source: SourceRow; claim: ClaimRow; question: Qu
     },
   };
 
-  const change: ChangeRow = {
+  const entry: EntryRow = {
     schema_version: KNB_SCHEMA_VERSION,
-    id: "chg:example:20260501:eeee5555",
-    kind: "change",
+    id: "ent:example:20260501:eeee5555",
+    kind: "entry",
     created_at: "2026-05-01T12:04:00Z",
     created_by: "agent:example",
-    scope: { collections: ["example"] },
-    change: {
+    scope: { profiles: ["research.v1"], subjects: ["Example"] },
+    entry: {
       action: "retract",
       target_ids: [claim.id],
       reason: "Replaced by a more precise claim.",
     },
   };
 
-  return { source, claim, question, synthesis, change };
+  return { source, claim, question, synthesis, entry };
 }
 
 export function operationSamples(): {
@@ -712,7 +712,7 @@ export function operationSamples(): {
   retract: ApplyOperation;
   supersede: ApplyOperation;
   merge: ApplyOperation;
-  relate: ApplyOperation;
+  link: ApplyOperation;
   patch: ApplyOperation;
 } {
   const samples = rowSamples();
@@ -722,7 +722,7 @@ export function operationSamples(): {
       as: "claim",
       row: {
         kind: "claim",
-        scope: { collections: ["example"] },
+        scope: { profiles: ["research.v1"], subjects: ["Example"] },
         identity: { claim_key: "example|exists" },
         claim: { statement: "Example exists.", atomic: true },
         time: { precision: "unknown" },
@@ -751,8 +751,8 @@ export function operationSamples(): {
       canonical_id: "$canonicalClaim",
       reason: "Both rows describe the same fact.",
     },
-    relate: {
-      op: "relate",
+    link: {
+      op: "link",
       from_id: samples.claim.id,
       to_id: samples.source.id,
       rel: "supports",
@@ -787,11 +787,11 @@ export function jsonSchema(): Record<string, unknown> {
       claim: { $ref: "#/$defs/claim" },
       question: { $ref: "#/$defs/question" },
       synthesis: { $ref: "#/$defs/synthesis" },
-      change: { $ref: "#/$defs/change" },
+      entry: { $ref: "#/$defs/entry" },
       time: { $ref: "#/$defs/time" },
       provenance: { $ref: "#/$defs/provenance" },
       assessment: { $ref: "#/$defs/assessment" },
-      relations: { type: "array", items: { $ref: "#/$defs/relation" } },
+      links: { type: "array", items: { $ref: "#/$defs/link" } },
     },
     allOf: [
       {
@@ -820,22 +820,22 @@ export function jsonSchema(): Record<string, unknown> {
         then: { required: ["synthesis"] },
       },
       {
-        if: { properties: { kind: { const: "change" } } },
-        then: { required: ["change"] },
+        if: { properties: { kind: { const: "entry" } } },
+        then: { required: ["entry"] },
       },
     ],
     $defs: {
       scope: {
         type: "object",
         properties: {
-          collections: { type: "array", items: { type: "string" } },
+          profiles: { type: "array", items: { type: "string" } },
           subjects: { type: "array", items: { type: "string" } },
           tags: { type: "array", items: { type: "string" } },
           language: { type: ["string", "null"] },
           geo: { type: "array", items: { type: "string" } },
         },
         anyOf: [
-          { required: ["collections"] },
+          { required: ["profiles"] },
           { required: ["subjects"] },
           { required: ["tags"] },
         ],
@@ -921,24 +921,24 @@ export function jsonSchema(): Record<string, unknown> {
           status: { enum: [...SYNTHESIS_STATUSES] },
         },
       },
-      change: {
+      entry: {
         type: "object",
         required: ["action"],
         properties: {
-          action: { enum: [...CHANGE_ACTIONS] },
+          action: { enum: [...ENTRY_ACTIONS] },
           target_ids: { type: "array", items: { type: "string" } },
           target_id: { type: "string" },
           replacement_id: { type: "string" },
           canonical_id: { type: "string" },
           reason: { type: "string" },
-          relation: {
+          link: {
             type: "object",
             required: ["from_id", "to_id", "rel"],
             properties: {
               from_id: { type: "string" },
               to_id: { type: "string" },
               target_id: { type: "string" },
-              rel: { enum: [...RELATION_TYPES] },
+              rel: { enum: [...LINK_TYPES] },
               strength: { enum: ["low", "medium", "high"] },
               rationale: { type: "string" },
             },
@@ -1000,12 +1000,12 @@ export function jsonSchema(): Record<string, unknown> {
           uncertainty: { type: "string" },
         },
       },
-      relation: {
+      link: {
         type: "object",
         required: ["target_id", "rel"],
         properties: {
           target_id: { type: "string" },
-          rel: { enum: [...RELATION_TYPES] },
+          rel: { enum: [...LINK_TYPES] },
           strength: { enum: ["low", "medium", "high"] },
           rationale: { type: "string" },
         },
@@ -1093,7 +1093,7 @@ function validateCommon(loaded: LoadedRow, issues: ValidationIssue[]): void {
       code: "scope_anchor_required",
       line: loaded.line,
       id,
-      message: "scope must include at least one collection, subject, or tag",
+      message: "scope must include at least one profile, subject, or tag",
       path: "scope",
     });
   }
@@ -1341,114 +1341,114 @@ function validateSynthesis(loaded: LoadedRow & { row: SynthesisRow }, issues: Va
   validateAssessment(row.assessment, loaded, issues, { requireConfidence: false });
 }
 
-function validateChange(loaded: LoadedRow & { row: ChangeRow }, byId: RowMap, issues: ValidationIssue[]): void {
-  const change = (loaded.row as { change?: unknown }).change;
-  if (!isRecord(change)) {
+function validateEntry(loaded: LoadedRow & { row: EntryRow }, byId: RowMap, issues: ValidationIssue[]): void {
+  const entry = (loaded.row as { entry?: unknown }).entry;
+  if (!isRecord(entry)) {
     issues.push({
       level: "error",
-      code: "change_object_required",
+      code: "entry_object_required",
       line: loaded.line,
       id: loaded.row.id,
-      message: "change row must include change object",
-      path: "change",
+      message: "entry row must include entry object",
+      path: "entry",
     });
     return;
   }
 
-  requireEnum(change.action, CHANGE_ACTIONS, "change.action", "change_action_invalid", loaded, issues);
+  requireEnum(entry.action, ENTRY_ACTIONS, "entry.action", "entry_action_invalid", loaded, issues);
 
-  if (change.action === "retract") {
-    requireTargetIds(change.target_ids, loaded, byId, issues, "change.target_ids", "change_target_required", "change_target_unresolved");
-    requireString(change.reason, "change.reason", "change_reason_required", loaded, issues);
+  if (entry.action === "retract") {
+    requireTargetIds(entry.target_ids, loaded, byId, issues, "entry.target_ids", "entry_target_required", "entry_target_unresolved");
+    requireString(entry.reason, "entry.reason", "entry_reason_required", loaded, issues);
     return;
   }
 
-  if (change.action === "supersede") {
-    requireTargetIds(change.target_ids, loaded, byId, issues, "change.target_ids", "change_target_required", "change_target_unresolved");
+  if (entry.action === "supersede") {
+    requireTargetIds(entry.target_ids, loaded, byId, issues, "entry.target_ids", "entry_target_required", "entry_target_unresolved");
     requireExistingId(
-      change.replacement_id,
+      entry.replacement_id,
       loaded,
       byId,
       issues,
-      "change.replacement_id",
-      "change_replacement_required",
-      "change_replacement_unresolved",
+      "entry.replacement_id",
+      "entry_replacement_required",
+      "entry_replacement_unresolved",
     );
-    requireString(change.reason, "change.reason", "change_reason_required", loaded, issues);
+    requireString(entry.reason, "entry.reason", "entry_reason_required", loaded, issues);
     return;
   }
 
-  if (change.action === "merge") {
+  if (entry.action === "merge") {
     requireExistingId(
-      change.canonical_id,
+      entry.canonical_id,
       loaded,
       byId,
       issues,
-      "change.canonical_id",
-      "change_canonical_required",
-      "change_canonical_unresolved",
+      "entry.canonical_id",
+      "entry_canonical_required",
+      "entry_canonical_unresolved",
     );
-    requireTargetIds(change.target_ids, loaded, byId, issues, "change.target_ids", "change_target_required", "change_target_unresolved");
-    requireString(change.reason, "change.reason", "change_reason_required", loaded, issues);
+    requireTargetIds(entry.target_ids, loaded, byId, issues, "entry.target_ids", "entry_target_required", "entry_target_unresolved");
+    requireString(entry.reason, "entry.reason", "entry_reason_required", loaded, issues);
     return;
   }
 
-  if (change.action === "relate") {
-    const relation = change.relation;
-    if (!isRecord(relation)) {
+  if (entry.action === "link") {
+    const link = entry.link;
+    if (!isRecord(link)) {
       issues.push({
         level: "error",
-        code: "change_relation_required",
+        code: "entry_link_required",
         line: loaded.line,
         id: loaded.row.id,
-        message: "change.relation must be an object",
-        path: "change.relation",
+        message: "entry.link must be an object",
+        path: "entry.link",
       });
       return;
     }
     requireExistingId(
-      relation.from_id,
+      link.from_id,
       loaded,
       byId,
       issues,
-      "change.relation.from_id",
-      "change_relation_endpoint_required",
-      "change_relation_endpoint_unresolved",
+      "entry.link.from_id",
+      "entry_link_endpoint_required",
+      "entry_link_endpoint_unresolved",
     );
     requireExistingId(
-      relation.to_id,
+      link.to_id,
       loaded,
       byId,
       issues,
-      "change.relation.to_id",
-      "change_relation_endpoint_required",
-      "change_relation_endpoint_unresolved",
+      "entry.link.to_id",
+      "entry_link_endpoint_required",
+      "entry_link_endpoint_unresolved",
     );
-    requireEnum(relation.rel, RELATION_TYPES, "change.relation.rel", "relation_kind_invalid", loaded, issues);
+    requireEnum(link.rel, LINK_TYPES, "entry.link.rel", "link_kind_invalid", loaded, issues);
     return;
   }
 
-  if (change.action === "patch") {
+  if (entry.action === "patch") {
     requireExistingId(
-      change.target_id,
+      entry.target_id,
       loaded,
       byId,
       issues,
-      "change.target_id",
-      "change_target_required",
-      "change_target_unresolved",
+      "entry.target_id",
+      "entry_target_required",
+      "entry_target_unresolved",
     );
-    if (!Array.isArray(change.patch) || change.patch.length === 0) {
+    if (!Array.isArray(entry.patch) || entry.patch.length === 0) {
       issues.push({
         level: "error",
-        code: "change_patch_required",
+        code: "entry_patch_required",
         line: loaded.line,
         id: loaded.row.id,
-        message: "change.patch must have at least one item",
-        path: "change.patch",
+        message: "entry.patch must have at least one item",
+        path: "entry.patch",
       });
     }
-    requireString(change.reason, "change.reason", "change_reason_required", loaded, issues);
+    requireString(entry.reason, "entry.reason", "entry_reason_required", loaded, issues);
   }
 }
 
@@ -1589,53 +1589,53 @@ function validateSourceRefs(loaded: LoadedRow, sourceIds: Set<string>, issues: V
   }
 }
 
-function validateRelations(loaded: LoadedRow, byId: RowMap, issues: ValidationIssue[]): void {
-  const relations = (loaded.row as { relations?: unknown }).relations;
-  if (relations === undefined) return;
-  if (!Array.isArray(relations)) {
+function validateLinks(loaded: LoadedRow, byId: RowMap, issues: ValidationIssue[]): void {
+  const links = (loaded.row as { links?: unknown }).links;
+  if (links === undefined) return;
+  if (!Array.isArray(links)) {
     issues.push({
       level: "error",
-      code: "relations_invalid",
+      code: "links_invalid",
       line: loaded.line,
       id: loaded.row.id,
-      message: "relations must be an array",
-      path: "relations",
+      message: "links must be an array",
+      path: "links",
     });
     return;
   }
-  for (const relation of relations) {
-    if (!isRecord(relation)) {
+  for (const link of links) {
+    if (!isRecord(link)) {
       issues.push({
         level: "error",
-        code: "relation_invalid",
+        code: "link_invalid",
         line: loaded.line,
         id: loaded.row.id,
-        message: "relation item must be an object",
-        path: "relations",
+        message: "link item must be an object",
+        path: "links",
       });
       continue;
     }
-    const targetId = stringValue(relation.target_id);
+    const targetId = stringValue(link.target_id);
     if (!targetId) {
       issues.push({
         level: "error",
-        code: "relation_target_required",
+        code: "link_target_required",
         line: loaded.line,
         id: loaded.row.id,
-        message: "relation.target_id is required",
-        path: "relations.target_id",
+        message: "link.target_id is required",
+        path: "links.target_id",
       });
     } else if (!byId.has(targetId)) {
       issues.push({
         level: "error",
-        code: "relation_target_unresolved",
+        code: "link_target_unresolved",
         line: loaded.line,
         id: loaded.row.id,
-        message: `Unresolved relation target_id: ${targetId}`,
-        path: "relations.target_id",
+        message: `Unresolved link target_id: ${targetId}`,
+        path: "links.target_id",
       });
     }
-    requireEnum(relation.rel, RELATION_TYPES, "relation.rel", "relation_kind_invalid", loaded, issues);
+    requireEnum(link.rel, LINK_TYPES, "link.rel", "link_kind_invalid", loaded, issues);
   }
 }
 
@@ -1830,12 +1830,12 @@ function validateOperation(operation: unknown, basePath: string, issues: Validat
       });
     }
   }
-  if (op === "relate") {
+  if (op === "link") {
     if (typeof (operation as { from_id?: unknown }).from_id !== "string") {
       issues.push({
         level: "error",
         code: "operation_from_required",
-        message: "relate operation requires from_id",
+        message: "link operation requires from_id",
         path: `${basePath}.from_id`,
       });
     }
@@ -1843,16 +1843,16 @@ function validateOperation(operation: unknown, basePath: string, issues: Validat
       issues.push({
         level: "error",
         code: "operation_to_required",
-        message: "relate operation requires to_id",
+        message: "link operation requires to_id",
         path: `${basePath}.to_id`,
       });
     }
     const rel = (operation as { rel?: unknown }).rel;
-    if (typeof rel !== "string" || !RELATION_TYPES.includes(rel as RelationType)) {
+    if (typeof rel !== "string" || !LINK_TYPES.includes(rel as LinkType)) {
       issues.push({
         level: "error",
-        code: "relation_kind_invalid",
-        message: `rel must be one of: ${RELATION_TYPES.join(", ")}`,
+        code: "link_kind_invalid",
+        message: `rel must be one of: ${LINK_TYPES.join(", ")}`,
         path: `${basePath}.rel`,
       });
     }
@@ -1934,7 +1934,7 @@ function nonEmptyStringArray(value: unknown): boolean {
 }
 
 function scopeHasAnchor(scope: Scope): boolean {
-  return Boolean(scope.collections?.length || scope.subjects?.length || scope.tags?.length);
+  return Boolean(scope.profiles?.length || scope.subjects?.length || scope.tags?.length);
 }
 
 function slugify(value: string): string {

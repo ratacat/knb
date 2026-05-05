@@ -2,7 +2,7 @@
 
 ## Purpose
 
-`knb context` ranks active syntheses, claims, and questions before it trims the packet to the token budget. This note records the fixed internal ranking model after the public scoring customization surface was removed.
+`knb context` ranks active syntheses, storage-level claim rows, and questions before it trims the packet to the token budget. In profile language, those claim rows are records; `claim` remains the current V1 storage/API name. This note records the fixed internal ranking model after the public scoring customization surface was removed.
 
 ## Current Model
 
@@ -15,13 +15,13 @@ Syntheses:
 3. basis depth, counting claim, question, and source IDs
 4. `id`, ascending
 
-Claims:
+Records (`claim` rows in V1 storage):
 
 1. `assessment.importance`: `high=3`, `medium=2`, `low=1`, `unknown=0`
 2. `assessment.confidence`: `high=3`, `medium=2`, `low=1`, `unknown=0`
 3. `assessment.information_depth.level`: `complete=4`, `strong=3`, `partial=2`, `thin=1`, `unknown=0`
 4. evidence count
-5. `assessment.contested`, where contested claims rank first when all prior fields tie
+5. `assessment.contested`, where contested records rank first when all prior fields tie
 6. `created_at`, newest first
 7. `id`, ascending
 
@@ -32,7 +32,7 @@ Questions:
 3. `created_at`, newest first
 4. `id`, ascending
 
-Warnings use the same internal ranking model indirectly. The thin-evidence warning fires when a selected claim has fewer than two evidence entries. Truncation also uses the default importance and priority maps when it decides which claims, questions, and source detail to drop first.
+Warnings use the same internal ranking model indirectly. The thin-evidence warning fires when a selected record has fewer than two evidence entries. Truncation also uses the default importance and priority maps when it decides which records, questions, and source detail to drop first.
 
 ## Decision
 

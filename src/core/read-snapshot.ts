@@ -1,5 +1,5 @@
 // Read snapshot module - V1 read-side counterpart to apply.
-// Concentrates load -> validate -> optional project -> freshness collection so
+// Concentrates load -> validate -> optional project -> freshness checks so
 // status, check, get, query, context, render, and index do not reassemble the
 // rules independently.
 

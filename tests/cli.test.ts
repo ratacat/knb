@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { appendFile, chmod, mkdir, mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { chmod, mkdir, mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { realpath } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -111,7 +111,7 @@ async function initWorkspace(): Promise<void> {
   if (initRun.code !== 0) throw new Error(`init failed: ${initRun.stderr}`);
 }
 
-async function seedAsOfFixture(collection = "asof-cli"): Promise<{ sourceId: string; claimId: string }> {
+async function seedAsOfFixture(profile = "asof-cli"): Promise<{ sourceId: string; claimId: string }> {
   await initWorkspace();
   const sourcePayload = JSON.stringify({
     now: "2026-05-01T00:00:00Z",
@@ -121,7 +121,7 @@ async function seedAsOfFixture(collection = "asof-cli"): Promise<{ sourceId: str
         as: "src",
         row: {
           kind: "source",
-          scope: { collections: [collection] },
+          scope: { profiles: [profile] },
           source: { type: "web_page", title: "CLI AsOf Source", uri: "https://example.com/asof-cli" },
           provenance: { acquisition: { method: "manual" } },
         },
@@ -140,8 +140,8 @@ async function seedAsOfFixture(collection = "asof-cli"): Promise<{ sourceId: str
         as: "claim",
         row: {
           kind: "claim",
-          scope: { collections: [collection] },
-          identity: { claim_key: `${collection}|claim` },
+          scope: { profiles: [profile] },
+          identity: { claim_key: `${profile}|claim` },
           claim: { statement: "CLI time-travel claim.", atomic: true },
           time: { precision: "unknown" },
           provenance: {
@@ -155,7 +155,7 @@ async function seedAsOfFixture(collection = "asof-cli"): Promise<{ sourceId: str
         op: "add",
         row: {
           kind: "synthesis",
-          scope: { collections: [collection] },
+          scope: { profiles: [profile] },
           synthesis: {
             title: "CLI AsOf Synthesis",
             summary: "CLI historical synthesis.",
@@ -184,7 +184,7 @@ async function seedAsOfFixture(collection = "asof-cli"): Promise<{ sourceId: str
         op: "add",
         row: {
           kind: "question",
-          scope: { collections: [collection] },
+          scope: { profiles: [profile] },
           question: { text: "CLI question after cutoff?", status: "open" },
         },
       },
@@ -432,8 +432,8 @@ describe("cli help and entrypoint", () => {
     }
     expect(text).not.toContain("knb validate");
     expect(text).not.toContain("knb append");
-    expect(text).not.toContain("knb collections");
-    expect(text).not.toContain("status --collection");
+    expect(text).not.toContain("knb profiles");
+    expect(text).not.toContain("status --profile");
     expect(text).not.toContain("knb log");
     expect(text).not.toContain("render --all");
   });
@@ -453,6 +453,109 @@ describe("cli help and entrypoint", () => {
     expect(text).toContain("internal_error");
   });
 
+});
+
+describe("cli profile and instance commands", () => {
+  test("profile create --stdin --attach is visible through list and instance show", async () => {
+    const initRun = await runCliBinary(["init", "--json"]);
+    expect(initRun.code).toBe(0);
+
+    const payload = JSON.stringify({
+      display_name: "Research",
+      description: "General research profile.",
+      record_types: [{ type: "record" }],
+      link_types: [{ rel: "depends_on" }],
+    });
+    const create = await runCliBinary(
+      ["profile", "create", "research.v1", "--stdin", "--attach", "--json"],
+      { stdin: payload },
+    );
+    expect(create.code).toBe(0);
+    const createEnv = JSON.parse(create.stdout.trim()) as {
+      ok: boolean;
+      command: string;
+      data: { profile: { profile_id: string; schema_version: string }; attached: boolean; created: boolean };
+    };
+    expect(createEnv.ok).toBe(true);
+    expect(createEnv.command).toBe("profile create");
+    expect(createEnv.data.profile.profile_id).toBe("research.v1");
+    expect(createEnv.data.profile.schema_version).toBe("knb.profile.v1");
+    expect(createEnv.data.attached).toBe(true);
+    expect(createEnv.data.created).toBe(true);
+
+    const list = await runCliBinary(["profile", "list", "--attached", "--json"]);
+    expect(list.code).toBe(0);
+    const listEnv = JSON.parse(list.stdout.trim()) as {
+      data: { profiles: Array<{ profile_id: string; defined: boolean; attached: boolean; display_name?: string; description?: string }> };
+    };
+    expect(listEnv.data.profiles).toEqual([{ profile_id: "research.v1", defined: true, attached: true, display_name: "Research", description: "General research profile." }]);
+
+    const show = await runCliBinary(["instance", "show", "--json"]);
+    expect(show.code).toBe(0);
+    const showEnv = JSON.parse(show.stdout.trim()) as { data: { profiles: string[] } };
+    expect(showEnv.data.profiles).toEqual(["research.v1"]);
+  });
+
+  test("profile show missing returns structured suggestions", async () => {
+    const initRun = await runCliBinary(["init", "--json"]);
+    expect(initRun.code).toBe(0);
+
+    const result = await runCliBinary(["profile", "show", "missing.v1", "--json"]);
+
+    expect(result.code).toBe(1);
+    expect(result.stdout).toBe("");
+    const env = JSON.parse(result.stderr.trim()) as {
+      ok: boolean;
+      error: { code: string; message: string; suggestions?: string[]; details?: { profile_id?: string } };
+    };
+    expect(env.ok).toBe(false);
+    expect(env.error.code).toBe("not_found");
+    expect(env.error.message).toContain("missing.v1");
+    expect(env.error.details?.profile_id).toBe("missing.v1");
+    expect(env.error.suggestions).toContain("knb profile list --json");
+  });
+
+  test("instance create targets the positional root and instance list finds it", async () => {
+    const targetRoot = join(workDir, "nested", "research");
+
+    const create = await runCliBinary([
+      "instance",
+      "create",
+      targetRoot,
+      "--instance-id",
+      "research-main",
+      "--profile",
+      "research.v1",
+      "--actor",
+      "agent:cli-instance",
+      "--json",
+    ]);
+    expect(create.code).toBe(0);
+    const createEnv = JSON.parse(create.stdout.trim()) as {
+      command: string;
+      data: { workspace_root: string; instance_id: string; profiles: string[]; actor: string };
+    };
+    expect(createEnv.command).toBe("instance create");
+    expect(createEnv.data.workspace_root).toBe(targetRoot);
+    expect(createEnv.data.instance_id).toBe("research-main");
+    expect(createEnv.data.profiles).toEqual(["research.v1"]);
+    expect(createEnv.data.actor).toBe("agent:cli-instance");
+    expect(await pathExists(join(targetRoot, ".knb", "config.json"))).toBe(true);
+
+    const list = await runCliBinary(["instance", "list", "--under", workDir, "--json"]);
+    expect(list.code).toBe(0);
+    const listEnv = JSON.parse(list.stdout.trim()) as {
+      data: { instances: Array<{ workspace_root: string; config_path: string; instance_id?: string; actor?: string; profiles: string[]; ok: boolean }> };
+    };
+    expect(listEnv.data.instances).toContainEqual({
+      workspace_root: targetRoot,
+      config_path: join(targetRoot, ".knb", "config.json"),
+      instance_id: "research-main",
+      actor: "agent:cli-instance",
+      profiles: ["research.v1"],
+      ok: true,
+    });
+  });
 });
 
 describe("cli flag parsing", () => {
@@ -508,14 +611,58 @@ describe("cli flag parsing", () => {
     expect(meta.ledger).toBe(altLedger);
   });
 
-  test("unknown flag is silently ignored when commands do not consume it", async () => {
+  test("unknown flags are rejected instead of silently broadening scope", async () => {
     const initFirst = await runCliInProcess(["init"]);
     expect(initFirst.code).toBe(0);
 
-    const result = await runCliInProcess(["status", "--no-such-flag"]);
-    expect(result.code).toBe(0);
-    const { envelope } = parseEnvelope(result.stdout);
-    expect(envelope.ok).toBe(true);
+    const result = await runCliInProcess(["status", "--no-such-flag", "--json"]);
+    expect(result.code).toBe(2);
+    const envelope = JSON.parse(result.stderr.trim()) as {
+      ok: boolean;
+      error: { code: string; message: string; details?: { flag?: string; command?: string } };
+    };
+    expect(envelope.ok).toBe(false);
+    expect(envelope.error.code).toBe("invalid_arguments");
+    expect(envelope.error.details?.flag).toBe("--no-such-flag");
+    expect(envelope.error.details?.command).toBe("status");
+  });
+
+  test("removed --collection flag is rejected on scoped read commands", async () => {
+    await initWorkspace();
+
+    const result = await runCliBinary(["query", "--collection", "old", "--json"]);
+    expect(result.code).toBe(2);
+    expect(result.stdout).toBe("");
+    const envelope = JSON.parse(result.stderr.trim()) as {
+      ok: boolean;
+      error: { code: string; details?: { flag?: string; command?: string } };
+    };
+    expect(envelope.ok).toBe(false);
+    expect(envelope.error.code).toBe("invalid_arguments");
+    expect(envelope.error.details?.flag).toBe("--collection");
+    expect(envelope.error.details?.command).toBe("query");
+  });
+
+  test("known flags with the wrong value shape are rejected", async () => {
+    await initWorkspace();
+
+    const outputFlagValue = await runCliBinary(["query", "--json", "{\"not\":\"payload\"}"]);
+    expect(outputFlagValue.code).toBe(2);
+    const outputEnvelope = JSON.parse(outputFlagValue.stderr.trim()) as {
+      error: { code: string; details?: { flag?: string; command?: string; value?: string } };
+    };
+    expect(outputEnvelope.error.code).toBe("invalid_arguments");
+    expect(outputEnvelope.error.details?.flag).toBe("--json");
+    expect(outputEnvelope.error.details?.command).toBe("query");
+
+    const missingRoot = await runCliBinary(["status", "--root", "--json"]);
+    expect(missingRoot.code).toBe(2);
+    const rootEnvelope = JSON.parse(missingRoot.stderr.trim()) as {
+      error: { code: string; details?: { flag?: string; command?: string; value?: string } };
+    };
+    expect(rootEnvelope.error.code).toBe("invalid_arguments");
+    expect(rootEnvelope.error.details?.flag).toBe("--root");
+    expect(rootEnvelope.error.details?.command).toBe("status");
   });
 
   test("invalid numeric flags are rejected with invalid_arguments", async () => {
@@ -654,7 +801,7 @@ describe("cli apply / add / add payload sources", () => {
           op: "add",
           row: {
             kind: "source",
-            scope: { collections: ["files-flag"] },
+            scope: { profiles: ["files-flag"] },
             source: { type: "web_page", title: "From file", uri: "https://example.com/from-file" },
             provenance: { acquisition: { method: "manual" } },
           },
@@ -684,7 +831,7 @@ describe("cli apply / add / add payload sources", () => {
           op: "add",
           row: {
             kind: "source",
-            scope: { collections: ["root-relative-file"] },
+            scope: { profiles: ["root-relative-file"] },
             source: { type: "web_page", title: "Root relative", uri: "https://example.com/root-relative" },
             provenance: { acquisition: { method: "manual" } },
           },
@@ -716,7 +863,7 @@ describe("cli apply / add / add payload sources", () => {
           op: "add",
           row: {
             kind: "source",
-            scope: { collections: ["inline"] },
+            scope: { profiles: ["inline"] },
             source: { type: "web_page", title: "Inline", uri: "https://example.com/inline" },
             provenance: { acquisition: { method: "manual" } },
           },
@@ -741,7 +888,7 @@ describe("cli apply / add / add payload sources", () => {
           op: "add",
           row: {
             kind: "source",
-            scope: { collections: ["dry-run"] },
+            scope: { profiles: ["dry-run"] },
             source: { type: "web_page", title: "Dry run", uri: "https://example.com/dry-run" },
             provenance: { acquisition: { method: "manual" } },
           },
@@ -770,7 +917,7 @@ describe("cli apply / add / add payload sources", () => {
     expect(statusEnv.data.row_count).toBe(0);
   });
 
-  test("apply --dry-run catches invalid relation labels without appending rows", async () => {
+  test("apply --dry-run catches invalid link labels without appending rows", async () => {
     await initWorkspace();
     const seedPayload = JSON.stringify({
       operations: [
@@ -779,7 +926,7 @@ describe("cli apply / add / add payload sources", () => {
           as: "a",
           row: {
             kind: "source",
-            scope: { collections: ["dry-run-rel"] },
+            scope: { profiles: ["dry-run-rel"] },
             source: { type: "web_page", title: "A", uri: "https://example.com/a" },
             provenance: { acquisition: { method: "manual" } },
           },
@@ -789,7 +936,7 @@ describe("cli apply / add / add payload sources", () => {
           as: "b",
           row: {
             kind: "source",
-            scope: { collections: ["dry-run-rel"] },
+            scope: { profiles: ["dry-run-rel"] },
             source: { type: "web_page", title: "B", uri: "https://example.com/b" },
             provenance: { acquisition: { method: "manual" } },
           },
@@ -801,11 +948,11 @@ describe("cli apply / add / add payload sources", () => {
     const badPayload = JSON.stringify({
       operations: [
         {
-          op: "relate",
+          op: "link",
           from_id: seedEnv.data.created[0]?.id,
           to_id: seedEnv.data.created[1]?.id,
           rel: "partial_answer_to",
-          scope: { collections: ["dry-run-rel"] },
+          scope: { profiles: ["dry-run-rel"] },
         },
       ],
     });
@@ -818,7 +965,7 @@ describe("cli apply / add / add payload sources", () => {
     };
     expect(env.ok).toBe(false);
     expect(env.error.code).toBe("validation_failed");
-    const relIssue = env.error.details?.issues?.find((issue) => issue.code === "relation_kind_invalid");
+    const relIssue = env.error.details?.issues?.find((issue) => issue.code === "link_kind_invalid");
     expect(relIssue).toBeDefined();
     expect(relIssue?.op_index).toBe(0);
     expect(relIssue?.op_path).toBe("operations[0].rel");
@@ -854,7 +1001,7 @@ describe("cli apply / add / add payload sources", () => {
     const rowPath = join(workDir, "row.json");
     const row = {
       kind: "source",
-      scope: { collections: ["add-file"] },
+      scope: { profiles: ["add-file"] },
       source: { type: "web_page", title: "Added via file", uri: "https://example.com/add-file" },
       provenance: { acquisition: { method: "manual" } },
     };
@@ -876,7 +1023,7 @@ describe("cli apply / add / add payload sources", () => {
     await initWorkspace();
     const row = {
       kind: "source",
-      scope: { collections: ["add-dry-run"] },
+      scope: { profiles: ["add-dry-run"] },
       source: { type: "web_page", title: "Add dry run", uri: "https://example.com/add-dry-run" },
       provenance: { acquisition: { method: "manual" } },
     };
@@ -897,7 +1044,7 @@ describe("cli apply / add / add payload sources", () => {
     await mkdir(join(workDir, "raw"), { recursive: true });
     const row = {
       kind: "source",
-      scope: { collections: ["add-root-relative"] },
+      scope: { profiles: ["add-root-relative"] },
       source: { type: "web_page", title: "Added root relative", uri: "https://example.com/add-root-relative" },
       provenance: { acquisition: { method: "manual" } },
     };
@@ -1050,7 +1197,7 @@ describe("cli apply / add / add payload sources", () => {
       op: "add",
       row: {
         kind: "source",
-        scope: { collections: ["bulk"] },
+        scope: { profiles: ["bulk"] },
         source: {
           type: "web_page",
           title: `Bulk ${i}`,
@@ -1112,7 +1259,7 @@ describe("cli get / query / context success envelopes", () => {
       "--json",
       JSON.stringify({
         kind: "source",
-        scope: { collections: ["mix"] },
+        scope: { profiles: ["mix"] },
         source: { type: "web_page", title: "Mix", uri: "https://example.com/mix" },
         provenance: { acquisition: { method: "manual" } },
       }),
@@ -1148,7 +1295,7 @@ describe("cli get / query / context success envelopes", () => {
       "--json",
       JSON.stringify({
         kind: "source",
-        scope: { collections: ["q"] },
+        scope: { profiles: ["q"] },
         source: { type: "web_page", title: "Q1", uri: "https://example.com/q1" },
         provenance: { acquisition: { method: "manual" } },
       }),
@@ -1158,13 +1305,13 @@ describe("cli get / query / context success envelopes", () => {
       "--json",
       JSON.stringify({
         kind: "source",
-        scope: { collections: ["q"] },
+        scope: { profiles: ["q"] },
         source: { type: "web_page", title: "Q2", uri: "https://example.com/q2" },
         provenance: { acquisition: { method: "manual" } },
       }),
     ]);
 
-    const result = await runCliBinary(["query", "--collection", "q", "--json"]);
+    const result = await runCliBinary(["query", "--profile", "q", "--json"]);
     expect(result.code).toBe(0);
     const env = JSON.parse(result.stdout.trim()) as {
       ok: boolean;
@@ -1185,13 +1332,13 @@ describe("cli get / query / context success envelopes", () => {
       "--json",
       JSON.stringify({
         kind: "source",
-        scope: { collections: ["kindtest"] },
+        scope: { profiles: ["kindtest"] },
         source: { type: "web_page", title: "kt-source", uri: "https://example.com/kt" },
         provenance: { acquisition: { method: "manual" } },
       }),
     ]);
 
-    const result = await runCliBinary(["query", "--kind", "claim", "--collection", "kindtest", "--json"]);
+    const result = await runCliBinary(["query", "--kind", "claim", "--profile", "kindtest", "--json"]);
     expect(result.code).toBe(0);
     const env = JSON.parse(result.stdout.trim()) as {
       data: { rows: unknown[]; total_returned: number };
@@ -1208,13 +1355,13 @@ describe("cli get / query / context success envelopes", () => {
         "--json",
         JSON.stringify({
           kind: "source",
-          scope: { collections: ["limit"] },
+          scope: { profiles: ["limit"] },
           source: { type: "web_page", title: `lim-${i}`, uri: `https://example.com/lim/${i}` },
           provenance: { acquisition: { method: "manual" } },
         }),
       ]);
     }
-    const result = await runCliBinary(["query", "--collection", "limit", "--limit", "2", "--json"]);
+    const result = await runCliBinary(["query", "--profile", "limit", "--limit", "2", "--json"]);
     expect(result.code).toBe(0);
     const env = JSON.parse(result.stdout.trim()) as {
       data: { rows: unknown[]; total_returned: number; total_matched: number };
@@ -1231,7 +1378,7 @@ describe("cli get / query / context success envelopes", () => {
       "--json",
       JSON.stringify({
         kind: "source",
-        scope: { collections: ["ctx"] },
+        scope: { profiles: ["ctx"] },
         source: { type: "web_page", title: "Ctx-src", uri: "https://example.com/ctx" },
         provenance: { acquisition: { method: "manual" } },
       }),
@@ -1246,7 +1393,7 @@ describe("cli get / query / context success envelopes", () => {
       "--json",
       JSON.stringify({
         kind: "claim",
-        scope: { collections: ["ctx"] },
+        scope: { profiles: ["ctx"] },
         identity: { claim_key: "ctx|x" },
         claim: { statement: "x is true", atomic: true },
         time: { precision: "unknown" },
@@ -1259,7 +1406,7 @@ describe("cli get / query / context success envelopes", () => {
     ]);
     expect(claimAdd.code).toBe(0);
 
-    const result = await runCliBinary(["context", "--collection", "ctx", "--json"]);
+    const result = await runCliBinary(["context", "--profile", "ctx", "--json"]);
     expect(result.code).toBe(0);
     const env = JSON.parse(result.stdout.trim()) as {
       ok: boolean;
@@ -1291,7 +1438,7 @@ describe("cli get / query / context success envelopes", () => {
 
     const queryAtClaim = await runCliBinary([
       "query",
-      "--collection",
+      "--profile",
       "asof-cli",
       "--kind",
       "claim",
@@ -1308,7 +1455,7 @@ describe("cli get / query / context success envelopes", () => {
 
     const historyQuery = await runCliBinary([
       "query",
-      "--collection",
+      "--profile",
       "asof-cli",
       "--kind",
       "claim",
@@ -1325,7 +1472,7 @@ describe("cli get / query / context success envelopes", () => {
 
     const contextAtClaim = await runCliBinary([
       "context",
-      "--collection",
+      "--profile",
       "asof-cli",
       "--as-of",
       "2026-05-01T01:30:00Z",
@@ -1345,7 +1492,7 @@ describe("cli get / query / context success envelopes", () => {
 
     const renderAtClaim = await runCliBinary([
       "render",
-      "--collection",
+      "--profile",
       "asof-cli",
       "--as-of",
       "2026-05-01T01:30:00Z",
@@ -1378,36 +1525,38 @@ describe("cli get / query / context success envelopes", () => {
 });
 
 describe("cli render / check / index", () => {
-  test("render without --collection returns exit 2 invalid_arguments", async () => {
+  test("render without --profile writes instance view", async () => {
     await initWorkspace();
     const result = await runCliBinary(["render", "--json"]);
-    expect(result.code).toBe(2);
-    expect(result.stdout).toBe("");
-    const env = JSON.parse(result.stderr.trim()) as {
+    expect(result.code).toBe(0);
+    const env = JSON.parse(result.stdout.trim()) as {
       ok: boolean;
-      error: { code: string; message: string };
-      command?: string;
+      data: { path: string; view: string; bytes_written: number; format: string };
+      meta: { bytes_written: number };
     };
-    expect(env.ok).toBe(false);
-    expect(env.error.code).toBe("invalid_arguments");
-    expect(env.error.message).toContain("--collection");
-    expect(env.command).toBe("render");
+    expect(env.ok).toBe(true);
+    expect(env.data.view).toBe("instance");
+    expect(env.data.format).toBe("md");
+    expect(env.data.path.endsWith(join("knb", "views", "instance.md"))).toBe(true);
+    expect(env.data.bytes_written).toBeGreaterThan(0);
+    expect(env.meta.bytes_written).toBe(env.data.bytes_written);
+    expect(await pathExists(env.data.path)).toBe(true);
   });
 
-  test("render --collection writes view file and returns bytes_written", async () => {
+  test("render --profile writes view file and returns bytes_written", async () => {
     await initWorkspace();
     await runCliBinary([
       "add",
       "--json",
       JSON.stringify({
         kind: "source",
-        scope: { collections: ["renderc"] },
+        scope: { profiles: ["renderc"] },
         source: { type: "web_page", title: "Render", uri: "https://example.com/render" },
         provenance: { acquisition: { method: "manual" } },
       }),
     ]);
 
-    const result = await runCliBinary(["render", "--collection", "renderc", "--json"]);
+    const result = await runCliBinary(["render", "--profile", "renderc", "--json"]);
     expect(result.code).toBe(0);
     const env = JSON.parse(result.stdout.trim()) as {
       ok: boolean;
@@ -1429,7 +1578,7 @@ describe("cli render / check / index", () => {
       "--json",
       JSON.stringify({
         kind: "source",
-        scope: { collections: ["chk"] },
+        scope: { profiles: ["chk"] },
         source: { type: "web_page", title: "Chk", uri: "https://example.com/chk" },
         provenance: { acquisition: { method: "manual" } },
       }),
@@ -1469,8 +1618,8 @@ describe("cli render / check / index", () => {
     expect(env.ok).toBe(true);
     expect(env.data.indexes.length).toBe(6);
     expect(env.data.indexes.map((entry) => entry.name).sort()).toEqual([
-      "active-by-collection",
       "active-by-id",
+      "active-by-profile",
       "active-claims-by-key",
       "active-claims-by-source-uri",
       "active-sources-by-content-hash",
@@ -1509,7 +1658,6 @@ describe("cli envelope structure invariants", () => {
     await initWorkspace();
     const failures: Array<{ args: string[]; expectedCode: number; expectedErrorCode: string }> = [
       { args: ["totally-unknown"], expectedCode: 2, expectedErrorCode: "invalid_arguments" },
-      { args: ["render"], expectedCode: 2, expectedErrorCode: "invalid_arguments" },
       { args: ["get"], expectedCode: 2, expectedErrorCode: "invalid_arguments" },
       { args: ["get", "src:phantom:0:00000000"], expectedCode: 1, expectedErrorCode: "not_found" },
     ];

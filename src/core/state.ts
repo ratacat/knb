@@ -1,17 +1,17 @@
 // Effective state module - V1 lifecycle-aware projection over the ledger.
 // Single deep module: consumers only see EffectiveState. Internals walk the
-// ledger once, build status, relations, patch audit, and warnings, then expose
-// indexed read methods that respect change rows, intrinsic archived state, and
-// hidden change rows by default.
+// ledger once, build status, links, patch audit, and warnings, then expose
+// indexed read methods that respect entry rows, intrinsic archived state, and
+// hidden entry rows by default.
 
 import type {
-  ChangeRow,
+  EntryRow,
   KnbRow,
   KnbRowKind,
   LoadedRow,
   QuestionRow,
-  RelationType,
-  Relation,
+  LinkType,
+  Link,
   SynthesisRow,
 } from "./contract";
 import { knbError } from "./errors";
@@ -25,9 +25,9 @@ export type EffectiveStatus =
   | "invalid";
 
 export type StateWarningCode =
-  | "change_target_inactive"
-  | "change_target_missing"
-  | "relation_endpoint_missing"
+  | "entry_target_inactive"
+  | "entry_target_missing"
+  | "link_endpoint_missing"
   | "patch_target_missing"
   | "supersede_replacement_inactive"
   | "merge_canonical_inactive";
@@ -35,7 +35,7 @@ export type StateWarningCode =
 export type StateWarning = {
   code: StateWarningCode;
   message: string;
-  change_id?: string;
+  entry_id?: string;
   target_id?: string;
   line?: number;
 };
@@ -44,12 +44,12 @@ export type EffectiveRow = {
   row: KnbRow;
   status: EffectiveStatus;
   reason?: string;
-  by_change_id?: string;
+  by_entry_id?: string;
   intrinsic_archived?: true;
 };
 
 export type StateExplanationEntry = {
-  change_id: string;
+  entry_id: string;
   action: "retract" | "supersede" | "merge" | "patch";
   by: string;
   at: string;
@@ -60,7 +60,7 @@ export type StateExplanationEntry = {
 };
 
 export type StatePatchAuditEntry = {
-  change_id: string;
+  entry_id: string;
   at: string;
   by: string;
   reason: string;
@@ -75,29 +75,29 @@ export type StateExplanation = {
   patch_audit: StatePatchAuditEntry[];
 };
 
-export type EffectiveRelation = {
+export type EffectiveLink = {
   from_id: string;
   to_id: string;
-  rel: RelationType;
+  rel: LinkType;
   strength?: "low" | "medium" | "high";
   rationale?: string;
-  source: "row_relations" | "change_relate";
-  by_change_id?: string;
+  source: "row_links" | "entry_link";
+  by_entry_id?: string;
 };
 
-export type RelationGraph = {
-  all(): EffectiveRelation[];
-  outgoing(id: string): EffectiveRelation[];
-  incoming(id: string): EffectiveRelation[];
+export type LinkGraph = {
+  all(): EffectiveLink[];
+  outgoing(id: string): EffectiveLink[];
+  incoming(id: string): EffectiveLink[];
 };
 
 export type StateFilter = {
   kinds?: KnbRowKind[];
-  collection?: string;
+  profile?: string;
   subject?: string;
   tag?: string;
   status?: EffectiveStatus;
-  includeChanges?: boolean;
+  includeEntries?: boolean;
 };
 
 export type EffectiveState = {
@@ -106,7 +106,7 @@ export type EffectiveState = {
   statusOf(id: string): EffectiveStatus | undefined;
   canonicalIdOf(id: string): string;
   explain(id: string): StateExplanation | undefined;
-  relationGraph(): RelationGraph;
+  linkGraph(): LinkGraph;
   warnings: StateWarning[];
 };
 
@@ -123,9 +123,9 @@ export function buildEffectiveState(loaded: LoadedRow[], options: StateOptions =
   const idMap = new Map<string, InternalRow>();
   const order: string[] = [];
   const warnings: StateWarning[] = [];
-  const relations: EffectiveRelation[] = [];
-  const outgoingIndex = new Map<string, EffectiveRelation[]>();
-  const incomingIndex = new Map<string, EffectiveRelation[]>();
+  const links: EffectiveLink[] = [];
+  const outgoingIndex = new Map<string, EffectiveLink[]>();
+  const incomingIndex = new Map<string, EffectiveLink[]>();
   const explanationHistory = new Map<string, StateExplanationEntry[]>();
   const patchAudit = new Map<string, StatePatchAuditEntry[]>();
   const canonicalIdByDuplicate = new Map<string, string>();
@@ -154,31 +154,31 @@ export function buildEffectiveState(loaded: LoadedRow[], options: StateOptions =
 
   for (const item of projectedRows) {
     const row = item.row;
-    if (row.kind === "change") continue;
-    const relationsList = (row as { relations?: Relation[] }).relations;
-    if (!Array.isArray(relationsList)) continue;
-    for (const relation of relationsList) {
-      if (!relation || typeof relation !== "object") continue;
-      const targetId = relation.target_id;
+    if (row.kind === "entry") continue;
+    const linksList = (row as { links?: Link[] }).links;
+    if (!Array.isArray(linksList)) continue;
+    for (const link of linksList) {
+      if (!link || typeof link !== "object") continue;
+      const targetId = link.target_id;
       if (typeof targetId !== "string" || !idMap.has(targetId)) {
         const warning: StateWarning = {
-          code: "relation_endpoint_missing",
-          message: `Relation target ${typeof targetId === "string" ? targetId : "(missing)"} not found for ${row.id}`,
+          code: "link_endpoint_missing",
+          message: `Link target ${typeof targetId === "string" ? targetId : "(missing)"} not found for ${row.id}`,
           line: item.line,
         };
         if (typeof targetId === "string") warning.target_id = targetId;
         warnings.push(warning);
         continue;
       }
-      const edge: EffectiveRelation = {
+      const edge: EffectiveLink = {
         from_id: row.id,
         to_id: targetId,
-        rel: relation.rel,
-        source: "row_relations",
+        rel: link.rel,
+        source: "row_links",
       };
-      if (relation.strength !== undefined) edge.strength = relation.strength;
-      if (relation.rationale !== undefined) edge.rationale = relation.rationale;
-      relations.push(edge);
+      if (link.strength !== undefined) edge.strength = link.strength;
+      if (link.rationale !== undefined) edge.rationale = link.rationale;
+      links.push(edge);
       pushIndex(outgoingIndex, edge.from_id, edge);
       pushIndex(incomingIndex, edge.to_id, edge);
     }
@@ -186,27 +186,27 @@ export function buildEffectiveState(loaded: LoadedRow[], options: StateOptions =
 
   for (const item of projectedRows) {
     const row = item.row;
-    if (row.kind !== "change") continue;
-    const change = (row as ChangeRow).change;
-    if (!change || typeof change !== "object") continue;
-    const action = change.action;
+    if (row.kind !== "entry") continue;
+    const entry = (row as EntryRow).entry;
+    if (!entry || typeof entry !== "object") continue;
+    const action = entry.action;
 
     if (action === "retract") {
-      for (const targetId of change.target_ids ?? []) {
+      for (const targetId of entry.target_ids ?? []) {
         applyInactivation(
           idMap,
           targetId,
           "retracted",
-          `retracted: ${change.reason ?? ""}`.trim(),
+          `retracted: ${entry.reason ?? ""}`.trim(),
           row.id,
           warnings,
           explanationHistory,
           {
-            change_id: row.id,
+            entry_id: row.id,
             action: "retract",
             by: row.created_by,
             at: row.created_at,
-            ...(change.reason !== undefined ? { reason: change.reason } : {}),
+            ...(entry.reason !== undefined ? { reason: entry.reason } : {}),
           },
           item.line,
         );
@@ -215,8 +215,8 @@ export function buildEffectiveState(loaded: LoadedRow[], options: StateOptions =
     }
 
     if (action === "supersede") {
-      const replacementId = change.replacement_id;
-      for (const targetId of change.target_ids ?? []) {
+      const replacementId = entry.replacement_id;
+      for (const targetId of entry.target_ids ?? []) {
         applyInactivation(
           idMap,
           targetId,
@@ -226,11 +226,11 @@ export function buildEffectiveState(loaded: LoadedRow[], options: StateOptions =
           warnings,
           explanationHistory,
           {
-            change_id: row.id,
+            entry_id: row.id,
             action: "supersede",
             by: row.created_by,
             at: row.created_at,
-            ...(change.reason !== undefined ? { reason: change.reason } : {}),
+            ...(entry.reason !== undefined ? { reason: entry.reason } : {}),
             ...(replacementId !== undefined ? { replacement_id: replacementId } : {}),
           },
           item.line,
@@ -242,7 +242,7 @@ export function buildEffectiveState(loaded: LoadedRow[], options: StateOptions =
           warnings.push({
             code: "supersede_replacement_inactive",
             message: `Supersede replacement ${replacementId} is not active (status: ${replacement.status})`,
-            change_id: row.id,
+            entry_id: row.id,
             target_id: replacementId,
             line: item.line,
           });
@@ -252,8 +252,8 @@ export function buildEffectiveState(loaded: LoadedRow[], options: StateOptions =
     }
 
     if (action === "merge") {
-      const canonicalId = change.canonical_id;
-      for (const targetId of change.target_ids ?? []) {
+      const canonicalId = entry.canonical_id;
+      for (const targetId of entry.target_ids ?? []) {
         if (
           typeof canonicalId === "string" &&
           canonicalId.length > 0 &&
@@ -271,11 +271,11 @@ export function buildEffectiveState(loaded: LoadedRow[], options: StateOptions =
           warnings,
           explanationHistory,
           {
-            change_id: row.id,
+            entry_id: row.id,
             action: "merge",
             by: row.created_by,
             at: row.created_at,
-            ...(change.reason !== undefined ? { reason: change.reason } : {}),
+            ...(entry.reason !== undefined ? { reason: entry.reason } : {}),
             ...(canonicalId !== undefined ? { canonical_id: canonicalId } : {}),
           },
           item.line,
@@ -287,7 +287,7 @@ export function buildEffectiveState(loaded: LoadedRow[], options: StateOptions =
           warnings.push({
             code: "merge_canonical_inactive",
             message: `Merge canonical ${canonicalId} is not active (status: ${canonical.status})`,
-            change_id: row.id,
+            entry_id: row.id,
             target_id: canonicalId,
             line: item.line,
           });
@@ -296,46 +296,46 @@ export function buildEffectiveState(loaded: LoadedRow[], options: StateOptions =
       continue;
     }
 
-    if (action === "relate") {
-      const relation = change.relation;
-      if (!relation || typeof relation !== "object") continue;
-      const fromId = relation.from_id;
-      const toId = relation.to_id;
+    if (action === "link") {
+      const link = entry.link;
+      if (!link || typeof link !== "object") continue;
+      const fromId = link.from_id;
+      const toId = link.to_id;
       const fromMissing = typeof fromId !== "string" || !idMap.has(fromId);
       const toMissing = typeof toId !== "string" || !idMap.has(toId);
       if (fromMissing || toMissing) {
         warnings.push({
-          code: "relation_endpoint_missing",
-          message: `Relate change ${row.id} has missing endpoint(s): from=${fromId ?? "(missing)"} to=${toId ?? "(missing)"}`,
-          change_id: row.id,
+          code: "link_endpoint_missing",
+          message: `Link entry ${row.id} has missing endpoint(s): from=${fromId ?? "(missing)"} to=${toId ?? "(missing)"}`,
+          entry_id: row.id,
           ...(fromMissing && typeof fromId === "string" ? { target_id: fromId } : {}),
           ...(!fromMissing && toMissing && typeof toId === "string" ? { target_id: toId } : {}),
           line: item.line,
         });
         continue;
       }
-      const edge: EffectiveRelation = {
+      const edge: EffectiveLink = {
         from_id: fromId as string,
         to_id: toId as string,
-        rel: relation.rel,
-        source: "change_relate",
-        by_change_id: row.id,
+        rel: link.rel,
+        source: "entry_link",
+        by_entry_id: row.id,
       };
-      if (relation.strength !== undefined) edge.strength = relation.strength;
-      if (relation.rationale !== undefined) edge.rationale = relation.rationale;
-      relations.push(edge);
+      if (link.strength !== undefined) edge.strength = link.strength;
+      if (link.rationale !== undefined) edge.rationale = link.rationale;
+      links.push(edge);
       pushIndex(outgoingIndex, edge.from_id, edge);
       pushIndex(incomingIndex, edge.to_id, edge);
       continue;
     }
 
     if (action === "patch") {
-      const targetId = change.target_id;
+      const targetId = entry.target_id;
       if (typeof targetId !== "string" || !idMap.has(targetId)) {
         const warning: StateWarning = {
           code: "patch_target_missing",
-          message: `Patch target ${typeof targetId === "string" ? targetId : "(missing)"} not found for change ${row.id}`,
-          change_id: row.id,
+          message: `Patch target ${typeof targetId === "string" ? targetId : "(missing)"} not found for entry ${row.id}`,
+          entry_id: row.id,
           line: item.line,
         };
         if (typeof targetId === "string") warning.target_id = targetId;
@@ -343,22 +343,22 @@ export function buildEffectiveState(loaded: LoadedRow[], options: StateOptions =
         continue;
       }
       const auditEntry: StatePatchAuditEntry = {
-        change_id: row.id,
+        entry_id: row.id,
         at: row.created_at,
         by: row.created_by,
-        reason: change.reason ?? "",
-        patch: change.patch ?? [],
+        reason: entry.reason ?? "",
+        patch: entry.patch ?? [],
       };
       const list = patchAudit.get(targetId) ?? [];
       list.push(auditEntry);
       patchAudit.set(targetId, list);
       const historyEntry: StateExplanationEntry = {
-        change_id: row.id,
+        entry_id: row.id,
         action: "patch",
         by: row.created_by,
         at: row.created_at,
-        ...(change.reason !== undefined ? { reason: change.reason } : {}),
-        patch_summary: summarizePatch(change.patch ?? []),
+        ...(entry.reason !== undefined ? { reason: entry.reason } : {}),
+        patch_summary: summarizePatch(entry.patch ?? []),
       };
       const historyList = explanationHistory.get(targetId) ?? [];
       historyList.push(historyEntry);
@@ -367,14 +367,14 @@ export function buildEffectiveState(loaded: LoadedRow[], options: StateOptions =
     }
   }
 
-  const graph: RelationGraph = {
-    all(): EffectiveRelation[] {
-      return [...relations];
+  const graph: LinkGraph = {
+    all(): EffectiveLink[] {
+      return [...links];
     },
-    outgoing(id: string): EffectiveRelation[] {
+    outgoing(id: string): EffectiveLink[] {
       return [...(outgoingIndex.get(id) ?? [])];
     },
-    incoming(id: string): EffectiveRelation[] {
+    incoming(id: string): EffectiveLink[] {
       return [...(incomingIndex.get(id) ?? [])];
     },
   };
@@ -390,17 +390,17 @@ export function buildEffectiveState(loaded: LoadedRow[], options: StateOptions =
     },
     rows(filter?: StateFilter): EffectiveRow[] {
       const wantStatus: EffectiveStatus = filter?.status ?? "active";
-      const includeChanges = filter?.includeChanges === true;
+      const includeEntries = filter?.includeEntries === true;
       const kindsAllowed = filter?.kinds && filter.kinds.length > 0 ? new Set(filter.kinds) : undefined;
-      const wantsChangeKind = kindsAllowed?.has("change") === true;
+      const wantsEntryKind = kindsAllowed?.has("entry") === true;
       const result: EffectiveRow[] = [];
       for (const id of order) {
         const internal = idMap.get(id);
         if (!internal) continue;
         if (internal.status !== wantStatus) continue;
-        if (internal.row.kind === "change" && !includeChanges && !wantsChangeKind) continue;
+        if (internal.row.kind === "entry" && !includeEntries && !wantsEntryKind) continue;
         if (kindsAllowed && !kindsAllowed.has(internal.row.kind)) continue;
-        if (filter?.collection && !internal.row.scope.collections?.includes(filter.collection)) continue;
+        if (filter?.profile && !internal.row.scope.profiles?.includes(filter.profile)) continue;
         if (filter?.subject && !internal.row.scope.subjects?.includes(filter.subject)) continue;
         if (filter?.tag && !internal.row.scope.tags?.includes(filter.tag)) continue;
         result.push(toEffectiveRow(internal));
@@ -425,7 +425,7 @@ export function buildEffectiveState(loaded: LoadedRow[], options: StateOptions =
       if (internal.reason !== undefined) explanation.reason = internal.reason;
       return explanation;
     },
-    relationGraph(): RelationGraph {
+    linkGraph(): LinkGraph {
       return graph;
     },
   };
@@ -464,7 +464,7 @@ function applyInactivation(
   targetId: string,
   status: EffectiveStatus,
   reason: string,
-  changeId: string,
+  entryId: string,
   warnings: StateWarning[],
   explanationHistory: Map<string, StateExplanationEntry[]>,
   historyEntry: StateExplanationEntry,
@@ -474,9 +474,9 @@ function applyInactivation(
   const target = idMap.get(targetId);
   if (!target) {
     warnings.push({
-      code: "change_target_missing",
-      message: `Change target ${targetId} not found`,
-      change_id: changeId,
+      code: "entry_target_missing",
+      message: `Entry target ${targetId} not found`,
+      entry_id: entryId,
       target_id: targetId,
       line,
     });
@@ -485,9 +485,9 @@ function applyInactivation(
   pushHistory(explanationHistory, targetId, historyEntry);
   if (target.status !== "active") {
     warnings.push({
-      code: "change_target_inactive",
-      message: `Change target ${targetId} already inactive (status: ${target.status})`,
-      change_id: changeId,
+      code: "entry_target_inactive",
+      message: `Entry target ${targetId} already inactive (status: ${target.status})`,
+      entry_id: entryId,
       target_id: targetId,
       line,
     });
@@ -495,7 +495,7 @@ function applyInactivation(
   }
   target.status = status;
   target.reason = reason;
-  target.by_change_id = changeId;
+  target.by_entry_id = entryId;
 }
 
 function pushHistory(
@@ -509,9 +509,9 @@ function pushHistory(
 }
 
 function pushIndex(
-  store: Map<string, EffectiveRelation[]>,
+  store: Map<string, EffectiveLink[]>,
   key: string,
-  edge: EffectiveRelation,
+  edge: EffectiveLink,
 ): void {
   const list = store.get(key) ?? [];
   list.push(edge);
@@ -521,7 +521,7 @@ function pushIndex(
 function toEffectiveRow(internal: InternalRow): EffectiveRow {
   const out: EffectiveRow = { row: internal.row, status: internal.status };
   if (internal.reason !== undefined) out.reason = internal.reason;
-  if (internal.by_change_id !== undefined) out.by_change_id = internal.by_change_id;
+  if (internal.by_entry_id !== undefined) out.by_entry_id = internal.by_entry_id;
   if (internal.intrinsic_archived) out.intrinsic_archived = true;
   return out;
 }

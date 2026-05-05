@@ -6,7 +6,7 @@ This is the live greenfield V1 spec. It incorporates the relevant decisions from
 
 ## Goals
 
-- Write many ledger changes in one atomic call.
+- Write many ledger entries in one atomic call.
 - Retrieve compact research context in one call.
 - Keep the canonical model portable, auditable, and dependency-light.
 - Keep generated indexes and views disposable.
@@ -221,15 +221,17 @@ The canonical row kinds are:
 - `claim`: an atomic proposition.
 - `question`: unresolved uncertainty.
 - `synthesis`: readable interpretation.
-- `change`: an operational event that changes effective state.
+- `entry`: an operational event that changes effective state.
+
+Terminology note: profile and domain docs should call the knowledge-card unit a `record`. The current V1 storage and API contract still exposes `claim` rows, `claim_key`, and `key_claims`; treat those as legacy storage names until the record substrate replaces them.
 
 Every canonical row in V1 uses `schema_version: "knb.v1"`. Obsolete schema strings such as `kb.v1` should be rejected during the V1 cutover, not preserved as aliases.
 
 Knowledge rows remain immutable. Current state is a deterministic projection over ledger order.
 
-`relations` express semantic links between knowledge rows. They do not retract, supersede, or merge rows. Lifecycle changes belong in `change` rows.
+`links` express semantic links between knowledge rows. They do not retract, supersede, or merge rows. Lifecycle entries belong in `entry` rows.
 
-Claim identity policy:
+Record identity policy for storage `claim` rows:
 
 - `identity` is required for claim rows.
 - `identity.claim_key` is optional. Agents should provide it when they know a stable key, but V1 should not force agents to invent weak keys.
@@ -237,14 +239,14 @@ Claim identity policy:
 
 - Duplicate source URI or content-hash evidence should produce warnings, not blocked writes.
 
-## Change Rows
+## Entry Rows
 
-Use `change` rows for operational history:
+Use `entry` rows for operational history:
 
 - `retract`: mark target rows ineffective.
 - `supersede`: mark target rows ineffective in favor of a replacement row.
 - `merge`: mark target rows as duplicates of a canonical row.
-- `relate`: add relation state without rewriting rows.
+- `link`: add link state without rewriting rows.
 - `patch`: record a mechanical repair without rewriting the target row. V1 records audit metadata and explanations only; `EffectiveState` does not apply JSON patches to mutate row content.
 
 Physical in-place repair is reserved for broken JSONL, invalid IDs, or other mechanical corruption that prevents the ledger from loading.
@@ -274,7 +276,7 @@ type ApplyOperation =
   | { op: "retract"; target_ids: Ref[]; reason: string; scope?: Scope; as?: string }
   | { op: "supersede"; target_ids: Ref[]; replacement_id: Ref; reason: string; scope?: Scope; as?: string }
   | { op: "merge"; target_ids: Ref[]; canonical_id: Ref; reason: string; scope?: Scope; as?: string }
-  | { op: "relate"; from_id: Ref; to_id: Ref; rel: RelationType; strength?: "low" | "medium" | "high"; rationale?: string; scope?: Scope; as?: string }
+  | { op: "link"; from_id: Ref; to_id: Ref; rel: LinkType; strength?: "low" | "medium" | "high"; rationale?: string; scope?: Scope; as?: string }
   | { op: "patch"; target_id: Ref; patch: Array<Record<string, unknown>>; reason: string; scope?: Scope; as?: string };
 
 type DraftRow = Omit<Partial<KnbRow>, "schema_version" | "created_at" | "created_by"> & {
@@ -286,7 +288,7 @@ type DraftRow = Omit<Partial<KnbRow>, "schema_version" | "created_at" | "created
 type Ref = string; // existing row ID, "$op<N>", or "$<as>"
 ```
 
-`op: "add"` appends the supplied row after filling missing common fields. Lifecycle operations append `change` rows. If a lifecycle operation omits `scope`, apply derives it from the referenced target rows; validation fails if no anchored scope can be derived. The `as` field gives an operation a stable intra-batch reference. `$op0` also refers to the row created by operation index 0.
+`op: "add"` appends the supplied row after filling missing common fields. Lifecycle operations append `entry` rows. If a lifecycle operation omits `scope`, apply derives it from the referenced target rows; validation fails if no anchored scope can be derived. The `as` field gives an operation a stable intra-batch reference. `$op0` also refers to the row created by operation index 0.
 
 Intra-batch references are left-to-right only. A reference may target an existing row, a prior `$op<N>`, or a prior named `$<as>`. Forward references are validation errors.
 
@@ -302,7 +304,7 @@ Example:
       "as": "source",
       "row": {
         "kind": "source",
-        "scope": { "collections": ["example"] },
+        "scope": { "profiles": ["example"] },
         "source": {
           "type": "web_page",
           "title": "Example",
@@ -317,7 +319,7 @@ Example:
       "op": "add",
       "row": {
         "kind": "claim",
-        "scope": { "collections": ["example"] },
+        "scope": { "profiles": ["example"] },
         "identity": { "claim_key": "example|exists" },
         "claim": {
           "statement": "Example exists.",
@@ -348,7 +350,7 @@ Interface responsibilities:
 - Validate all operations against the locked snapshot.
 - Resolve intra-batch references such as `$op0`.
 - Complete draft rows through the contract module using actor, time, and ID allocator inputs.
-- Build all change rows for lifecycle operations.
+- Build all entry rows for lifecycle operations.
 - Validate the complete candidate ledger.
 - Return rows to append through the ledger transaction.
 - Tell the projection module to rebuild eager indexes after a successful write when configured.
@@ -359,7 +361,7 @@ Reference resolution is structural. Apply resolves `$op<N>` and `$<as>` only in 
 
 - `provenance.source_ids[]`
 - `provenance.evidence[].source_id`
-- `relations[].target_id`
+- `links[].target_id`
 - `synthesis.basis.claim_ids[]`
 - `synthesis.basis.question_ids[]`
 - `synthesis.basis.source_ids[]`
@@ -380,7 +382,7 @@ type ApplyResult = {
 Single-row append is a convenience wrapper:
 
 ```text
-knb add --kind claim ...
+knb add --file row.json
 ```
 
 `knb add` builds a one-operation `ApplyRequest` and calls the same apply module. It must not have its own validation or write path.
@@ -411,10 +413,10 @@ source     src
 claim      claim
 question   q
 synthesis  synth
-change     chg
+entry      ent
 ```
 
-`scope-slug` comes from the first collection, subject, or tag in that order. If the scope cannot provide a slug, validation fails before ID generation. `random8` is lowercase base36. If a generated ID collides with the current ledger or the candidate batch, apply retries before failing with a conflict.
+`scope-slug` comes from the first profile, subject, or tag in that order. If the scope cannot provide a slug, validation fails before ID generation. `random8` is lowercase base36. If a generated ID collides with the current ledger or the candidate batch, apply retries before failing with a conflict.
 
 ## Effective State Module
 
@@ -426,10 +428,10 @@ Projection algorithm:
 2. Build an ID map.
 3. Initialize each valid row as `active`.
 4. Mark rows with intrinsic archived status as `archived`; V1 treats `question.status === "archived"` and `synthesis.status === "archived"` as intrinsic archives.
-5. Apply `change` rows in order.
+5. Apply `entry` rows in order.
 6. Mark retracted, superseded, and merged rows inactive.
-7. Add relation changes to the effective relation graph.
-8. Record `patch` changes as audit history without mutating target row content.
+7. Add link entries to the effective link graph.
+8. Record `patch` entries as audit history without mutating target row content.
 9. Preserve enough history to explain why a row is inactive.
 
 Effective statuses:
@@ -449,10 +451,10 @@ Interface responsibilities:
 - Return inactive rows only when asked for history.
 - Return the effective status for any row ID.
 - Return explanation data for `get --explain`.
-- Return the effective relation graph.
-- Return projection warnings for invalid, dangling, or contradictory change rows.
-- Warn when lifecycle changes target already inactive rows.
-- Warn when relation changes point at missing endpoints.
+- Return the effective link graph.
+- Return projection warnings for invalid, dangling, or contradictory entry rows.
+- Warn when lifecycle entries target already inactive rows.
+- Warn when link entries point at missing endpoints.
 
 Suggested interface:
 
@@ -462,14 +464,14 @@ type EffectiveState = {
   rows(options?: StateFilter): EffectiveRow[];
   statusOf(id: string): EffectiveStatus | undefined;
   explain(id: string): StateExplanation | undefined;
-  relationGraph(): RelationGraph;
+  linkGraph(): LinkGraph;
   warnings: StateWarning[];
 };
 ```
 
-The raw row is not the current state. Current state is the row plus later `change` rows.
+The raw row is not the current state. Current state is the row plus later `entry` rows.
 
-Normal reads hide `change` rows unless the caller requests history or explicitly asks for `kind=change`. Operational rows remain queryable for audit.
+Normal reads hide `entry` rows unless the caller requests history or explicitly asks for `kind=entry`. Operational rows remain queryable for audit.
 
 ## Read Snapshot Module
 
@@ -557,7 +559,7 @@ The base command set is:
 init       create config and storage
 status     print a compact state summary
 schema     print row and operation contracts
-apply      apply many append/change operations
+apply      apply many append/entry operations
 add        convenience wrapper for one row
 get        fetch rows by ID
 query      retrieve matching rows
@@ -566,6 +568,9 @@ render     generate disposable views
 check      validate ledger health
 index      rebuild or inspect generated indexes
 ```
+
+`--root`, `--config`, `--ledger`, and output-format flags are global. Commands pass through workspace resolution before they dispatch to the facade.
+Unknown flags should fail with `invalid_arguments`; retired flags must not be ignored because that can broaden a scoped read.
 
 The primary write command is `knb apply`. The primary read command is `knb context`.
 
@@ -582,9 +587,9 @@ Agents should be able to run this loop:
 
 ```bash
 knb status --json
-knb context --collection <collection> --max-tokens 3000 --json
+knb context --profile <profile> --max-tokens 3000 --json
 knb check --json
-knb render --collection <collection> --format md --out knb/views/<collection>.md --json
+knb render --profile <profile> --format md --out knb/views/<profile>.md --json
 ```
 
 ## Status Capability
@@ -618,7 +623,7 @@ It reports:
 - JSONL parse issues with line numbers.
 - Row contract violations with stable paths.
 - Duplicate IDs.
-- Broken source, basis, relation, and change references.
+- Broken source, basis, link, and entry references.
 - Projection warnings from effective state.
 - Generated-view and generated-index staleness.
 
@@ -737,11 +742,11 @@ Exit codes:
 
 `query` and `context` share data, but they do different jobs.
 
-Both modules accept `EffectiveState` from the read snapshot as input. They do not load ledgers, validate row contracts, or apply lifecycle changes themselves.
+Both modules accept `EffectiveState` from the read snapshot as input. They do not load ledgers, validate row contracts, or apply lifecycle entries themselves.
 
 The query module returns matching rows. It should:
 
-1. Filter by collection, subject, tag, kind, and time.
+1. Filter by profile, subject, tag, kind, and time.
 2. Search exact IDs first.
 3. Search exact `identity.claim_key` values second.
 4. Search normalized text fields:
@@ -756,11 +761,11 @@ The query module returns matching rows. It should:
 The context module builds a research packet. It should:
 
 1. Read effective state.
-2. Filter active rows by collection, subject, and tag.
+2. Filter active rows by profile, subject, and tag.
 3. Select active syntheses by importance, recency, and basis depth.
-4. Select active claims by importance, confidence, information depth, evidence depth, and contested status.
+4. Select active records by importance, confidence, information depth, evidence depth, and contested status.
 5. Select open questions by priority, importance, and recency.
-6. Include sources cited by selected claims and syntheses.
+6. Include sources cited by selected records and syntheses.
 7. Estimate tokens deterministically with `ceil(chars / 4)` by default.
 8. Respect `--max-tokens` by dropping lower-value details first.
 
@@ -769,11 +774,11 @@ The context module builds a research packet. It should:
 When a context packet is over budget, drop details in this order:
 
 1. Source metadata details.
-2. Low-importance claims.
+2. Low-importance records.
 3. Low-priority questions.
 4. Lower-ranked syntheses.
 
-Context should surface information gaps, contested claims, thin evidence, stale projections, and open questions. It should not only retrieve related rows.
+Context should surface information gaps, contested records, thin evidence, stale projections, and open questions. It should not only retrieve connected rows.
 
 Default `query` fields:
 
@@ -804,7 +809,7 @@ The projection module owns disposable outputs derived from effective state. It i
 
 Interface responsibilities:
 
-- Render collection views from `EffectiveState`.
+- Render profile views from `EffectiveState`.
 - Rebuild generated indexes from `EffectiveState`.
 - Write only under workspace view and index paths.
 - Record disposable projection metadata.
@@ -829,7 +834,7 @@ Suggested metadata shape:
     "content_hash": "sha256:..."
   },
   "options": {
-    "collection": "example",
+    "profile": "example",
     "format": "md"
   },
   "generated_at": "2026-05-01T12:00:00Z"
@@ -841,8 +846,8 @@ Use `LedgerFingerprint` for freshness checks. File mtimes can be displayed as di
 V1 indexes are deterministic and disposable:
 
 - Active rows by ID.
-- Active rows by collection.
-- Active claims by `identity.claim_key`.
+- Active rows by profile.
+- Active storage claim rows by `identity.claim_key`.
 - Active sources by URI or content hash when present.
 
 ## Library Seam
@@ -934,7 +939,7 @@ Test through module interfaces:
 - Workspace tests cover config precedence, path normalization, and actor resolution.
 - Contract tests cover row samples, operation samples, JSON Schema, schema sync, duplicate IDs, cross-row references, and validation errors.
 - Ledger tests cover empty and missing ledgers, defensive JSONL loading, line-numbered parse errors, fingerprint changes, locked write transactions, lock contention, callback failure, and flush behavior.
-- Effective state tests cover active rows, archived rows, retraction, supersession, merge, relation changes, patch audit history, inactive explanations, hidden change rows, and dangling-change warnings.
+- Effective state tests cover active rows, archived rows, retraction, supersession, merge, link entries, patch audit history, inactive explanations, hidden entry rows, and dangling-entry warnings.
 - Read snapshot tests cover partial snapshots, validation summaries, effective state inclusion, and projection freshness.
 - Query tests cover exact ID matches, claim-key matches, normalized text matches, filters, active/history behavior, and compact/full output.
 - Get tests cover active rows, hidden inactive rows, history mode, and explanations.

@@ -45,6 +45,38 @@ import {
   type ProjectionFreshness,
   type ReadSnapshotOptions,
 } from "./read-snapshot";
+import {
+  attachInstanceProfile,
+  deleteInstance,
+  detachInstanceProfile,
+  finalizeInstanceCreate,
+  listInstances,
+  showInstance,
+  updateInstance,
+  type InstanceCreateOptions,
+  type InstanceCreateResult,
+  type InstanceDeleteResult,
+  type InstanceListOptions,
+  type InstanceListResult,
+  type InstanceProfileResult,
+  type InstanceShowResult,
+  type InstanceUpdateOptions,
+  type InstanceUpdateResult,
+} from "./instances";
+import {
+  checkProfiles,
+  createProfile,
+  deleteProfile,
+  listProfiles,
+  replaceProfile,
+  showProfile,
+  type ProfileCheckResult,
+  type ProfileDeleteResult,
+  type ProfileListOptions,
+  type ProfileListResult,
+  type ProfileShowResult,
+  type ProfileWriteResult,
+} from "./profiles";
 import type { EffectiveState, StateWarning } from "./state";
 import { openWorkspace, type KnbWorkspace, type OpenWorkspaceOptions } from "./workspace";
 
@@ -128,6 +160,19 @@ export type Knb = {
   render(request: RenderRequest): Promise<RenderResult>;
   check(): Promise<CheckResult>;
   rebuildIndex(): Promise<IndexResult>;
+  listProfiles(options?: ProfileListOptions): Promise<ProfileListResult>;
+  showProfile(profileId: string): Promise<ProfileShowResult>;
+  createProfile(profileId: string, input: unknown, options?: { attach?: boolean }): Promise<ProfileWriteResult>;
+  replaceProfile(profileId: string, input: unknown, options: { confirm?: string }): Promise<ProfileWriteResult>;
+  deleteProfile(profileId: string, options: { confirm?: string }): Promise<ProfileDeleteResult>;
+  checkProfiles(profileId?: string): Promise<ProfileCheckResult>;
+  showInstance(): Promise<InstanceShowResult>;
+  createInstance(options?: InstanceCreateOptions): Promise<InstanceCreateResult>;
+  updateInstance(options: InstanceUpdateOptions): Promise<InstanceUpdateResult>;
+  attachInstanceProfile(profileId: string): Promise<InstanceProfileResult>;
+  detachInstanceProfile(profileId: string): Promise<InstanceProfileResult>;
+  deleteInstance(options: { confirm?: string }): Promise<InstanceDeleteResult>;
+  listInstances(options: InstanceListOptions): Promise<InstanceListResult>;
 };
 
 export function defaultRuntime(): KnbRuntime {
@@ -214,7 +259,7 @@ function makeKnb(workspace: KnbWorkspace, runtime: KnbRuntime): Knb {
     async render(request: RenderRequest): Promise<RenderResult> {
       const snapshot = await readSnapshot(readSnapshotOptions(workspace, false, request.asOf));
       const state = requireState(snapshot, "render");
-      return projectionArtifacts.renderCollection(state, snapshot.fingerprint, request);
+      return projectionArtifacts.renderView(state, snapshot.fingerprint, request);
     },
     async check(): Promise<CheckResult> {
       const snapshot = await readSnapshot({ workspace, freshness: projectionFreshness });
@@ -224,6 +269,50 @@ function makeKnb(workspace: KnbWorkspace, runtime: KnbRuntime): Knb {
       const snapshot = await readSnapshot({ workspace, freshness: false });
       const state = requireState(snapshot, "rebuildIndex");
       return projectionArtifacts.rebuildIndexes(state, snapshot.fingerprint);
+    },
+    async listProfiles(options: ProfileListOptions = {}): Promise<ProfileListResult> {
+      return listProfiles(workspace, options);
+    },
+    async showProfile(profileId: string): Promise<ProfileShowResult> {
+      return showProfile(workspace, profileId);
+    },
+    async createProfile(
+      profileId: string,
+      input: unknown,
+      options: { attach?: boolean } = {},
+    ): Promise<ProfileWriteResult> {
+      return createProfile(workspace, profileId, input, options);
+    },
+    async replaceProfile(profileId: string, input: unknown, options: { confirm?: string }): Promise<ProfileWriteResult> {
+      return replaceProfile(workspace, profileId, input, options);
+    },
+    async deleteProfile(profileId: string, options: { confirm?: string }): Promise<ProfileDeleteResult> {
+      return deleteProfile(workspace, profileId, options);
+    },
+    async checkProfiles(profileId?: string): Promise<ProfileCheckResult> {
+      return checkProfiles(workspace, profileId);
+    },
+    async showInstance(): Promise<InstanceShowResult> {
+      return showInstance(workspace);
+    },
+    async createInstance(options: InstanceCreateOptions = {}): Promise<InstanceCreateResult> {
+      const initResult = await performInit(workspace, options.actor !== undefined ? { actor: options.actor } : {});
+      return finalizeInstanceCreate(workspace, initResult, options);
+    },
+    async updateInstance(options: InstanceUpdateOptions): Promise<InstanceUpdateResult> {
+      return updateInstance(workspace, options);
+    },
+    async attachInstanceProfile(profileId: string): Promise<InstanceProfileResult> {
+      return attachInstanceProfile(workspace, profileId);
+    },
+    async detachInstanceProfile(profileId: string): Promise<InstanceProfileResult> {
+      return detachInstanceProfile(workspace, profileId);
+    },
+    async deleteInstance(options: { confirm?: string }): Promise<InstanceDeleteResult> {
+      return deleteInstance(workspace, options);
+    },
+    async listInstances(options: InstanceListOptions): Promise<InstanceListResult> {
+      return listInstances(options);
     },
   };
   return facade;
@@ -319,7 +408,7 @@ function statusFromSnapshot(
 ): KnbStatus {
   const activeCounts: Record<string, number> = {};
   if (snapshot.state) {
-    const activeRows = snapshot.state.rows({ includeChanges: true });
+    const activeRows = snapshot.state.rows({ includeEntries: true });
     for (const er of activeRows) {
       const kind = er.row.kind;
       if (typeof kind !== "string") continue;
@@ -336,7 +425,7 @@ function statusFromSnapshot(
   const inactiveCounts: Record<string, number> = {};
   if (snapshot.state) {
     for (const status of ["retracted", "superseded", "duplicate", "archived"] as const) {
-      const count = snapshot.state.rows({ status, includeChanges: true }).length;
+      const count = snapshot.state.rows({ status, includeEntries: true }).length;
       if (count > 0) inactiveCounts[status] = count;
     }
   }
@@ -362,13 +451,6 @@ function statusFromSnapshot(
   };
   return result;
 }
-
-function sortedRecord(record: Record<string, number>): Record<string, number> {
-  const sorted: Record<string, number> = {};
-  for (const key of Object.keys(record).sort()) sorted[key] = record[key] as number;
-  return sorted;
-}
-
 
 function checkFromSnapshot(snapshot: KnbReadSnapshot): CheckResult {
   const parseIssues = [...snapshot.ledger.parseIssues];
@@ -398,8 +480,8 @@ function buildSchemaResult(): SchemaResult {
   return {
     schema_version: "knb.v1",
     json_schema: jsonSchema(),
-    row_samples: [samples.source, samples.claim, samples.question, samples.synthesis, samples.change],
-    operation_samples: [ops.add, ops.retract, ops.supersede, ops.merge, ops.relate, ops.patch],
+    row_samples: [samples.source, samples.claim, samples.question, samples.synthesis, samples.entry],
+    operation_samples: [ops.add, ops.retract, ops.supersede, ops.merge, ops.link, ops.patch],
   };
 }
 

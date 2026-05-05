@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
 import {
   buildEffectiveState,
-  type EffectiveRelation,
+  type EffectiveLink,
 } from "../src/core/state";
 import type {
-  ChangeRow,
+  EntryRow,
   ClaimRow,
   KnbRow,
   LoadedRow,
@@ -25,7 +25,7 @@ function makeSource(id: string, overrides: Partial<SourceRow> = {}): SourceRow {
     kind: "source",
     created_at: "2026-05-01T12:00:00Z",
     created_by: "agent:test",
-    scope: { collections: ["test"], subjects: ["Example"] },
+    scope: { profiles: ["test"], subjects: ["Example"] },
     source: { type: "web_page", title: "Example", uri: `https://example.com/${id}` },
     provenance: { acquisition: { method: "manual", observed_at: "2026-05-01T12:00:00Z" } },
     ...overrides,
@@ -39,7 +39,7 @@ function makeClaim(id: string, sourceId: string, overrides: Partial<ClaimRow> = 
     kind: "claim",
     created_at: "2026-05-01T12:01:00Z",
     created_by: "agent:test",
-    scope: { collections: ["test"], subjects: ["Example"], tags: ["fact"] },
+    scope: { profiles: ["test"], subjects: ["Example"], tags: ["fact"] },
     identity: { claim_key: `key|${id}` },
     claim: { statement: `Statement ${id}.`, atomic: true },
     time: { precision: "unknown" },
@@ -59,7 +59,7 @@ function makeQuestion(id: string, status: "open" | "resolved" | "archived" = "op
     kind: "question",
     created_at: "2026-05-01T12:02:00Z",
     created_by: "agent:test",
-    scope: { collections: ["test"] },
+    scope: { profiles: ["test"] },
     question: { text: "Why?", status },
   };
 }
@@ -75,7 +75,7 @@ function makeSynthesis(
     kind: "synthesis",
     created_at: "2026-05-01T12:03:00Z",
     created_by: "agent:test",
-    scope: { collections: ["test"] },
+    scope: { profiles: ["test"] },
     synthesis: {
       title: "Synthesis",
       summary: "Summary.",
@@ -85,19 +85,19 @@ function makeSynthesis(
   };
 }
 
-function makeChange(
+function makeEntry(
   id: string,
-  change: ChangeRow["change"],
+  entry: EntryRow["entry"],
   createdAt = "2026-05-01T13:00:00Z",
-): ChangeRow {
+): EntryRow {
   return {
     schema_version: "knb.v1",
     id,
-    kind: "change",
+    kind: "entry",
     created_at: createdAt,
     created_by: "agent:test",
-    scope: { collections: ["test"] },
-    change,
+    scope: { profiles: ["test"] },
+    entry,
   };
 }
 
@@ -106,7 +106,7 @@ describe("buildEffectiveState - basics", () => {
     const state = buildEffectiveState([]);
     expect(state.rows()).toEqual([]);
     expect(state.warnings).toEqual([]);
-    expect(state.relationGraph().all()).toEqual([]);
+    expect(state.linkGraph().all()).toEqual([]);
   });
 
   test("single source/claim/synthesis are all active", () => {
@@ -121,15 +121,15 @@ describe("buildEffectiveState - basics", () => {
 });
 
 describe("buildEffectiveState - asOf", () => {
-  test("filters rows by created_at before applying lifecycle changes", () => {
+  test("filters rows by created_at before applying lifecycle entries", () => {
     const source = makeSource("src:test:20260501:aaaa1111", {
       created_at: "2026-05-01T00:00:00Z",
     });
     const claim = makeClaim("claim:test:20260501:bbbb2222", source.id, {
       created_at: "2026-05-01T01:00:00Z",
     });
-    const retract = makeChange(
-      "chg:test:20260501:cccc3333",
+    const retract = makeEntry(
+      "ent:test:20260501:cccc3333",
       {
         action: "retract",
         target_ids: [claim.id],
@@ -143,20 +143,20 @@ describe("buildEffectiveState - asOf", () => {
     const rows = load([source, claim, retract, question]);
 
     const t0 = buildEffectiveState(rows, { asOf: "2026-05-01T00:30:00Z" });
-    expect(t0.rows({ includeChanges: true }).map((er) => er.row.id)).toEqual([source.id]);
+    expect(t0.rows({ includeEntries: true }).map((er) => er.row.id)).toEqual([source.id]);
     expect(t0.statusOf(claim.id)).toBeUndefined();
 
     const t1 = buildEffectiveState(rows, { asOf: "2026-05-01T01:30:00Z" });
-    expect(t1.rows({ includeChanges: true }).map((er) => er.row.id)).toEqual([source.id, claim.id]);
+    expect(t1.rows({ includeEntries: true }).map((er) => er.row.id)).toEqual([source.id, claim.id]);
     expect(t1.statusOf(claim.id)).toBe("active");
 
     const t2 = buildEffectiveState(rows, { asOf: "2026-05-01T02:30:00Z" });
-    expect(t2.rows({ includeChanges: true }).map((er) => er.row.id)).toEqual([source.id, retract.id]);
+    expect(t2.rows({ includeEntries: true }).map((er) => er.row.id)).toEqual([source.id, retract.id]);
     expect(t2.statusOf(claim.id)).toBe("retracted");
-    expect(t2.get(claim.id, { includeHistory: true })?.by_change_id).toBe(retract.id);
+    expect(t2.get(claim.id, { includeHistory: true })?.by_entry_id).toBe(retract.id);
 
     const t3 = buildEffectiveState(rows, { asOf: "2026-05-01T03:30:00Z" });
-    expect(t3.rows({ includeChanges: true }).map((er) => er.row.id)).toEqual([
+    expect(t3.rows({ includeEntries: true }).map((er) => er.row.id)).toEqual([
       source.id,
       retract.id,
       question.id,
@@ -203,50 +203,50 @@ describe("buildEffectiveState - intrinsic archived", () => {
 });
 
 describe("buildEffectiveState - retract", () => {
-  test("retract marks target retracted with by_change_id and reason", () => {
+  test("retract marks target retracted with by_entry_id and reason", () => {
     const source = makeSource("src:test:20260501:aaaa1111");
     const claim = makeClaim("claim:test:20260501:bbbb2222", source.id);
-    const change = makeChange("chg:test:20260501:cccc3333", {
+    const entry = makeEntry("ent:test:20260501:cccc3333", {
       action: "retract",
       target_ids: [claim.id],
       reason: "Bad data",
     });
-    const state = buildEffectiveState(load([source, claim, change]));
+    const state = buildEffectiveState(load([source, claim, entry]));
     expect(state.statusOf(claim.id)).toBe("retracted");
     const er = state.get(claim.id, { includeHistory: true });
     expect(er?.status).toBe("retracted");
-    expect(er?.by_change_id).toBe(change.id);
+    expect(er?.by_entry_id).toBe(entry.id);
     expect(er?.reason).toBe("retracted: Bad data");
   });
 
-  test("retract with missing target raises change_target_missing", () => {
-    const change = makeChange("chg:test:20260501:cccc3333", {
+  test("retract with missing target raises entry_target_missing", () => {
+    const entry = makeEntry("ent:test:20260501:cccc3333", {
       action: "retract",
       target_ids: ["claim:does:not:exist"],
       reason: "x",
     });
-    const state = buildEffectiveState(load([change]));
+    const state = buildEffectiveState(load([entry]));
     expect(state.warnings.length).toBe(1);
-    expect(state.warnings[0]?.code).toBe("change_target_missing");
+    expect(state.warnings[0]?.code).toBe("entry_target_missing");
   });
 
-  test("retract on already-retracted target raises change_target_inactive", () => {
+  test("retract on already-retracted target raises entry_target_inactive", () => {
     const source = makeSource("src:test:20260501:aaaa1111");
     const claim = makeClaim("claim:test:20260501:bbbb2222", source.id);
-    const change1 = makeChange("chg:test:20260501:cccc3333", {
+    const entry1 = makeEntry("ent:test:20260501:cccc3333", {
       action: "retract",
       target_ids: [claim.id],
       reason: "first",
     });
-    const change2 = makeChange("chg:test:20260501:cccc4444", {
+    const entry2 = makeEntry("ent:test:20260501:cccc4444", {
       action: "retract",
       target_ids: [claim.id],
       reason: "second",
     }, "2026-05-01T13:01:00Z");
-    const state = buildEffectiveState(load([source, claim, change1, change2]));
+    const state = buildEffectiveState(load([source, claim, entry1, entry2]));
     expect(state.statusOf(claim.id)).toBe("retracted");
     expect(state.get(claim.id, { includeHistory: true })?.reason).toBe("retracted: first");
-    expect(state.warnings.some((w) => w.code === "change_target_inactive")).toBe(true);
+    expect(state.warnings.some((w) => w.code === "entry_target_inactive")).toBe(true);
   });
 });
 
@@ -255,13 +255,13 @@ describe("buildEffectiveState - supersede", () => {
     const source = makeSource("src:test:20260501:aaaa1111");
     const claim = makeClaim("claim:test:20260501:bbbb2222", source.id);
     const replacement = makeClaim("claim:test:20260501:eeee5555", source.id);
-    const change = makeChange("chg:test:20260501:ffff6666", {
+    const entry = makeEntry("ent:test:20260501:ffff6666", {
       action: "supersede",
       target_ids: [claim.id],
       replacement_id: replacement.id,
       reason: "improved",
     });
-    const state = buildEffectiveState(load([source, claim, replacement, change]));
+    const state = buildEffectiveState(load([source, claim, replacement, entry]));
     expect(state.statusOf(claim.id)).toBe("superseded");
     const er = state.get(claim.id, { includeHistory: true });
     expect(er?.reason).toContain(replacement.id);
@@ -273,12 +273,12 @@ describe("buildEffectiveState - supersede", () => {
     const a = makeClaim("claim:test:20260501:aaaa2222", source.id);
     const b = makeClaim("claim:test:20260501:bbbb3333", source.id);
     const c = makeClaim("claim:test:20260501:cccc4444", source.id);
-    const retractB = makeChange("chg:test:20260501:rrrr5555", {
+    const retractB = makeEntry("ent:test:20260501:rrrr5555", {
       action: "retract",
       target_ids: [b.id],
       reason: "remove first",
     });
-    const supersedeAwithB = makeChange("chg:test:20260501:ssss6666", {
+    const supersedeAwithB = makeEntry("ent:test:20260501:ssss6666", {
       action: "supersede",
       target_ids: [a.id],
       replacement_id: b.id,
@@ -297,7 +297,7 @@ describe("buildEffectiveState - merge", () => {
     const a = makeClaim("claim:test:20260501:aaaa2222", source.id);
     const b = makeClaim("claim:test:20260501:bbbb3333", source.id);
     const canonical = makeClaim("claim:test:20260501:cccc4444", source.id);
-    const merge = makeChange("chg:test:20260501:mmmm5555", {
+    const merge = makeEntry("ent:test:20260501:mmmm5555", {
       action: "merge",
       target_ids: [a.id, b.id],
       canonical_id: canonical.id,
@@ -316,13 +316,13 @@ describe("buildEffectiveState - merge", () => {
     const a = makeClaim("claim:test:20260501:aaaa2222", source.id);
     const b = makeClaim("claim:test:20260501:bbbb3333", source.id);
     const canonical = makeClaim("claim:test:20260501:cccc4444", source.id);
-    const mergeAtoB = makeChange("chg:test:20260501:mmmm5555", {
+    const mergeAtoB = makeEntry("ent:test:20260501:mmmm5555", {
       action: "merge",
       target_ids: [a.id],
       canonical_id: b.id,
       reason: "same fact",
     });
-    const mergeBtoCanonical = makeChange("chg:test:20260501:mmmm6666", {
+    const mergeBtoCanonical = makeEntry("ent:test:20260501:mmmm6666", {
       action: "merge",
       target_ids: [b.id],
       canonical_id: canonical.id,
@@ -339,12 +339,12 @@ describe("buildEffectiveState - merge", () => {
     const source = makeSource("src:test:20260501:aaaa1111");
     const a = makeClaim("claim:test:20260501:aaaa2222", source.id);
     const canonical = makeClaim("claim:test:20260501:cccc4444", source.id);
-    const retractCanonical = makeChange("chg:test:20260501:rrrr5555", {
+    const retractCanonical = makeEntry("ent:test:20260501:rrrr5555", {
       action: "retract",
       target_ids: [canonical.id],
       reason: "remove canonical",
     });
-    const merge = makeChange("chg:test:20260501:mmmm6666", {
+    const merge = makeEntry("ent:test:20260501:mmmm6666", {
       action: "merge",
       target_ids: [a.id],
       canonical_id: canonical.id,
@@ -355,60 +355,60 @@ describe("buildEffectiveState - merge", () => {
   });
 });
 
-describe("buildEffectiveState - relate", () => {
-  test("change relate adds edge with source=change_relate; outgoing/incoming find it", () => {
+describe("buildEffectiveState - link", () => {
+  test("entry link adds edge with source=entry_link; outgoing/incoming find it", () => {
     const source = makeSource("src:test:20260501:aaaa1111");
     const claim = makeClaim("claim:test:20260501:bbbb2222", source.id);
-    const relate = makeChange("chg:test:20260501:rrrr3333", {
-      action: "relate",
-      relation: { from_id: claim.id, to_id: source.id, rel: "supports" },
+    const link = makeEntry("ent:test:20260501:rrrr3333", {
+      action: "link",
+      link: { from_id: claim.id, to_id: source.id, rel: "supports" },
     });
-    const state = buildEffectiveState(load([source, claim, relate]));
-    const all = state.relationGraph().all();
+    const state = buildEffectiveState(load([source, claim, link]));
+    const all = state.linkGraph().all();
     expect(all.length).toBe(1);
-    const edge = all[0] as EffectiveRelation;
-    expect(edge.source).toBe("change_relate");
-    expect(edge.by_change_id).toBe(relate.id);
-    expect(state.relationGraph().outgoing(claim.id).length).toBe(1);
-    expect(state.relationGraph().incoming(source.id).length).toBe(1);
+    const edge = all[0] as EffectiveLink;
+    expect(edge.source).toBe("entry_link");
+    expect(edge.by_entry_id).toBe(link.id);
+    expect(state.linkGraph().outgoing(claim.id).length).toBe(1);
+    expect(state.linkGraph().incoming(source.id).length).toBe(1);
     expect(state.statusOf(claim.id)).toBe("active");
     expect(state.statusOf(source.id)).toBe("active");
   });
 
-  test("relate with missing endpoint raises relation_endpoint_missing", () => {
+  test("link with missing endpoint raises link_endpoint_missing", () => {
     const source = makeSource("src:test:20260501:aaaa1111");
-    const relate = makeChange("chg:test:20260501:rrrr3333", {
-      action: "relate",
-      relation: { from_id: "claim:missing", to_id: source.id, rel: "supports" },
+    const link = makeEntry("ent:test:20260501:rrrr3333", {
+      action: "link",
+      link: { from_id: "claim:missing", to_id: source.id, rel: "supports" },
     });
-    const state = buildEffectiveState(load([source, relate]));
-    expect(state.warnings.some((w) => w.code === "relation_endpoint_missing")).toBe(true);
-    expect(state.relationGraph().all().length).toBe(0);
+    const state = buildEffectiveState(load([source, link]));
+    expect(state.warnings.some((w) => w.code === "link_endpoint_missing")).toBe(true);
+    expect(state.linkGraph().all().length).toBe(0);
   });
 });
 
-describe("buildEffectiveState - inline relations", () => {
-  test("inline row.relations[] appear as row_relations edges", () => {
+describe("buildEffectiveState - inline links", () => {
+  test("inline row.links[] appear as row_links edges", () => {
     const source = makeSource("src:test:20260501:aaaa1111");
     const claim = makeClaim("claim:test:20260501:bbbb2222", source.id, {
-      relations: [{ target_id: "src:test:20260501:aaaa1111", rel: "supports" }],
+      links: [{ target_id: "src:test:20260501:aaaa1111", rel: "supports" }],
     });
     const state = buildEffectiveState(load([source, claim]));
-    const all = state.relationGraph().all();
+    const all = state.linkGraph().all();
     expect(all.length).toBe(1);
-    expect(all[0]?.source).toBe("row_relations");
+    expect(all[0]?.source).toBe("row_links");
     expect(all[0]?.from_id).toBe(claim.id);
     expect(all[0]?.to_id).toBe(source.id);
   });
 
-  test("inline relation with missing target raises relation_endpoint_missing", () => {
+  test("inline link with missing target raises link_endpoint_missing", () => {
     const source = makeSource("src:test:20260501:aaaa1111");
     const claim = makeClaim("claim:test:20260501:bbbb2222", source.id, {
-      relations: [{ target_id: "src:bogus", rel: "supports" }],
+      links: [{ target_id: "src:bogus", rel: "supports" }],
     });
     const state = buildEffectiveState(load([source, claim]));
-    expect(state.warnings.some((w) => w.code === "relation_endpoint_missing")).toBe(true);
-    expect(state.relationGraph().all().length).toBe(0);
+    expect(state.warnings.some((w) => w.code === "link_endpoint_missing")).toBe(true);
+    expect(state.linkGraph().all().length).toBe(0);
   });
 });
 
@@ -417,7 +417,7 @@ describe("buildEffectiveState - patch", () => {
     const source = makeSource("src:test:20260501:aaaa1111");
     const claim = makeClaim("claim:test:20260501:bbbb2222", source.id);
     const originalStatement = claim.claim.statement;
-    const patch = makeChange("chg:test:20260501:pppp3333", {
+    const patch = makeEntry("ent:test:20260501:pppp3333", {
       action: "patch",
       target_id: claim.id,
       patch: [{ op: "replace", path: "/claim/statement", value: "rewritten" }],
@@ -429,13 +429,13 @@ describe("buildEffectiveState - patch", () => {
     expect(state.statusOf(claim.id)).toBe("active");
     const explanation = state.explain(claim.id);
     expect(explanation?.patch_audit.length).toBe(1);
-    expect(explanation?.patch_audit[0]?.change_id).toBe(patch.id);
+    expect(explanation?.patch_audit[0]?.entry_id).toBe(patch.id);
     expect(explanation?.patch_audit[0]?.reason).toBe("typo fix");
     expect(explanation?.history.some((h) => h.action === "patch")).toBe(true);
   });
 
   test("patch with missing target raises patch_target_missing", () => {
-    const patch = makeChange("chg:test:20260501:pppp3333", {
+    const patch = makeEntry("ent:test:20260501:pppp3333", {
       action: "patch",
       target_id: "claim:missing",
       patch: [{ op: "replace", path: "/x", value: 1 }],
@@ -447,66 +447,66 @@ describe("buildEffectiveState - patch", () => {
 });
 
 describe("buildEffectiveState - rows() filters", () => {
-  test("rows() default hides change rows", () => {
+  test("rows() default hides entry rows", () => {
     const source = makeSource("src:test:20260501:aaaa1111");
     const claim = makeClaim("claim:test:20260501:bbbb2222", source.id);
-    const change = makeChange("chg:test:20260501:cccc3333", {
+    const entry = makeEntry("ent:test:20260501:cccc3333", {
       action: "retract",
       target_ids: [claim.id],
       reason: "x",
     });
-    const state = buildEffectiveState(load([source, claim, change]));
+    const state = buildEffectiveState(load([source, claim, entry]));
     const ids = state.rows().map((er) => er.row.id);
     expect(ids).toEqual([source.id]);
   });
 
-  test("rows({ includeChanges: true }) includes change rows", () => {
+  test("rows({ includeEntries: true }) includes entry rows", () => {
     const source = makeSource("src:test:20260501:aaaa1111");
     const claim = makeClaim("claim:test:20260501:bbbb2222", source.id);
-    const change = makeChange("chg:test:20260501:cccc3333", {
+    const entry = makeEntry("ent:test:20260501:cccc3333", {
       action: "retract",
       target_ids: [claim.id],
       reason: "x",
     });
-    const state = buildEffectiveState(load([source, claim, change]));
-    const ids = state.rows({ includeChanges: true }).map((er) => er.row.id);
-    expect(ids).toContain(change.id);
+    const state = buildEffectiveState(load([source, claim, entry]));
+    const ids = state.rows({ includeEntries: true }).map((er) => er.row.id);
+    expect(ids).toContain(entry.id);
   });
 
-  test('rows({ kinds: ["change"] }) returns change rows', () => {
+  test('rows({ kinds: ["entry"] }) returns entry rows', () => {
     const source = makeSource("src:test:20260501:aaaa1111");
     const claim = makeClaim("claim:test:20260501:bbbb2222", source.id);
-    const change = makeChange("chg:test:20260501:cccc3333", {
+    const entry = makeEntry("ent:test:20260501:cccc3333", {
       action: "retract",
       target_ids: [claim.id],
       reason: "x",
     });
-    const state = buildEffectiveState(load([source, claim, change]));
-    const ids = state.rows({ kinds: ["change"] }).map((er) => er.row.id);
-    expect(ids).toEqual([change.id]);
+    const state = buildEffectiveState(load([source, claim, entry]));
+    const ids = state.rows({ kinds: ["entry"] }).map((er) => er.row.id);
+    expect(ids).toEqual([entry.id]);
   });
 
-  test("rows({ collection }) filters by scope.collections", () => {
+  test("rows({ profile }) filters by scope.profiles", () => {
     const source = makeSource("src:test:20260501:aaaa1111", {
-      scope: { collections: ["x"] },
+      scope: { profiles: ["x"] },
     });
     const otherSource = makeSource("src:test:20260501:zzzz9999", {
-      scope: { collections: ["y"] },
+      scope: { profiles: ["y"] },
     });
     const state = buildEffectiveState(load([source, otherSource]));
-    const ids = state.rows({ collection: "x" }).map((er) => er.row.id);
+    const ids = state.rows({ profile: "x" }).map((er) => er.row.id);
     expect(ids).toEqual([source.id]);
   });
 
   test("rows({ status: 'retracted' }) returns inactive rows of that status", () => {
     const source = makeSource("src:test:20260501:aaaa1111");
     const claim = makeClaim("claim:test:20260501:bbbb2222", source.id);
-    const change = makeChange("chg:test:20260501:cccc3333", {
+    const entry = makeEntry("ent:test:20260501:cccc3333", {
       action: "retract",
       target_ids: [claim.id],
       reason: "x",
     });
-    const state = buildEffectiveState(load([source, claim, change]));
+    const state = buildEffectiveState(load([source, claim, entry]));
     const ids = state.rows({ status: "retracted" }).map((er) => er.row.id);
     expect(ids).toEqual([claim.id]);
   });
@@ -516,12 +516,12 @@ describe("buildEffectiveState - get/statusOf", () => {
   test("get(id) returns active row; get(retractedId) is undefined; with includeHistory returns it", () => {
     const source = makeSource("src:test:20260501:aaaa1111");
     const claim = makeClaim("claim:test:20260501:bbbb2222", source.id);
-    const change = makeChange("chg:test:20260501:cccc3333", {
+    const entry = makeEntry("ent:test:20260501:cccc3333", {
       action: "retract",
       target_ids: [claim.id],
       reason: "x",
     });
-    const state = buildEffectiveState(load([source, claim, change]));
+    const state = buildEffectiveState(load([source, claim, entry]));
     expect(state.get(source.id)?.row.id).toBe(source.id);
     expect(state.get(claim.id)).toBeUndefined();
     const withHistory = state.get(claim.id, { includeHistory: true });
@@ -536,20 +536,20 @@ describe("buildEffectiveState - get/statusOf", () => {
 });
 
 describe("buildEffectiveState - explain", () => {
-  test("explain(retractedId).history contains the retraction change", () => {
+  test("explain(retractedId).history contains the retraction entry", () => {
     const source = makeSource("src:test:20260501:aaaa1111");
     const claim = makeClaim("claim:test:20260501:bbbb2222", source.id);
-    const change = makeChange("chg:test:20260501:cccc3333", {
+    const entry = makeEntry("ent:test:20260501:cccc3333", {
       action: "retract",
       target_ids: [claim.id],
       reason: "bad",
     });
-    const state = buildEffectiveState(load([source, claim, change]));
+    const state = buildEffectiveState(load([source, claim, entry]));
     const explanation = state.explain(claim.id);
     expect(explanation?.status).toBe("retracted");
     expect(explanation?.history.length).toBe(1);
     expect(explanation?.history[0]?.action).toBe("retract");
-    expect(explanation?.history[0]?.change_id).toBe(change.id);
+    expect(explanation?.history[0]?.entry_id).toBe(entry.id);
     expect(explanation?.history[0]?.reason).toBe("bad");
   });
 
@@ -557,13 +557,13 @@ describe("buildEffectiveState - explain", () => {
     const source = makeSource("src:test:20260501:aaaa1111");
     const claim = makeClaim("claim:test:20260501:bbbb2222", source.id);
     const replacement = makeClaim("claim:test:20260501:eeee5555", source.id);
-    const change = makeChange("chg:test:20260501:ffff6666", {
+    const entry = makeEntry("ent:test:20260501:ffff6666", {
       action: "supersede",
       target_ids: [claim.id],
       replacement_id: replacement.id,
       reason: "improved",
     });
-    const state = buildEffectiveState(load([source, claim, replacement, change]));
+    const state = buildEffectiveState(load([source, claim, replacement, entry]));
     const explanation = state.explain(claim.id);
     expect(explanation?.history[0]?.action).toBe("supersede");
     expect(explanation?.history[0]?.replacement_id).toBe(replacement.id);
@@ -595,74 +595,74 @@ describe("buildEffectiveState - ledger order stability", () => {
   });
 });
 
-describe("buildEffectiveState - relation graph (bd-3p9.1.2)", () => {
+describe("buildEffectiveState - link graph (bd-3p9.1.2)", () => {
   test("outgoing(claimId) returns edges where from_id === claimId", () => {
     const source = makeSource("src:test:20260501:aaaa1111");
     const otherSource = makeSource("src:test:20260501:zzzz9999");
     const claim = makeClaim("claim:test:20260501:bbbb2222", source.id, {
-      relations: [{ target_id: "src:test:20260501:zzzz9999", rel: "supports" }],
+      links: [{ target_id: "src:test:20260501:zzzz9999", rel: "supports" }],
     });
-    const relate = makeChange("chg:test:20260501:rrrr3333", {
-      action: "relate",
-      relation: { from_id: claim.id, to_id: source.id, rel: "context_for" },
+    const link = makeEntry("ent:test:20260501:rrrr3333", {
+      action: "link",
+      link: { from_id: claim.id, to_id: source.id, rel: "context_for" },
     });
-    const state = buildEffectiveState(load([source, otherSource, claim, relate]));
-    const outgoing = state.relationGraph().outgoing(claim.id);
+    const state = buildEffectiveState(load([source, otherSource, claim, link]));
+    const outgoing = state.linkGraph().outgoing(claim.id);
     expect(outgoing.length).toBe(2);
     const sources = new Set(outgoing.map((e) => e.source));
-    expect(sources.has("row_relations")).toBe(true);
-    expect(sources.has("change_relate")).toBe(true);
+    expect(sources.has("row_links")).toBe(true);
+    expect(sources.has("entry_link")).toBe(true);
   });
 
   test("incoming(targetId) returns edges where to_id === targetId", () => {
     const source = makeSource("src:test:20260501:aaaa1111");
     const claim = makeClaim("claim:test:20260501:bbbb2222", source.id, {
-      relations: [{ target_id: "src:test:20260501:aaaa1111", rel: "supports" }],
+      links: [{ target_id: "src:test:20260501:aaaa1111", rel: "supports" }],
     });
     const otherClaim = makeClaim("claim:test:20260501:cccc4444", source.id);
-    const relate = makeChange("chg:test:20260501:rrrr3333", {
-      action: "relate",
-      relation: { from_id: otherClaim.id, to_id: source.id, rel: "context_for" },
+    const link = makeEntry("ent:test:20260501:rrrr3333", {
+      action: "link",
+      link: { from_id: otherClaim.id, to_id: source.id, rel: "context_for" },
     });
-    const state = buildEffectiveState(load([source, claim, otherClaim, relate]));
-    const incoming = state.relationGraph().incoming(source.id);
+    const state = buildEffectiveState(load([source, claim, otherClaim, link]));
+    const incoming = state.linkGraph().incoming(source.id);
     expect(incoming.length).toBe(2);
     expect(incoming.every((e) => e.to_id === source.id)).toBe(true);
   });
 
   test("outgoing(unknown) and incoming(unknown) return empty arrays without throwing", () => {
     const state = buildEffectiveState([]);
-    expect(state.relationGraph().outgoing("nope")).toEqual([]);
-    expect(state.relationGraph().incoming("nope")).toEqual([]);
-    expect(state.relationGraph().all()).toEqual([]);
+    expect(state.linkGraph().outgoing("nope")).toEqual([]);
+    expect(state.linkGraph().incoming("nope")).toEqual([]);
+    expect(state.linkGraph().all()).toEqual([]);
   });
 
-  test("relationGraph().all() returns row_relations edges before change_relate edges", () => {
+  test("linkGraph().all() returns row_links edges before entry_link edges", () => {
     const source = makeSource("src:test:20260501:aaaa1111");
     const otherSource = makeSource("src:test:20260501:zzzz9999");
     const claim = makeClaim("claim:test:20260501:bbbb2222", source.id, {
-      relations: [{ target_id: source.id, rel: "supports" }],
+      links: [{ target_id: source.id, rel: "supports" }],
     });
-    const relate = makeChange("chg:test:20260501:rrrr3333", {
-      action: "relate",
-      relation: { from_id: claim.id, to_id: otherSource.id, rel: "context_for" },
+    const link = makeEntry("ent:test:20260501:rrrr3333", {
+      action: "link",
+      link: { from_id: claim.id, to_id: otherSource.id, rel: "context_for" },
     });
-    const state = buildEffectiveState(load([source, otherSource, claim, relate]));
-    const all = state.relationGraph().all();
+    const state = buildEffectiveState(load([source, otherSource, claim, link]));
+    const all = state.linkGraph().all();
     expect(all.length).toBe(2);
-    expect(all[0]?.source).toBe("row_relations");
-    expect(all[1]?.source).toBe("change_relate");
+    expect(all[0]?.source).toBe("row_links");
+    expect(all[1]?.source).toBe("entry_link");
   });
 
   test("all() returns a fresh array (mutation does not leak into next call)", () => {
     const source = makeSource("src:test:20260501:aaaa1111");
     const claim = makeClaim("claim:test:20260501:bbbb2222", source.id, {
-      relations: [{ target_id: source.id, rel: "supports" }],
+      links: [{ target_id: source.id, rel: "supports" }],
     });
     const state = buildEffectiveState(load([source, claim]));
-    const a = state.relationGraph().all();
+    const a = state.linkGraph().all();
     a.length = 0;
-    const b = state.relationGraph().all();
+    const b = state.linkGraph().all();
     expect(b.length).toBe(1);
   });
 });
@@ -672,12 +672,12 @@ describe("buildEffectiveState - lifecycle interactions (first wins)", () => {
     const source = makeSource("src:test:20260501:aaaa1111");
     const claim = makeClaim("claim:test:20260501:bbbb2222", source.id);
     const replacement = makeClaim("claim:test:20260501:eeee5555", source.id);
-    const retract = makeChange("chg:test:20260501:rrrr3333", {
+    const retract = makeEntry("ent:test:20260501:rrrr3333", {
       action: "retract",
       target_ids: [claim.id],
       reason: "wrong",
     });
-    const supersede = makeChange("chg:test:20260501:ssss4444", {
+    const supersede = makeEntry("ent:test:20260501:ssss4444", {
       action: "supersede",
       target_ids: [claim.id],
       replacement_id: replacement.id,
@@ -686,29 +686,29 @@ describe("buildEffectiveState - lifecycle interactions (first wins)", () => {
     const state = buildEffectiveState(load([source, claim, replacement, retract, supersede]));
     expect(state.statusOf(claim.id)).toBe("retracted");
     const er = state.get(claim.id, { includeHistory: true });
-    expect(er?.by_change_id).toBe(retract.id);
+    expect(er?.by_entry_id).toBe(retract.id);
     expect(er?.reason).toBe("retracted: wrong");
     const explanation = state.explain(claim.id)!;
     expect(explanation.history.length).toBe(2);
     expect(explanation.history[0]?.action).toBe("retract");
-    expect(explanation.history[0]?.change_id).toBe(retract.id);
+    expect(explanation.history[0]?.entry_id).toBe(retract.id);
     expect(explanation.history[1]?.action).toBe("supersede");
-    expect(explanation.history[1]?.change_id).toBe(supersede.id);
+    expect(explanation.history[1]?.entry_id).toBe(supersede.id);
     expect(explanation.history[1]?.replacement_id).toBe(replacement.id);
-    expect(state.warnings.some((w) => w.code === "change_target_inactive" && w.change_id === supersede.id)).toBe(true);
+    expect(state.warnings.some((w) => w.code === "entry_target_inactive" && w.entry_id === supersede.id)).toBe(true);
   });
 
   test("supersede then retract same row: status remains superseded; both entries in history", () => {
     const source = makeSource("src:test:20260501:aaaa1111");
     const claim = makeClaim("claim:test:20260501:bbbb2222", source.id);
     const replacement = makeClaim("claim:test:20260501:eeee5555", source.id);
-    const supersede = makeChange("chg:test:20260501:ssss3333", {
+    const supersede = makeEntry("ent:test:20260501:ssss3333", {
       action: "supersede",
       target_ids: [claim.id],
       replacement_id: replacement.id,
       reason: "first",
     });
-    const retract = makeChange("chg:test:20260501:rrrr4444", {
+    const retract = makeEntry("ent:test:20260501:rrrr4444", {
       action: "retract",
       target_ids: [claim.id],
       reason: "second",
@@ -716,36 +716,36 @@ describe("buildEffectiveState - lifecycle interactions (first wins)", () => {
     const state = buildEffectiveState(load([source, claim, replacement, supersede, retract]));
     expect(state.statusOf(claim.id)).toBe("superseded");
     const er = state.get(claim.id, { includeHistory: true });
-    expect(er?.by_change_id).toBe(supersede.id);
+    expect(er?.by_entry_id).toBe(supersede.id);
     expect(er?.reason).toContain(replacement.id);
     const explanation = state.explain(claim.id)!;
     expect(explanation.history.length).toBe(2);
     expect(explanation.history[0]?.action).toBe("supersede");
     expect(explanation.history[1]?.action).toBe("retract");
     expect(explanation.history[1]?.reason).toBe("second");
-    const inactiveWarn = state.warnings.find((w) => w.code === "change_target_inactive");
-    expect(inactiveWarn?.change_id).toBe(retract.id);
+    const inactiveWarn = state.warnings.find((w) => w.code === "entry_target_inactive");
+    expect(inactiveWarn?.entry_id).toBe(retract.id);
     expect(inactiveWarn?.target_id).toBe(claim.id);
     expect(inactiveWarn?.line).toBe(5);
   });
 
-  test("three changes targeting the same row: only first wins, two redundant warnings", () => {
+  test("three entries targeting the same row: only first wins, two redundant warnings", () => {
     const source = makeSource("src:test:20260501:aaaa1111");
     const claim = makeClaim("claim:test:20260501:bbbb2222", source.id);
     const replacement = makeClaim("claim:test:20260501:eeee5555", source.id);
     const canonical = makeClaim("claim:test:20260501:cccc6666", source.id);
-    const c1 = makeChange("chg:test:20260501:1111aaaa", {
+    const c1 = makeEntry("ent:test:20260501:1111aaaa", {
       action: "retract",
       target_ids: [claim.id],
       reason: "first",
     });
-    const c2 = makeChange("chg:test:20260501:2222bbbb", {
+    const c2 = makeEntry("ent:test:20260501:2222bbbb", {
       action: "supersede",
       target_ids: [claim.id],
       replacement_id: replacement.id,
       reason: "second",
     }, "2026-05-01T13:01:00Z");
-    const c3 = makeChange("chg:test:20260501:3333cccc", {
+    const c3 = makeEntry("ent:test:20260501:3333cccc", {
       action: "merge",
       target_ids: [claim.id],
       canonical_id: canonical.id,
@@ -756,44 +756,44 @@ describe("buildEffectiveState - lifecycle interactions (first wins)", () => {
     const explanation = state.explain(claim.id)!;
     expect(explanation.history.length).toBe(3);
     expect(explanation.history.map((h) => h.action)).toEqual(["retract", "supersede", "merge"]);
-    const inactiveWarnings = state.warnings.filter((w) => w.code === "change_target_inactive");
+    const inactiveWarnings = state.warnings.filter((w) => w.code === "entry_target_inactive");
     expect(inactiveWarnings.length).toBe(2);
-    expect(inactiveWarnings.map((w) => w.change_id).sort()).toEqual([c2.id, c3.id].sort());
+    expect(inactiveWarnings.map((w) => w.entry_id).sort()).toEqual([c2.id, c3.id].sort());
   });
 
-  test("merge then relate same row: relate fires; warning identifies inactive endpoint", () => {
+  test("merge then link same row: link fires; warning identifies inactive endpoint", () => {
     const source = makeSource("src:test:20260501:aaaa1111");
     const a = makeClaim("claim:test:20260501:aaaa2222", source.id);
     const canonical = makeClaim("claim:test:20260501:cccc4444", source.id);
-    const merge = makeChange("chg:test:20260501:mmmm5555", {
+    const merge = makeEntry("ent:test:20260501:mmmm5555", {
       action: "merge",
       target_ids: [a.id],
       canonical_id: canonical.id,
       reason: "merge",
     });
-    const relate = makeChange("chg:test:20260501:rrrr6666", {
-      action: "relate",
-      relation: { from_id: a.id, to_id: canonical.id, rel: "supports" },
+    const link = makeEntry("ent:test:20260501:rrrr6666", {
+      action: "link",
+      link: { from_id: a.id, to_id: canonical.id, rel: "supports" },
     }, "2026-05-01T13:02:00Z");
-    const state = buildEffectiveState(load([source, a, canonical, merge, relate]));
+    const state = buildEffectiveState(load([source, a, canonical, merge, link]));
     expect(state.statusOf(a.id)).toBe("duplicate");
     expect(state.statusOf(canonical.id)).toBe("active");
-    const edges = state.relationGraph().all();
+    const edges = state.linkGraph().all();
     expect(edges.length).toBe(1);
     expect(edges[0]?.from_id).toBe(a.id);
     expect(edges[0]?.to_id).toBe(canonical.id);
-    expect(edges[0]?.source).toBe("change_relate");
+    expect(edges[0]?.source).toBe("entry_link");
   });
 
   test("patch on a previously retracted row: patch_audit still records but no row mutation", () => {
     const source = makeSource("src:test:20260501:aaaa1111");
     const claim = makeClaim("claim:test:20260501:bbbb2222", source.id);
-    const retract = makeChange("chg:test:20260501:rrrr3333", {
+    const retract = makeEntry("ent:test:20260501:rrrr3333", {
       action: "retract",
       target_ids: [claim.id],
       reason: "out",
     });
-    const patch = makeChange("chg:test:20260501:pppp4444", {
+    const patch = makeEntry("ent:test:20260501:pppp4444", {
       action: "patch",
       target_id: claim.id,
       patch: [{ op: "replace", path: "/claim/statement", value: "later" }],
@@ -803,23 +803,23 @@ describe("buildEffectiveState - lifecycle interactions (first wins)", () => {
     expect(state.statusOf(claim.id)).toBe("retracted");
     const explanation = state.explain(claim.id)!;
     expect(explanation.patch_audit.length).toBe(1);
-    expect(explanation.patch_audit[0]?.change_id).toBe(patch.id);
+    expect(explanation.patch_audit[0]?.entry_id).toBe(patch.id);
     expect(explanation.patch_audit[0]?.reason).toBe("audit-only fix");
-    expect(explanation.history.some((h) => h.action === "patch" && h.change_id === patch.id)).toBe(true);
+    expect(explanation.history.some((h) => h.action === "patch" && h.entry_id === patch.id)).toBe(true);
   });
 });
 
-describe("buildEffectiveState - degenerate change shapes", () => {
+describe("buildEffectiveState - degenerate entry shapes", () => {
   test("supersede with target_id === replacement_id: target becomes superseded; replacement_inactive warning fires", () => {
     const source = makeSource("src:test:20260501:aaaa1111");
     const claim = makeClaim("claim:test:20260501:bbbb2222", source.id);
-    const change = makeChange("chg:test:20260501:cccc3333", {
+    const entry = makeEntry("ent:test:20260501:cccc3333", {
       action: "supersede",
       target_ids: [claim.id],
       replacement_id: claim.id,
       reason: "self",
     });
-    const state = buildEffectiveState(load([source, claim, change]));
+    const state = buildEffectiveState(load([source, claim, entry]));
     expect(state.statusOf(claim.id)).toBe("superseded");
     expect(state.warnings.some((w) => w.code === "supersede_replacement_inactive" && w.target_id === claim.id)).toBe(true);
   });
@@ -828,27 +828,27 @@ describe("buildEffectiveState - degenerate change shapes", () => {
     const source = makeSource("src:test:20260501:aaaa1111");
     const a = makeClaim("claim:test:20260501:aaaa2222", source.id);
     const canonical = makeClaim("claim:test:20260501:cccc4444", source.id);
-    const change = makeChange("chg:test:20260501:mmmm5555", {
+    const entry = makeEntry("ent:test:20260501:mmmm5555", {
       action: "merge",
       target_ids: [a.id, canonical.id],
       canonical_id: canonical.id,
       reason: "self-merge",
     });
-    const state = buildEffectiveState(load([source, a, canonical, change]));
+    const state = buildEffectiveState(load([source, a, canonical, entry]));
     expect(state.statusOf(a.id)).toBe("duplicate");
     expect(state.statusOf(canonical.id)).toBe("duplicate");
     expect(state.warnings.some((w) => w.code === "merge_canonical_inactive")).toBe(true);
   });
 
-  test("relate with from_id === to_id (self-loop) creates a self-edge without warning", () => {
+  test("link with from_id === to_id (self-loop) creates a self-edge without warning", () => {
     const source = makeSource("src:test:20260501:aaaa1111");
     const claim = makeClaim("claim:test:20260501:bbbb2222", source.id);
-    const change = makeChange("chg:test:20260501:rrrr3333", {
-      action: "relate",
-      relation: { from_id: claim.id, to_id: claim.id, rel: "supports" },
+    const entry = makeEntry("ent:test:20260501:rrrr3333", {
+      action: "link",
+      link: { from_id: claim.id, to_id: claim.id, rel: "supports" },
     });
-    const state = buildEffectiveState(load([source, claim, change]));
-    const edges = state.relationGraph().all();
+    const state = buildEffectiveState(load([source, claim, entry]));
+    const edges = state.linkGraph().all();
     expect(edges.length).toBe(1);
     expect(edges[0]?.from_id).toBe(claim.id);
     expect(edges[0]?.to_id).toBe(claim.id);
@@ -856,35 +856,35 @@ describe("buildEffectiveState - degenerate change shapes", () => {
   });
 
   test("retract with empty target_ids array does not crash and produces no warnings", () => {
-    const change = makeChange("chg:test:20260501:cccc3333", {
+    const entry = makeEntry("ent:test:20260501:cccc3333", {
       action: "retract",
       target_ids: [],
       reason: "empty",
     });
-    const state = buildEffectiveState(load([change]));
+    const state = buildEffectiveState(load([entry]));
     expect(state.warnings).toEqual([]);
-    expect(state.rows({ includeChanges: true }).map((er) => er.row.id)).toEqual([change.id]);
+    expect(state.rows({ includeEntries: true }).map((er) => er.row.id)).toEqual([entry.id]);
   });
 
   test("retract with missing target_ids field does not crash", () => {
-    const change = makeChange("chg:test:20260501:cccc3333", {
+    const entry = makeEntry("ent:test:20260501:cccc3333", {
       action: "retract",
       reason: "no targets",
-    } as ChangeRow["change"]);
-    const state = buildEffectiveState(load([change]));
+    } as EntryRow["entry"]);
+    const state = buildEffectiveState(load([entry]));
     expect(state.warnings).toEqual([]);
   });
 
   test("patch with empty patch array does not crash; audit entry still recorded with empty summary", () => {
     const source = makeSource("src:test:20260501:aaaa1111");
     const claim = makeClaim("claim:test:20260501:bbbb2222", source.id);
-    const change = makeChange("chg:test:20260501:pppp3333", {
+    const entry = makeEntry("ent:test:20260501:pppp3333", {
       action: "patch",
       target_id: claim.id,
       patch: [],
       reason: "empty patch",
     });
-    const state = buildEffectiveState(load([source, claim, change]));
+    const state = buildEffectiveState(load([source, claim, entry]));
     const explanation = state.explain(claim.id)!;
     expect(explanation.patch_audit.length).toBe(1);
     expect(explanation.patch_audit[0]?.patch).toEqual([]);
@@ -893,18 +893,18 @@ describe("buildEffectiveState - degenerate change shapes", () => {
   });
 });
 
-describe("buildEffectiveState - relation type coverage", () => {
-  test("each RelationType (supports, contradicts, depends_on, context_for) round-trips through change-relate", () => {
+describe("buildEffectiveState - link type coverage", () => {
+  test("each LinkType (supports, contradicts, depends_on, context_for) round-trips through entry-link", () => {
     const source = makeSource("src:test:20260501:aaaa1111");
     const claim = makeClaim("claim:test:20260501:bbbb2222", source.id);
-    const rels: Array<EffectiveRelation["rel"]> = ["supports", "contradicts", "depends_on", "context_for"];
+    const rels: Array<EffectiveLink["rel"]> = ["supports", "contradicts", "depends_on", "context_for"];
     for (const rel of rels) {
-      const change = makeChange(`chg:test:20260501:${rel.padEnd(8, "x").slice(0, 8)}`, {
-        action: "relate",
-        relation: { from_id: claim.id, to_id: source.id, rel, strength: "high", rationale: `because ${rel}` },
+      const entry = makeEntry(`ent:test:20260501:${rel.padEnd(8, "x").slice(0, 8)}`, {
+        action: "link",
+        link: { from_id: claim.id, to_id: source.id, rel, strength: "high", rationale: `because ${rel}` },
       });
-      const state = buildEffectiveState(load([source, claim, change]));
-      const all = state.relationGraph().all();
+      const state = buildEffectiveState(load([source, claim, entry]));
+      const all = state.linkGraph().all();
       expect(all.length).toBe(1);
       expect(all[0]?.rel).toBe(rel);
       expect(all[0]?.strength).toBe("high");
@@ -913,114 +913,114 @@ describe("buildEffectiveState - relation type coverage", () => {
   });
 });
 
-describe("buildEffectiveState - inline relations expanded", () => {
-  test("a row with multiple inline relations to multiple targets produces N edges", () => {
+describe("buildEffectiveState - inline links expanded", () => {
+  test("a row with multiple inline links to multiple targets produces N edges", () => {
     const sourceA = makeSource("src:test:20260501:aaaa1111");
     const sourceB = makeSource("src:test:20260501:bbbb2222");
     const sourceC = makeSource("src:test:20260501:cccc3333");
     const claim = makeClaim("claim:test:20260501:dddd4444", sourceA.id, {
-      relations: [
+      links: [
         { target_id: sourceA.id, rel: "supports" },
         { target_id: sourceB.id, rel: "context_for" },
         { target_id: sourceC.id, rel: "contradicts" },
       ],
     });
     const state = buildEffectiveState(load([sourceA, sourceB, sourceC, claim]));
-    const out = state.relationGraph().outgoing(claim.id);
+    const out = state.linkGraph().outgoing(claim.id);
     expect(out.length).toBe(3);
     expect(out.map((e) => e.to_id).sort()).toEqual([sourceA.id, sourceB.id, sourceC.id].sort());
-    for (const edge of out) expect(edge.source).toBe("row_relations");
+    for (const edge of out) expect(edge.source).toBe("row_links");
   });
 
   test("two claims pointing at each other: outgoing/incoming reflect mutual edges", () => {
     const source = makeSource("src:test:20260501:aaaa1111");
     const a = makeClaim("claim:test:20260501:aaaa2222", source.id, {
-      relations: [{ target_id: "claim:test:20260501:bbbb3333", rel: "supports" }],
+      links: [{ target_id: "claim:test:20260501:bbbb3333", rel: "supports" }],
     });
     const b = makeClaim("claim:test:20260501:bbbb3333", source.id, {
-      relations: [{ target_id: "claim:test:20260501:aaaa2222", rel: "contradicts" }],
+      links: [{ target_id: "claim:test:20260501:aaaa2222", rel: "contradicts" }],
     });
     const state = buildEffectiveState(load([source, a, b]));
-    expect(state.relationGraph().outgoing(a.id).map((e) => e.to_id)).toEqual([b.id]);
-    expect(state.relationGraph().incoming(a.id).map((e) => e.from_id)).toEqual([b.id]);
-    expect(state.relationGraph().outgoing(b.id).map((e) => e.to_id)).toEqual([a.id]);
-    expect(state.relationGraph().incoming(b.id).map((e) => e.from_id)).toEqual([a.id]);
+    expect(state.linkGraph().outgoing(a.id).map((e) => e.to_id)).toEqual([b.id]);
+    expect(state.linkGraph().incoming(a.id).map((e) => e.from_id)).toEqual([b.id]);
+    expect(state.linkGraph().outgoing(b.id).map((e) => e.to_id)).toEqual([a.id]);
+    expect(state.linkGraph().incoming(b.id).map((e) => e.from_id)).toEqual([a.id]);
   });
 
-  test("inline AND change-relate edges to the same pair coexist, distinguishable by source", () => {
+  test("inline AND entry-link edges to the same pair coexist, distinguishable by source", () => {
     const source = makeSource("src:test:20260501:aaaa1111");
     const claim = makeClaim("claim:test:20260501:bbbb2222", source.id, {
-      relations: [{ target_id: source.id, rel: "supports" }],
+      links: [{ target_id: source.id, rel: "supports" }],
     });
-    const change = makeChange("chg:test:20260501:cccc3333", {
-      action: "relate",
-      relation: { from_id: claim.id, to_id: source.id, rel: "context_for" },
+    const entry = makeEntry("ent:test:20260501:cccc3333", {
+      action: "link",
+      link: { from_id: claim.id, to_id: source.id, rel: "context_for" },
     });
-    const state = buildEffectiveState(load([source, claim, change]));
-    const edges = state.relationGraph().outgoing(claim.id);
+    const state = buildEffectiveState(load([source, claim, entry]));
+    const edges = state.linkGraph().outgoing(claim.id);
     expect(edges.length).toBe(2);
     const sources = edges.map((e) => e.source).sort();
-    expect(sources).toEqual(["change_relate", "row_relations"]);
-    const changeRelEdge = edges.find((e) => e.source === "change_relate");
-    expect(changeRelEdge?.by_change_id).toBe(change.id);
-    expect(changeRelEdge?.rel).toBe("context_for");
-    const rowRelEdge = edges.find((e) => e.source === "row_relations");
+    expect(sources).toEqual(["entry_link", "row_links"]);
+    const entryLinkEdge = edges.find((e) => e.source === "entry_link");
+    expect(entryLinkEdge?.by_entry_id).toBe(entry.id);
+    expect(entryLinkEdge?.rel).toBe("context_for");
+    const rowRelEdge = edges.find((e) => e.source === "row_links");
     expect(rowRelEdge?.rel).toBe("supports");
-    expect(rowRelEdge?.by_change_id).toBeUndefined();
+    expect(rowRelEdge?.by_entry_id).toBeUndefined();
   });
 });
 
 describe("buildEffectiveState - filters expanded", () => {
-  test('rows({ kinds: ["claim", "source"] }) returns both, no syntheses or change rows', () => {
+  test('rows({ kinds: ["claim", "source"] }) returns both, no syntheses or entry rows', () => {
     const source = makeSource("src:test:20260501:aaaa1111");
     const claim = makeClaim("claim:test:20260501:bbbb2222", source.id);
     const synthesis = makeSynthesis("synth:test:20260501:cccc3333", [claim.id]);
-    const change = makeChange("chg:test:20260501:dddd4444", {
+    const entry = makeEntry("ent:test:20260501:dddd4444", {
       action: "retract",
       target_ids: [synthesis.id],
       reason: "x",
     });
-    const state = buildEffectiveState(load([source, claim, synthesis, change]));
+    const state = buildEffectiveState(load([source, claim, synthesis, entry]));
     const ids = state.rows({ kinds: ["claim", "source"] }).map((er) => er.row.id);
     expect(ids.sort()).toEqual([source.id, claim.id].sort());
   });
 
-  test("rows({ status: 'active', includeChanges: true }) returns active rows AND change rows", () => {
+  test("rows({ status: 'active', includeEntries: true }) returns active rows AND entry rows", () => {
     const source = makeSource("src:test:20260501:aaaa1111");
     const claim = makeClaim("claim:test:20260501:bbbb2222", source.id);
-    const change = makeChange("chg:test:20260501:cccc3333", {
+    const entry = makeEntry("ent:test:20260501:cccc3333", {
       action: "retract",
       target_ids: [claim.id],
       reason: "x",
     });
-    const state = buildEffectiveState(load([source, claim, change]));
-    const ids = state.rows({ status: "active", includeChanges: true }).map((er) => er.row.id);
+    const state = buildEffectiveState(load([source, claim, entry]));
+    const ids = state.rows({ status: "active", includeEntries: true }).map((er) => er.row.id);
     expect(ids).toContain(source.id);
-    expect(ids).toContain(change.id);
+    expect(ids).toContain(entry.id);
     expect(ids).not.toContain(claim.id);
   });
 
-  test("rows({ collection, kinds }) combines correctly", () => {
+  test("rows({ profile, kinds }) combines correctly", () => {
     const sourceX = makeSource("src:test:20260501:aaaa1111", {
-      scope: { collections: ["x"] },
+      scope: { profiles: ["x"] },
     });
     const sourceY = makeSource("src:test:20260501:bbbb2222", {
-      scope: { collections: ["y"] },
+      scope: { profiles: ["y"] },
     });
     const claimX = makeClaim("claim:test:20260501:cccc3333", sourceX.id, {
-      scope: { collections: ["x"] },
+      scope: { profiles: ["x"] },
     });
     const state = buildEffectiveState(load([sourceX, sourceY, claimX]));
-    const ids = state.rows({ collection: "x", kinds: ["claim"] }).map((er) => er.row.id);
+    const ids = state.rows({ profile: "x", kinds: ["claim"] }).map((er) => er.row.id);
     expect(ids).toEqual([claimX.id]);
   });
 
   test("rows({ tag }) filters by scope.tags", () => {
     const source = makeSource("src:test:20260501:aaaa1111", {
-      scope: { collections: ["test"], tags: ["alpha"] },
+      scope: { profiles: ["test"], tags: ["alpha"] },
     });
     const otherSource = makeSource("src:test:20260501:bbbb2222", {
-      scope: { collections: ["test"], tags: ["beta"] },
+      scope: { profiles: ["test"], tags: ["beta"] },
     });
     const state = buildEffectiveState(load([source, otherSource]));
     const ids = state.rows({ tag: "alpha" }).map((er) => er.row.id);
@@ -1029,10 +1029,10 @@ describe("buildEffectiveState - filters expanded", () => {
 
   test("rows({ subject }) filters by scope.subjects", () => {
     const source = makeSource("src:test:20260501:aaaa1111", {
-      scope: { collections: ["test"], subjects: ["Alpha"] },
+      scope: { profiles: ["test"], subjects: ["Alpha"] },
     });
     const otherSource = makeSource("src:test:20260501:bbbb2222", {
-      scope: { collections: ["test"], subjects: ["Beta"] },
+      scope: { profiles: ["test"], subjects: ["Beta"] },
     });
     const state = buildEffectiveState(load([source, otherSource]));
     const ids = state.rows({ subject: "Alpha" }).map((er) => er.row.id);
@@ -1043,12 +1043,12 @@ describe("buildEffectiveState - filters expanded", () => {
     const source = makeSource("src:test:20260501:aaaa1111");
     const claim = makeClaim("claim:test:20260501:bbbb2222", source.id);
     const otherClaim = makeClaim("claim:test:20260501:cccc4444", source.id);
-    const change = makeChange("chg:test:20260501:dddd5555", {
+    const entry = makeEntry("ent:test:20260501:dddd5555", {
       action: "retract",
       target_ids: [claim.id],
       reason: "x",
     });
-    const state = buildEffectiveState(load([source, claim, otherClaim, change]));
+    const state = buildEffectiveState(load([source, claim, otherClaim, entry]));
     const ids = state.rows({ status: "retracted" }).map((er) => er.row.id);
     expect(ids).toEqual([claim.id]);
     expect(ids).not.toContain(otherClaim.id);
@@ -1072,14 +1072,14 @@ describe("buildEffectiveState - get/explain edge cases", () => {
     const c = makeClaim("claim:test:20260501:cccc4444", source.id);
     const replacement = makeClaim("claim:test:20260501:eeee5555", source.id);
     const canonical = makeClaim("claim:test:20260501:ffff6666", source.id);
-    const retract = makeChange("chg:test:20260501:r1", { action: "retract", target_ids: [a.id], reason: "x" });
-    const supersede = makeChange("chg:test:20260501:s2", {
+    const retract = makeEntry("ent:test:20260501:r1", { action: "retract", target_ids: [a.id], reason: "x" });
+    const supersede = makeEntry("ent:test:20260501:s2", {
       action: "supersede",
       target_ids: [b.id],
       replacement_id: replacement.id,
       reason: "y",
     });
-    const merge = makeChange("chg:test:20260501:m3", {
+    const merge = makeEntry("ent:test:20260501:m3", {
       action: "merge",
       target_ids: [c.id],
       canonical_id: canonical.id,
@@ -1107,13 +1107,13 @@ describe("buildEffectiveState - get/explain edge cases", () => {
     const source = makeSource("src:test:20260501:aaaa1111");
     const old = makeClaim("claim:test:20260501:bbbb2222", source.id);
     const replacement = makeClaim("claim:test:20260501:eeee5555", source.id);
-    const change = makeChange("chg:test:20260501:ssss3333", {
+    const entry = makeEntry("ent:test:20260501:ssss3333", {
       action: "supersede",
       target_ids: [old.id],
       replacement_id: replacement.id,
       reason: "x",
     });
-    const state = buildEffectiveState(load([source, old, replacement, change]));
+    const state = buildEffectiveState(load([source, old, replacement, entry]));
     const explanation = state.explain(replacement.id)!;
     expect(explanation.status).toBe("active");
     expect(explanation.history).toEqual([]);
@@ -1123,13 +1123,13 @@ describe("buildEffectiveState - get/explain edge cases", () => {
     const source = makeSource("src:test:20260501:aaaa1111");
     const a = makeClaim("claim:test:20260501:aaaa2222", source.id);
     const canonical = makeClaim("claim:test:20260501:cccc4444", source.id);
-    const change = makeChange("chg:test:20260501:mmmm5555", {
+    const entry = makeEntry("ent:test:20260501:mmmm5555", {
       action: "merge",
       target_ids: [a.id],
       canonical_id: canonical.id,
       reason: "x",
     });
-    const state = buildEffectiveState(load([source, a, canonical, change]));
+    const state = buildEffectiveState(load([source, a, canonical, entry]));
     const explanation = state.explain(canonical.id)!;
     expect(explanation.status).toBe("active");
     expect(explanation.history).toEqual([]);
@@ -1138,13 +1138,13 @@ describe("buildEffectiveState - get/explain edge cases", () => {
   test("explain on a patched row: patch_audit lists each patch in ledger order, with patch_summary in history", () => {
     const source = makeSource("src:test:20260501:aaaa1111");
     const claim = makeClaim("claim:test:20260501:bbbb2222", source.id);
-    const patch1 = makeChange("chg:test:20260501:pppp3333", {
+    const patch1 = makeEntry("ent:test:20260501:pppp3333", {
       action: "patch",
       target_id: claim.id,
       patch: [{ op: "replace", path: "/claim/statement", value: "v2" }],
       reason: "fix1",
     });
-    const patch2 = makeChange("chg:test:20260501:pppp4444", {
+    const patch2 = makeEntry("ent:test:20260501:pppp4444", {
       action: "patch",
       target_id: claim.id,
       patch: [{ op: "add", path: "/claim/qualifiers/note", value: "n" }],
@@ -1153,28 +1153,28 @@ describe("buildEffectiveState - get/explain edge cases", () => {
     const state = buildEffectiveState(load([source, claim, patch1, patch2]));
     const explanation = state.explain(claim.id)!;
     expect(explanation.patch_audit.length).toBe(2);
-    expect(explanation.patch_audit[0]?.change_id).toBe(patch1.id);
-    expect(explanation.patch_audit[1]?.change_id).toBe(patch2.id);
+    expect(explanation.patch_audit[0]?.entry_id).toBe(patch1.id);
+    expect(explanation.patch_audit[1]?.entry_id).toBe(patch2.id);
     const patchEntries = explanation.history.filter((h) => h.action === "patch");
     expect(patchEntries.length).toBe(2);
     expect(patchEntries[0]?.patch_summary).toBe("replace /claim/statement");
     expect(patchEntries[1]?.patch_summary).toBe("add /claim/qualifiers/note");
   });
 
-  test("get(retractedId) without includeHistory returns undefined; with includeHistory returns row + reason + by_change_id", () => {
+  test("get(retractedId) without includeHistory returns undefined; with includeHistory returns row + reason + by_entry_id", () => {
     const source = makeSource("src:test:20260501:aaaa1111");
     const claim = makeClaim("claim:test:20260501:bbbb2222", source.id);
-    const change = makeChange("chg:test:20260501:cccc3333", {
+    const entry = makeEntry("ent:test:20260501:cccc3333", {
       action: "retract",
       target_ids: [claim.id],
       reason: "bad",
     });
-    const state = buildEffectiveState(load([source, claim, change]));
+    const state = buildEffectiveState(load([source, claim, entry]));
     expect(state.get(claim.id)).toBeUndefined();
     const er = state.get(claim.id, { includeHistory: true })!;
     expect(er.status).toBe("retracted");
     expect(er.reason).toBe("retracted: bad");
-    expect(er.by_change_id).toBe(change.id);
+    expect(er.by_entry_id).toBe(entry.id);
   });
 
   test("get on intrinsic-archived synthesis: undefined by default, returned with includeHistory and intrinsic_archived flag", () => {
@@ -1208,14 +1208,14 @@ describe("buildEffectiveState - parsing safety", () => {
     expect((rows[0]?.row as SourceRow).source.title).toBe("Example");
   });
 
-  test("relate change with from_id missing AND to_id missing emits a single relation_endpoint_missing", () => {
-    const change = makeChange("chg:test:20260501:rrrr3333", {
-      action: "relate",
-      relation: { from_id: "claim:nope1", to_id: "claim:nope2", rel: "supports" },
+  test("link entry with from_id missing AND to_id missing emits a single link_endpoint_missing", () => {
+    const entry = makeEntry("ent:test:20260501:rrrr3333", {
+      action: "link",
+      link: { from_id: "claim:nope1", to_id: "claim:nope2", rel: "supports" },
     });
-    const state = buildEffectiveState(load([change]));
-    const missing = state.warnings.filter((w) => w.code === "relation_endpoint_missing");
+    const state = buildEffectiveState(load([entry]));
+    const missing = state.warnings.filter((w) => w.code === "link_endpoint_missing");
     expect(missing.length).toBe(1);
-    expect(missing[0]?.change_id).toBe(change.id);
+    expect(missing[0]?.entry_id).toBe(entry.id);
   });
 });

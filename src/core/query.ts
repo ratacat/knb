@@ -12,7 +12,7 @@ import type { EffectiveRow, EffectiveState, EffectiveStatus, StateExplanation } 
 export type QueryRequest = {
   ids?: string[];
   kinds?: KnbRowKind[];
-  collection?: string;
+  profile?: string;
   subject?: string;
   tag?: string;
   text?: string;
@@ -205,7 +205,7 @@ function collectCandidates(state: EffectiveState, request: QueryRequest): Effect
     const merged: EffectiveRow[] = [];
     const seen = new Set<string>();
     for (const status of HISTORY_STATUSES) {
-      for (const effective of state.rows({ status, includeChanges: true })) {
+      for (const effective of state.rows({ status, includeEntries: true })) {
         if (seen.has(effective.row.id)) continue;
         seen.add(effective.row.id);
         merged.push(effective);
@@ -214,14 +214,14 @@ function collectCandidates(state: EffectiveState, request: QueryRequest): Effect
     return merged;
   }
   const status = request.status ?? "active";
-  return state.rows({ status, includeChanges: true });
+  return state.rows({ status, includeEntries: true });
 }
 
 function applyScopeFilters(rows: EffectiveRow[], request: QueryRequest): EffectiveRow[] {
-  if (!request.collection && !request.subject && !request.tag) return rows;
+  if (!request.profile && !request.subject && !request.tag) return rows;
   return rows.filter((effective) => {
     const scope = effective.row.scope;
-    if (request.collection && !scope.collections?.includes(request.collection)) return false;
+    if (request.profile && !scope.profiles?.includes(request.profile)) return false;
     if (request.subject && !scope.subjects?.includes(request.subject)) return false;
     if (request.tag && !scope.tags?.includes(request.tag)) return false;
     return true;
@@ -235,7 +235,7 @@ function applyKindFilter(rows: EffectiveRow[], request: QueryRequest): Effective
     return rows.filter((effective) => allowed.has(effective.row.kind));
   }
   if (request.includeHistory === true) return rows;
-  return rows.filter((effective) => effective.row.kind !== "change");
+  return rows.filter((effective) => effective.row.kind !== "entry");
 }
 
 type ScoreContext = {

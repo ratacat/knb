@@ -51,23 +51,23 @@ async function pathExists(p: string): Promise<boolean> {
   }
 }
 
-function sourceDraft(collection = "wire"): DraftRow {
+function sourceDraft(profile = "wire"): DraftRow {
   return {
     kind: "source",
-    scope: { collections: [collection] },
+    scope: { profiles: [profile] },
     source: {
       type: "web_page",
       title: "A wiring source",
-      uri: `https://example.com/${collection}`,
+      uri: `https://example.com/${profile}`,
     },
     provenance: { acquisition: { method: "manual" } },
   } as DraftRow;
 }
 
-function claimDraft(sourceRef: string, collection = "wire", statement = "Wiring exists."): DraftRow {
+function claimDraft(sourceRef: string, profile = "wire", statement = "Wiring exists."): DraftRow {
   return {
     kind: "claim",
-    scope: { collections: [collection] },
+    scope: { profiles: [profile] },
     identity: { claim_key: `wire|${statement.toLowerCase()}` },
     claim: { statement, atomic: true },
     time: { precision: "unknown" },
@@ -158,8 +158,8 @@ describe("Wave 7 wiring", () => {
 
   test("knb.check on a clean rendered+indexed workspace reports ok=true", async () => {
     const knb = await openWiringKnb();
-    await knb.add(sourceDraft("ok-collection"));
-    await knb.render({ collection: "ok-collection" });
+    await knb.add(sourceDraft("ok-profile"));
+    await knb.render({ profile: "ok-profile" });
     await knb.rebuildIndex();
     const result = await knb.check();
     expect(result.parse_issues).toEqual([]);
@@ -174,8 +174,8 @@ describe("Wave 7 wiring", () => {
     const sourceResult = await knb.add(sourceDraft("render-test"));
     const sourceId = sourceResult.created[0]?.id ?? "";
     await knb.add(claimDraft(sourceId, "render-test", "Rendering works."));
-    const rendered = await knb.render({ collection: "render-test" });
-    expect(rendered.collection).toBe("render-test");
+    const rendered = await knb.render({ profile: "render-test" });
+    expect(rendered.profile).toBe("render-test");
     expect(rendered.format).toBe("md");
     expect(rendered.path).toBe(join(workDir, "knb", "views", "render-test.md"));
     expect(await pathExists(rendered.path)).toBe(true);
@@ -190,22 +190,22 @@ describe("Wave 7 wiring", () => {
 
   test("knb.render then ledger append makes the view stale on next check", async () => {
     const knb = await openWiringKnb();
-    await knb.add(sourceDraft("stale-collection"));
-    await knb.render({ collection: "stale-collection" });
+    await knb.add(sourceDraft("stale-profile"));
+    await knb.render({ profile: "stale-profile" });
     await knb.rebuildIndex();
     const beforeCheck = await knb.check();
     expect(beforeCheck.ok).toBe(true);
 
     // Append another row out-of-band to invalidate the fingerprint.
     const ledgerPath = join(workDir, "knb", "ledger.jsonl");
-    const extraId = "src:stale-collection:20260501:cafef00d";
+    const extraId = "src:stale-profile:20260501:cafef00d";
     const extraRow = {
       schema_version: "knb.v1",
       id: extraId,
       kind: "source",
       created_at: "2026-05-01T13:00:00Z",
       created_by: "agent:test",
-      scope: { collections: ["stale-collection"] },
+      scope: { profiles: ["stale-profile"] },
       source: { type: "web_page", title: "Stale-maker", uri: "https://example.com/stale-extra" },
       provenance: { acquisition: { method: "manual", observed_at: "2026-05-01T13:00:00Z" } },
     };
@@ -223,11 +223,11 @@ describe("Wave 7 wiring", () => {
     const sourceId = sourceResult.created[0]?.id ?? "";
     await knb.add(claimDraft(sourceId, "ctx-test", "Context wiring is hooked up."));
 
-    const ctx = await knb.context({ collection: "ctx-test" });
+    const ctx = await knb.context({ profile: "ctx-test" });
     expect(Array.isArray(ctx.key_claims)).toBe(true);
     expect(ctx.key_claims.length).toBeGreaterThanOrEqual(1);
     expect(ctx.key_claims.some((c) => c.statement === "Context wiring is hooked up.")).toBe(true);
-    expect(ctx.meta.collection).toBe("ctx-test");
+    expect(ctx.meta.profile).toBe("ctx-test");
     expect(typeof ctx.token_estimate).toBe("number");
   });
 

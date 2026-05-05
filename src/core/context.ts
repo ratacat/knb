@@ -8,7 +8,7 @@ import type {
 import type { EffectiveRow, EffectiveState, StateWarning } from "./state";
 
 export type ContextRequest = {
-  collection?: string;
+  profile?: string;
   subject?: string;
   tag?: string;
   asOf?: string;
@@ -63,7 +63,7 @@ export type ContextResult = {
   token_estimate: number;
   truncated: boolean;
   meta: {
-    collection?: string;
+    profile?: string;
     subject?: string;
     tag?: string;
     counts: {
@@ -253,7 +253,7 @@ function rankQuestions(rows: QuestionRow[], model: ContextRankingModel): Questio
 }
 
 function matchesScope(row: KnbRow, request: ContextRequest): boolean {
-  if (request.collection && !row.scope.collections?.includes(request.collection)) return false;
+  if (request.profile && !row.scope.profiles?.includes(request.profile)) return false;
   if (request.subject && !row.scope.subjects?.includes(request.subject)) return false;
   if (request.tag && !row.scope.tags?.includes(request.tag)) return false;
   return true;
@@ -469,6 +469,9 @@ export function buildContext(state: EffectiveState, request: ContextRequest = {}
   const claimRows: ClaimRow[] = [];
   const questionRows: QuestionRow[] = [];
   const sourceRows = new Map<string, SourceRow>();
+  for (const r of allActive) {
+    if (r.row.kind === "source") sourceRows.set(r.row.id, r.row as SourceRow);
+  }
   for (const r of inScope) {
     if (r.row.kind === "synthesis") {
       const s = r.row as SynthesisRow;
@@ -478,8 +481,6 @@ export function buildContext(state: EffectiveState, request: ContextRequest = {}
     } else if (r.row.kind === "question") {
       const q = r.row as QuestionRow;
       if (q.question.status === "open") questionRows.push(q);
-    } else if (r.row.kind === "source") {
-      sourceRows.set(r.row.id, r.row as SourceRow);
     }
   }
 
@@ -495,7 +496,7 @@ export function buildContext(state: EffectiveState, request: ContextRequest = {}
 
   const sourceIdsCited = selectedSourceIds(claims, syntheses);
   const candidateSources: ContextSource[] = [];
-  for (const r of inScope) {
+  for (const r of allActive) {
     if (r.row.kind !== "source") continue;
     if (sourceIdsCited.has(r.row.id)) {
       const sourceRow = sourceRows.get(r.row.id);
@@ -510,8 +511,8 @@ export function buildContext(state: EffectiveState, request: ContextRequest = {}
     questions.length === 0 &&
     sources.length === 0;
 
-  const scopeLabel = request.collection
-    ? `Collection ${request.collection}`
+  const scopeLabel = request.profile
+    ? `Profile ${request.profile}`
     : request.subject
       ? `Subject ${request.subject}`
       : request.tag
@@ -656,7 +657,7 @@ export function buildContext(state: EffectiveState, request: ContextRequest = {}
       },
     },
   };
-  if (request.collection) result.meta.collection = request.collection;
+  if (request.profile) result.meta.profile = request.profile;
   if (request.subject) result.meta.subject = request.subject;
   if (request.tag) result.meta.tag = request.tag;
   return result;

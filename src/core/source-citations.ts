@@ -4,7 +4,7 @@ import type { EffectiveState } from "./state";
 export type SourceCitationIndex = Record<string, string[]>;
 
 export function buildSourceCitationIndex(state: EffectiveState): SourceCitationIndex {
-  const activeRows = state.rows({ status: "active", includeChanges: false });
+  const activeRows = state.rows({ status: "active", includeEntries: false });
   const sourcesById = new Map<string, SourceRow>();
 
   for (const effective of activeRows) {

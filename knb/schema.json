@@ -25,7 +25,7 @@
         "claim",
         "question",
         "synthesis",
-        "change"
+        "entry"
       ]
     },
     "created_at": {
@@ -58,8 +58,8 @@
     "synthesis": {
       "$ref": "#/$defs/synthesis"
     },
-    "change": {
-      "$ref": "#/$defs/change"
+    "entry": {
+      "$ref": "#/$defs/entry"
     },
     "time": {
       "$ref": "#/$defs/time"
@@ -70,10 +70,10 @@
     "assessment": {
       "$ref": "#/$defs/assessment"
     },
-    "relations": {
+    "links": {
       "type": "array",
       "items": {
-        "$ref": "#/$defs/relation"
+        "$ref": "#/$defs/link"
       }
     }
   },
@@ -160,13 +160,13 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "change"
+            "const": "entry"
           }
         }
       },
       "then": {
         "required": [
-          "change"
+          "entry"
         ]
       }
     }
@@ -175,7 +175,7 @@
     "scope": {
       "type": "object",
       "properties": {
-        "collections": {
+        "profiles": {
           "type": "array",
           "items": {
             "type": "string"
@@ -209,7 +209,7 @@
       "anyOf": [
         {
           "required": [
-            "collections"
+            "profiles"
           ]
         },
         {
@@ -468,7 +468,7 @@
         }
       }
     },
-    "change": {
+    "entry": {
       "type": "object",
       "required": [
         "action"
@@ -479,7 +479,7 @@
             "retract",
             "supersede",
             "merge",
-            "relate",
+            "link",
             "patch"
           ]
         },
@@ -501,7 +501,7 @@
         "reason": {
           "type": "string"
         },
-        "relation": {
+        "link": {
           "type": "object",
           "required": [
             "from_id",
@@ -727,7 +727,7 @@
         }
       }
     },
-    "relation": {
+    "link": {
       "type": "object",
       "required": [
         "target_id",

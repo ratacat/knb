@@ -1,6 +1,6 @@
 // Apply module - V1 single deep module for atomic operation batches.
 // Owns reference resolution, ID generation with collision retry, lifecycle
-// change-row construction, and final candidate-ledger validation. Writes only
+// entry-row construction, and final candidate-ledger validation. Writes only
 // through the ledger transaction; never touches the filesystem directly.
 
 import {
@@ -12,7 +12,7 @@ import {
   validateLedger,
   type ApplyOperation,
   type ApplyRequest,
-  type ChangeRow,
+  type EntryRow,
   type DraftRow,
   type KnbRow,
   type KnbRowKind,
@@ -75,15 +75,15 @@ type ResolvedAddPlan = {
   as?: string;
 };
 
-type ResolvedChangePlan = {
-  kind: "change-row";
+type ResolvedEntryPlan = {
+  kind: "entry-row";
   index: number;
-  row: ChangeRow;
+  row: EntryRow;
   as?: string;
 };
 
-type Plan = ResolvedAddPlan | ResolvedChangePlan;
-type AppendedPlan = ResolvedAddPlan | ResolvedChangePlan;
+type Plan = ResolvedAddPlan | ResolvedEntryPlan;
+type AppendedPlan = ResolvedAddPlan | ResolvedEntryPlan;
 type ApplyValidationIssue = ValidationIssue & {
   op_index?: number;
   op_path?: string;
@@ -204,7 +204,7 @@ export async function applyOperations(
               kind: completed.row.kind,
             });
           } else {
-            const change = processLifecycle({
+            const entry = processLifecycle({
               operation,
               index,
               actor,
@@ -215,16 +215,16 @@ export async function applyOperations(
               appendedById,
               aliasMap,
             });
-            plans.push(change);
-            appendedById.set(change.row.id, change.row);
-            snapshotIds.add(change.row.id);
-            aliasMap.set(`$op${index}`, change.row.id);
-            if (aliasName) aliasMap.set(`$${aliasName}`, change.row.id);
+            plans.push(entry);
+            appendedById.set(entry.row.id, entry.row);
+            snapshotIds.add(entry.row.id);
+            aliasMap.set(`$op${index}`, entry.row.id);
+            if (aliasName) aliasMap.set(`$${aliasName}`, entry.row.id);
             result.created.push({
               op: index,
               ...(aliasName ? { as: aliasName } : {}),
-              id: change.row.id,
-              kind: change.row.kind,
+              id: entry.row.id,
+              kind: entry.row.kind,
             });
           }
         } catch (error) {
@@ -255,7 +255,7 @@ export async function applyOperations(
       const appendedRows: KnbRow[] = [];
       const appendedLineToPlan = new Map<number, AppendedPlan>();
       for (const plan of plans) {
-        if (plan.kind === "add-row" || plan.kind === "change-row") {
+        if (plan.kind === "add-row" || plan.kind === "entry-row") {
           if (planningIssues.length === 0) {
             plan.row = withRunProvenance(plan.row, runId, actor) as typeof plan.row;
           }
@@ -430,26 +430,26 @@ type ProcessLifecycleArgs = {
   aliasMap: Map<string, string>;
 };
 
-function processLifecycle(args: ProcessLifecycleArgs): ResolvedChangePlan {
+function processLifecycle(args: ProcessLifecycleArgs): ResolvedEntryPlan {
   const op = args.operation;
   const rawDraft: DraftRow = {
-    kind: "change",
+    kind: "entry",
     scope: {},
-    change: buildChangeBody(op),
+    entry: buildEntryBody(op),
   } as DraftRow;
   const resolvedDraft = resolveDraftReferences(rawDraft, args.aliasMap, args.snapshotIds, args.index);
-  const change = (resolvedDraft as { change: ChangeRow["change"] }).change;
-  const targetRows = collectTargetRows(change, args);
+  const entry = (resolvedDraft as { entry: EntryRow["entry"] }).entry;
+  const targetRows = collectTargetRows(entry, args);
   const scope = op.scope ?? deriveScope(targetRows, args.index);
 
   const draft: DraftRow = {
-    kind: "change",
+    kind: "entry",
     scope,
-    change,
+    entry,
   } as DraftRow;
 
   const id = allocateId({
-    kind: "change",
+    kind: "entry",
     scope,
     clock: args.clock,
     randomIdPart: args.randomIdPart,
@@ -466,21 +466,21 @@ function processLifecycle(args: ProcessLifecycleArgs): ResolvedChangePlan {
   if (!completion.ok) {
     throw knbError(
       "validation_failed",
-      `Operation ${args.index}: change row completion failed`,
+      `Operation ${args.index}: entry row completion failed`,
       { op_index: args.index, issues: completion.issues },
     );
   }
   return {
-    kind: "change-row",
+    kind: "entry-row",
     index: args.index,
-    row: completion.row as ChangeRow,
+    row: completion.row as EntryRow,
     ...(typeof op.as === "string" ? { as: op.as } : {}),
   };
 }
 
-function buildChangeBody(
+function buildEntryBody(
   op: Exclude<ApplyOperation, { op: "add" }>,
-): ChangeRow["change"] {
+): EntryRow["entry"] {
   if (op.op === "retract") {
     return {
       action: "retract",
@@ -504,15 +504,15 @@ function buildChangeBody(
       reason: op.reason,
     };
   }
-  if (op.op === "relate") {
-    const relation: ChangeRow["change"]["relation"] = {
+  if (op.op === "link") {
+    const link: EntryRow["entry"]["link"] = {
       from_id: op.from_id,
       to_id: op.to_id,
       rel: op.rel,
     };
-    if (op.strength !== undefined) relation.strength = op.strength;
-    if (op.rationale !== undefined) relation.rationale = op.rationale;
-    return { action: "relate", relation };
+    if (op.strength !== undefined) link.strength = op.strength;
+    if (op.rationale !== undefined) link.rationale = op.rationale;
+    return { action: "link", link };
   }
   return {
     action: "patch",
@@ -523,10 +523,10 @@ function buildChangeBody(
 }
 
 function collectTargetRows(
-  change: ChangeRow["change"],
+  entry: EntryRow["entry"],
   args: ProcessLifecycleArgs,
 ): KnbRow[] {
-  const ids = collectScopeAnchorIds(change);
+  const ids = collectScopeAnchorIds(entry);
   const rows: KnbRow[] = [];
   for (const id of ids) {
     const row = args.snapshotById.get(id) ?? args.appendedById.get(id);
@@ -535,11 +535,11 @@ function collectTargetRows(
   return rows;
 }
 
-function collectScopeAnchorIds(change: ChangeRow["change"]): string[] {
+function collectScopeAnchorIds(entry: EntryRow["entry"]): string[] {
   const draft: DraftRow = {
-    kind: "change",
+    kind: "entry",
     scope: {},
-    change,
+    entry,
   } as DraftRow;
   return [...referenceFields(draft)].map((slot) => slot.get());
 }
@@ -552,8 +552,8 @@ function deriveScope(targets: KnbRow[], opIndex: number): Scope {
       { op_index: opIndex, code: "scope_anchor_required" },
     );
   }
-  const collections = intersectScopeField(targets, "collections");
-  if (collections.length > 0) return { collections };
+  const profiles = intersectScopeField(targets, "profiles");
+  if (profiles.length > 0) return { profiles };
   const subjects = intersectScopeField(targets, "subjects");
   if (subjects.length > 0) return { subjects };
   const tags = intersectScopeField(targets, "tags");
@@ -573,8 +573,8 @@ function deriveScope(targets: KnbRow[], opIndex: number): Scope {
 
 function pickFirstAnchor(scope: Scope | undefined): Scope | undefined {
   if (!scope) return undefined;
-  if (scope.collections && scope.collections.length > 0) {
-    return { collections: [scope.collections[0] as string] };
+  if (scope.profiles && scope.profiles.length > 0) {
+    return { profiles: [scope.profiles[0] as string] };
   }
   if (scope.subjects && scope.subjects.length > 0) {
     return { subjects: [scope.subjects[0] as string] };
@@ -585,7 +585,7 @@ function pickFirstAnchor(scope: Scope | undefined): Scope | undefined {
   return undefined;
 }
 
-function intersectScopeField(rows: KnbRow[], field: "collections" | "subjects" | "tags"): string[] {
+function intersectScopeField(rows: KnbRow[], field: "profiles" | "subjects" | "tags"): string[] {
   const first = rows[0]?.scope?.[field];
   if (!Array.isArray(first) || first.length === 0) return [];
   let acc = new Set<string>(first);
@@ -616,7 +616,7 @@ function allocateId(args: AllocateIdArgs): string {
   if (!slug) {
     throw knbError(
       "validation_failed",
-      `Operation ${args.opIndex}: scope must include at least one collection, subject, or tag`,
+      `Operation ${args.opIndex}: scope must include at least one profile, subject, or tag`,
       { op_index: args.opIndex, code: "scope_anchor_required" },
     );
   }
@@ -677,7 +677,7 @@ function resolveRef(
 
 function findPlanForAppendedRow(plans: Plan[], row: KnbRow): AppendedPlan | undefined {
   for (const plan of plans) {
-    if ((plan.kind === "add-row" || plan.kind === "change-row") && plan.row === row) return plan;
+    if ((plan.kind === "add-row" || plan.kind === "entry-row") && plan.row === row) return plan;
   }
   return undefined;
 }
@@ -856,12 +856,12 @@ function operationPathForIssue(plan: AppendedPlan, issue: ValidationIssue): stri
 
 function lifecycleOperationSuffix(path: string | undefined): string | undefined {
   if (!path) return undefined;
-  if (path === "change.relation.from_id") return "from_id";
-  if (path === "change.relation.to_id") return "to_id";
-  if (path === "change.relation.rel") return "rel";
-  if (path === "change.relation.strength") return "strength";
-  if (path === "change.relation.rationale") return "rationale";
-  if (path.startsWith("change.")) return path.slice("change.".length);
+  if (path === "entry.link.from_id") return "from_id";
+  if (path === "entry.link.to_id") return "to_id";
+  if (path === "entry.link.rel") return "rel";
+  if (path === "entry.link.strength") return "strength";
+  if (path === "entry.link.rationale") return "rationale";
+  if (path.startsWith("entry.")) return path.slice("entry.".length);
   if (path === "scope") return "scope";
   return undefined;
 }
@@ -921,7 +921,7 @@ function randomPartFromFirstCreated(result: ApplyResult): string | undefined {
 }
 
 function withRunProvenance(row: KnbRow, runId: string, agent: string): KnbRow {
-  if (row.kind === "change") return row;
+  if (row.kind === "entry") return row;
   const current = (row as { provenance?: Provenance }).provenance ?? {};
   const acquisition = {
     ...(current.acquisition ?? {}),

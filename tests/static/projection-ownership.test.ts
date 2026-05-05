@@ -10,7 +10,6 @@ import {
 
 const PROJECTIONS_OWNER = "src/core/projections.ts";
 const READ_SNAPSHOT = "src/core/read-snapshot.ts";
-const FACADE = "src/core/knb.ts";
 const CLI_FILE = "src/cli.ts";
 
 const NON_OWNER_SCAN = [
