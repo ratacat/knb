@@ -32,7 +32,7 @@ Questions:
 3. `created_at`, newest first
 4. `id`, ascending
 
-Warnings use the same profile indirectly. The thin-evidence warning fires when a selected claim has fewer than two evidence entries. Truncation also uses the default importance and priority maps when it decides which claims, questions, and source detail to drop first.
+Warnings use the same internal ranking model indirectly. The thin-evidence warning fires when a selected claim has fewer than two evidence entries. Truncation also uses the default importance and priority maps when it decides which claims, questions, and source detail to drop first.
 
 ## Decision
 

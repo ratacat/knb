@@ -89,30 +89,28 @@ const INFO_DEPTH_RANK: Record<string, number> = {
 };
 const PRIORITY_RANK: Record<string, number> = { high: 3, medium: 2, low: 1 };
 
-type ContextScoringWeights = {
+type ContextRankingWeights = {
   importance: Readonly<Record<string, number>>;
   confidence: Readonly<Record<string, number>>;
   informationDepth: Readonly<Record<string, number>>;
   priority: Readonly<Record<string, number>>;
 };
 
-type ContextScoringProfile = {
-  weights: ContextScoringWeights;
+type ContextRankingModel = {
+  weights: ContextRankingWeights;
   thinEvidenceThreshold: number;
 };
 
-export type ContextSynthesisScore = {
+type SynthesisRank = {
   importance: number;
-  recency: number;
   createdAt: string;
   basisDepth: number;
   id: string;
 };
 
-export type ContextClaimScore = {
+type ClaimRank = {
   importance: number;
   confidence: number;
-  recency: number;
   informationDepth: number;
   evidenceCount: number;
   contested: number;
@@ -120,15 +118,14 @@ export type ContextClaimScore = {
   id: string;
 };
 
-export type ContextQuestionScore = {
+type QuestionRank = {
   priority: number;
   importance: number;
-  recency: number;
   createdAt: string;
   id: string;
 };
 
-const DEFAULT_CONTEXT_SCORING_PROFILE: ContextScoringProfile = {
+const CONTEXT_RANKING_MODEL: ContextRankingModel = {
   weights: {
     importance: IMPORTANCE_RANK,
     confidence: CONFIDENCE_RANK,
@@ -175,28 +172,26 @@ function basisDepthOf(row: SynthesisRow): number {
   return claims + questions + sources;
 }
 
-function scoreContextSynthesis(
+function rankSynthesis(
   row: SynthesisRow,
-  profile: ContextScoringProfile = DEFAULT_CONTEXT_SCORING_PROFILE,
-): ContextSynthesisScore {
+  model: ContextRankingModel = CONTEXT_RANKING_MODEL,
+): SynthesisRank {
   return {
-    importance: profile.weights.importance[importanceOf(row)] ?? 0,
-    recency: 0,
+    importance: model.weights.importance[importanceOf(row)] ?? 0,
     createdAt: row.created_at,
     basisDepth: basisDepthOf(row),
     id: row.id,
   };
 }
 
-function scoreContextClaim(
+function rankClaim(
   row: ClaimRow,
-  profile: ContextScoringProfile = DEFAULT_CONTEXT_SCORING_PROFILE,
-): ContextClaimScore {
+  model: ContextRankingModel = CONTEXT_RANKING_MODEL,
+): ClaimRank {
   return {
-    importance: profile.weights.importance[importanceOf(row)] ?? 0,
-    confidence: profile.weights.confidence[confidenceOf(row)] ?? 0,
-    recency: 0,
-    informationDepth: profile.weights.informationDepth[informationDepthOf(row)] ?? 0,
+    importance: model.weights.importance[importanceOf(row)] ?? 0,
+    confidence: model.weights.confidence[confidenceOf(row)] ?? 0,
+    informationDepth: model.weights.informationDepth[informationDepthOf(row)] ?? 0,
     evidenceCount: evidenceCountOf(row),
     contested: contestedOf(row) ? 1 : 0,
     createdAt: row.created_at,
@@ -204,14 +199,13 @@ function scoreContextClaim(
   };
 }
 
-function scoreContextQuestion(
+function rankQuestion(
   row: QuestionRow,
-  profile: ContextScoringProfile = DEFAULT_CONTEXT_SCORING_PROFILE,
-): ContextQuestionScore {
+  model: ContextRankingModel = CONTEXT_RANKING_MODEL,
+): QuestionRank {
   return {
-    priority: profile.weights.priority[priorityOf(row)] ?? 0,
-    importance: profile.weights.importance[importanceOf(row)] ?? 0,
-    recency: 0,
+    priority: model.weights.priority[priorityOf(row)] ?? 0,
+    importance: model.weights.importance[importanceOf(row)] ?? 0,
     createdAt: row.created_at,
     id: row.id,
   };
@@ -222,25 +216,23 @@ function timeOf(row: ClaimRow): string | undefined {
   return t.valid_at ?? t.occurred_at ?? t.valid_from ?? t.reported_at ?? undefined;
 }
 
-function rankSyntheses(rows: SynthesisRow[], profile: ContextScoringProfile): SynthesisRow[] {
+function rankSyntheses(rows: SynthesisRow[], model: ContextRankingModel): SynthesisRow[] {
   return [...rows].sort((a, b) => {
-    const scoreA = scoreContextSynthesis(a, profile);
-    const scoreB = scoreContextSynthesis(b, profile);
+    const scoreA = rankSynthesis(a, model);
+    const scoreB = rankSynthesis(b, model);
     if (scoreA.importance !== scoreB.importance) return scoreB.importance - scoreA.importance;
-    if (scoreA.recency !== scoreB.recency) return scoreB.recency - scoreA.recency;
     if (a.created_at !== b.created_at) return a.created_at < b.created_at ? 1 : -1;
     if (scoreA.basisDepth !== scoreB.basisDepth) return scoreB.basisDepth - scoreA.basisDepth;
     return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
   });
 }
 
-function rankClaims(rows: ClaimRow[], profile: ContextScoringProfile): ClaimRow[] {
+function rankClaims(rows: ClaimRow[], model: ContextRankingModel): ClaimRow[] {
   return [...rows].sort((a, b) => {
-    const scoreA = scoreContextClaim(a, profile);
-    const scoreB = scoreContextClaim(b, profile);
+    const scoreA = rankClaim(a, model);
+    const scoreB = rankClaim(b, model);
     if (scoreA.importance !== scoreB.importance) return scoreB.importance - scoreA.importance;
     if (scoreA.confidence !== scoreB.confidence) return scoreB.confidence - scoreA.confidence;
-    if (scoreA.recency !== scoreB.recency) return scoreB.recency - scoreA.recency;
     if (scoreA.informationDepth !== scoreB.informationDepth) return scoreB.informationDepth - scoreA.informationDepth;
     if (scoreA.evidenceCount !== scoreB.evidenceCount) return scoreB.evidenceCount - scoreA.evidenceCount;
     if (scoreA.contested !== scoreB.contested) return scoreB.contested - scoreA.contested;
@@ -249,13 +241,12 @@ function rankClaims(rows: ClaimRow[], profile: ContextScoringProfile): ClaimRow[
   });
 }
 
-function rankQuestions(rows: QuestionRow[], profile: ContextScoringProfile): QuestionRow[] {
+function rankQuestions(rows: QuestionRow[], model: ContextRankingModel): QuestionRow[] {
   return [...rows].sort((a, b) => {
-    const scoreA = scoreContextQuestion(a, profile);
-    const scoreB = scoreContextQuestion(b, profile);
+    const scoreA = rankQuestion(a, model);
+    const scoreB = rankQuestion(b, model);
     if (scoreA.priority !== scoreB.priority) return scoreB.priority - scoreA.priority;
     if (scoreA.importance !== scoreB.importance) return scoreB.importance - scoreA.importance;
-    if (scoreA.recency !== scoreB.recency) return scoreB.recency - scoreA.recency;
     if (a.created_at !== b.created_at) return a.created_at < b.created_at ? 1 : -1;
     return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
   });
@@ -401,13 +392,13 @@ function backingImportanceForSource(
   claims: ContextClaim[],
   syntheses: ContextSynthesis[],
   rankedSynthesisOrder: Map<string, number>,
-  profile: ContextScoringProfile,
+  model: ContextRankingModel,
 ): { importance: number; synthRank: number } {
   let importance = -1;
   let synthRank = Number.POSITIVE_INFINITY;
   for (const c of claims) {
     if (c.source_ids.includes(sourceId)) {
-      const r = profile.weights.importance[c.importance ?? "unknown"] ?? 0;
+      const r = model.weights.importance[c.importance ?? "unknown"] ?? 0;
       if (r > importance) importance = r;
     }
   }
@@ -427,7 +418,7 @@ function buildWarnings(
   selectedClaimRows: ClaimRow[],
   scopedActiveCounts: { syntheses: number; claims: number },
   includeWarnings: boolean,
-  profile: ContextScoringProfile,
+  model: ContextRankingModel,
 ): ContextWarning[] {
   if (!includeWarnings) return [];
   const warnings: ContextWarning[] = [];
@@ -444,7 +435,7 @@ function buildWarnings(
       message: "No active claims in scope.",
     });
   }
-  const thinEvidenceThreshold = profile.thinEvidenceThreshold;
+  const thinEvidenceThreshold = model.thinEvidenceThreshold;
   const thin = selectedClaimRows.filter((c) => evidenceCountOf(c) < thinEvidenceThreshold).length;
   if (thin > 0) {
     warnings.push({
@@ -468,7 +459,7 @@ function stateWarningToContext(w: StateWarning): ContextWarning {
 
 export function buildContext(state: EffectiveState, request: ContextRequest = {}): ContextResult {
   const estimator = defaultEstimator;
-  const scoringProfile = DEFAULT_CONTEXT_SCORING_PROFILE;
+  const rankingModel = CONTEXT_RANKING_MODEL;
   const maxTokens = request.maxTokens ?? DEFAULT_MAX_TOKENS;
   const includeWarnings = request.includeWarnings !== false;
 
@@ -492,9 +483,9 @@ export function buildContext(state: EffectiveState, request: ContextRequest = {}
     }
   }
 
-  const rankedSyntheses = rankSyntheses(synthesisRows, scoringProfile);
-  const rankedClaims = rankClaims(claimRows, scoringProfile);
-  const rankedQuestions = rankQuestions(questionRows, scoringProfile);
+  const rankedSyntheses = rankSyntheses(synthesisRows, rankingModel);
+  const rankedClaims = rankClaims(claimRows, rankingModel);
+  const rankedQuestions = rankQuestions(questionRows, rankingModel);
   const scopedActiveCounts = { syntheses: synthesisRows.length, claims: claimRows.length };
 
   let syntheses = rankedSyntheses.map((row) => toContextSynthesis(row, state));
@@ -527,7 +518,7 @@ export function buildContext(state: EffectiveState, request: ContextRequest = {}
         ? `Tag ${request.tag}`
         : "Workspace";
 
-  let warnings = buildWarnings(state, claims, claimRowsBySelection, scopedActiveCounts, includeWarnings, scoringProfile);
+  let warnings = buildWarnings(state, claims, claimRowsBySelection, scopedActiveCounts, includeWarnings, rankingModel);
   let summary = buildSummary(
     scopeLabel,
     syntheses,
@@ -542,7 +533,7 @@ export function buildContext(state: EffectiveState, request: ContextRequest = {}
   let truncated = false;
 
   const recompute = () => {
-    warnings = buildWarnings(state, claims, claimRowsBySelection, scopedActiveCounts, includeWarnings, scoringProfile);
+    warnings = buildWarnings(state, claims, claimRowsBySelection, scopedActiveCounts, includeWarnings, rankingModel);
     summary = buildSummary(
       scopeLabel,
       syntheses,
@@ -563,8 +554,8 @@ export function buildContext(state: EffectiveState, request: ContextRequest = {}
     rankedSyntheses.forEach((s, i) => synthRankIndex.set(s.id, i));
 
     const sortedSourcesForDrop = [...sources].sort((a, b) => {
-      const ba = backingImportanceForSource(a.id, claims, syntheses, synthRankIndex, scoringProfile);
-      const bb = backingImportanceForSource(b.id, claims, syntheses, synthRankIndex, scoringProfile);
+      const ba = backingImportanceForSource(a.id, claims, syntheses, synthRankIndex, rankingModel);
+      const bb = backingImportanceForSource(b.id, claims, syntheses, synthRankIndex, rankingModel);
       if (ba.importance !== bb.importance) return ba.importance - bb.importance;
       if (ba.synthRank !== bb.synthRank) return bb.synthRank - ba.synthRank;
       return a.id < b.id ? -1 : 1;
@@ -583,14 +574,14 @@ export function buildContext(state: EffectiveState, request: ContextRequest = {}
 
     while (estimate > maxTokens && claims.length > 0) {
       const lowFirst = [...claims].sort((a, b) => {
-        const ai = scoringProfile.weights.importance[a.importance ?? "unknown"] ?? 0;
-        const bi = scoringProfile.weights.importance[b.importance ?? "unknown"] ?? 0;
+        const ai = rankingModel.weights.importance[a.importance ?? "unknown"] ?? 0;
+        const bi = rankingModel.weights.importance[b.importance ?? "unknown"] ?? 0;
         return ai - bi;
       });
       const lowest = lowFirst[0];
       if (!lowest) break;
-      const lowestRank = scoringProfile.weights.importance[lowest.importance ?? "unknown"] ?? 0;
-      if (lowestRank > (scoringProfile.weights.importance.medium ?? 0)) break;
+      const lowestRank = rankingModel.weights.importance[lowest.importance ?? "unknown"] ?? 0;
+      if (lowestRank > (rankingModel.weights.importance.medium ?? 0)) break;
       claims = claims.filter((c) => c.id !== lowest.id);
       claimRowsBySelection = claimRowsBySelection.filter((c) => c.id !== lowest.id);
       truncated = true;
@@ -601,14 +592,14 @@ export function buildContext(state: EffectiveState, request: ContextRequest = {}
 
     while (estimate > maxTokens && questions.length > 0) {
       const lowFirst = [...questions].sort((a, b) => {
-        const ai = scoringProfile.weights.priority[a.priority ?? "low"] ?? 0;
-        const bi = scoringProfile.weights.priority[b.priority ?? "low"] ?? 0;
+        const ai = rankingModel.weights.priority[a.priority ?? "low"] ?? 0;
+        const bi = rankingModel.weights.priority[b.priority ?? "low"] ?? 0;
         return ai - bi;
       });
       const lowest = lowFirst[0];
       if (!lowest) break;
-      const lowestRank = scoringProfile.weights.priority[lowest.priority ?? "low"] ?? 0;
-      if (lowestRank > (scoringProfile.weights.priority.low ?? 0)) break;
+      const lowestRank = rankingModel.weights.priority[lowest.priority ?? "low"] ?? 0;
+      if (lowestRank > (rankingModel.weights.priority.low ?? 0)) break;
       questions = questions.filter((q) => q.id !== lowest.id);
       truncated = true;
       recompute();

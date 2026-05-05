@@ -13,7 +13,7 @@ Rows in `knb/ledger.jsonl` are canonical events. `source`, `claim`, `question`, 
 | Module | Responsibility | Interface seam |
 | --- | --- | --- |
 | `src/core/apply.ts` | Validate semantic write operations, complete draft rows, and produce appendable rows. | `applyOperations` through the `Knb.apply` facade, with `ApplyResult` and generated `run_id`. |
-| `src/core/context.ts` | Build token-budgeted research packets from effective state, including ranked syntheses, claims, questions, sources, and warnings. | `buildContext`, `ContextRequest`, scoring profile types, and scoring functions. |
+| `src/core/context.ts` | Build token-budgeted research packets from effective state, including ranked syntheses, claims, questions, sources, and warnings. | `buildContext`, `ContextRequest`, and `ContextResult`. |
 | `src/core/contract.ts` | Own row types, operation types, constants, validation, draft completion, samples, reference walking, and JSON Schema. | `KnbRow`, `ApplyOperation`, `validateLedger`, `validateApplyRequest`, `jsonSchema`, `referenceFields`. |
 | `src/core/errors.ts` | Define typed domain errors and map them to CLI exit codes. | `KnbErrorCode`, `knbError`, `fromUnknown`, `exitCodeForError`. |
 | `src/core/knb.ts` | Public library facade that wires workspace, ledger, read snapshots, writes, queries, context, rendering, indexes, and runtime adapters. | `openKnb`, `Knb`, `OpenKnbOptions`, public request/result types. |
