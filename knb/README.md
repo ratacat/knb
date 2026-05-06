@@ -1,11 +1,12 @@
 # Knowledge Base
 
-This directory stores the canonical `knb` ledger.
+This directory stores the default `main` instance.
 
-- `ledger.jsonl` is the append-only source of truth.
+- `ledger.jsonl` is the append-only source of truth for `main`.
 - `schema.json` documents the structural row shape.
 - `views/` contains generated Markdown views.
 - `indexes/` contains generated indexes.
+- `instances/<id>/` stores additional named knowledge bases created in the same project folder.
 
 Knowledge records currently persist as `source`, `claim`, `question`, and `synthesis` rows. Operational lifecycle entries use `entry` rows with `retract`, `supersede`, `merge`, `link`, or `patch` actions.
 
@@ -20,4 +21,4 @@ bun run knb -- check --json
 bun run knb -- render --profile example --out knb/views/example.md
 ```
 
-`views/` and `indexes/` are disposable. Delete them and rebuild with `knb render` and `knb index --rebuild`.
+Use `--instance <id>` to select a non-`main` instance. `views/` and `indexes/` are disposable. Delete them and rebuild with `knb render` and `knb index --rebuild`.

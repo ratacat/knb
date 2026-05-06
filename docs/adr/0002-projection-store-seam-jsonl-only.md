@@ -10,7 +10,7 @@ V1 needs generated views, generated indexes, sidecar metadata, and projection fr
 
 ## Decision
 
-Ship one V1 adapter: `JsonProjectionArtifactStore`. It writes disposable Markdown views, JSON indexes, and metadata under `knb/views/` and `knb/indexes/`. Keep the `ProjectionArtifactStore` interface as the seam, but do not add a SQLite adapter in this epic.
+Ship one V1 adapter: `JsonProjectionArtifactStore`. It writes disposable Markdown views, JSON indexes, and metadata under the selected instance's `views/` and `indexes/` directories. Keep the `ProjectionArtifactStore` interface as the seam, but do not add a SQLite adapter in this epic.
 
 ## Consequences
 

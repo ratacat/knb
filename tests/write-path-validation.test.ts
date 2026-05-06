@@ -41,7 +41,7 @@ function ledgerPath(): string {
 }
 
 function lockPath(): string {
-  return join(workDir, ".knb", "ledger.lock");
+  return join(workDir, ".knb", "locks", "main.lock");
 }
 
 function makeDeps(overrides?: {
@@ -406,10 +406,9 @@ describe("write path security boundaries", () => {
       makeDeps(),
     );
     expect(await pathExists(lockPath())).toBe(false);
-    const strays = await findFilesByName(workDir, "ledger.lock");
+    const strays = await findFilesByName(workDir, "main.lock");
     expect(strays).toEqual([]);
-    // Lock lives at exactly <root>/.knb/ledger.lock and nowhere else
-    expect(lockPath()).toBe(join(workDir, ".knb", "ledger.lock"));
+    expect(lockPath()).toBe(join(workDir, ".knb", "locks", "main.lock"));
   });
 
   test("knb.render with absolute out path outside workspace views rejects with validation_failed (write-path security smoke)", async () => {
@@ -497,7 +496,7 @@ describe("write path performance and idempotence", () => {
   });
 
   test("empty operations no-op does not acquire the lock (pre-existing lock file is left untouched)", async () => {
-    await mkdir(join(workDir, ".knb"), { recursive: true });
+    await mkdir(join(workDir, ".knb", "locks"), { recursive: true });
     await writeFile(lockPath(), "external-lock-content", "utf8");
 
     const result = await applyOperations({ operations: [] }, makeDeps());
@@ -519,7 +518,7 @@ describe("deterministic id generation", () => {
         workspace: {
           paths: {
             ledger: join(ws1, "knb", "ledger.jsonl"),
-            lock: join(ws1, ".knb", "ledger.lock"),
+            lock: join(ws1, ".knb", "locks", "main.lock"),
           },
         },
         clock: () => FIXED_DATE,
@@ -529,7 +528,7 @@ describe("deterministic id generation", () => {
         workspace: {
           paths: {
             ledger: join(ws2, "knb", "ledger.jsonl"),
-            lock: join(ws2, ".knb", "ledger.lock"),
+            lock: join(ws2, ".knb", "locks", "main.lock"),
           },
         },
         clock: () => FIXED_DATE,

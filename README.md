@@ -280,6 +280,4 @@ const result = await knb.apply({
 });
 ```
 
-See [docs/library-usage.md](docs/library-usage.md) for facade methods and examples.
-
-See [docs/design/agent-first-cli.md](docs/design/agent-first-cli.md) for the full command surface, output envelopes, and lifecycle model.
+See [docs/library-usage.md](docs/library-usage.md) for facade methods and examples. Run `knb help` for the current command surface and output modes.

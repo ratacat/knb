@@ -1,19 +1,19 @@
 # knb Architecture
 
-`knb` stores sourced knowledge in an append-only JSONL ledger and exposes it through a small TypeScript facade plus a thin CLI adapter. The ledger is canonical; everything in `knb/views/` and `knb/indexes/` is a disposable projection rebuilt from the ledger.
+`knb` stores sourced knowledge in append-only JSONL ledgers and exposes it through a small TypeScript facade plus a thin CLI adapter. The selected instance ledger is canonical; generated views and indexes are disposable projections rebuilt from that ledger.
 
-For full command contracts, output envelopes, and lifecycle details, see [docs/design/agent-first-cli.md](docs/design/agent-first-cli.md). Standing decisions live in [docs/adr/](docs/adr/).
+Run `knb help` for the current command surface and output modes. Standing decisions live in [docs/adr/](docs/adr/).
 
 ## Event Model
 
-Rows in `knb/ledger.jsonl` are canonical events. `source`, `claim`, `question`, and `synthesis` rows introduce knowledge artifacts. `entry` rows retract, supersede, merge, link, or patch earlier rows. `EffectiveState` is the deterministic projection of those events at a point in time; read paths consume `EffectiveState`, not raw ledger rows.
+Rows in the selected instance ledger are canonical events. The default `main` instance uses `knb/ledger.jsonl`; additional instances use `knb/instances/<id>/ledger.jsonl` unless config overrides paths. `source`, `claim`, `question`, and `synthesis` rows introduce knowledge artifacts. `entry` rows retract, supersede, merge, link, or patch earlier rows. `EffectiveState` is the deterministic projection of those events at a point in time; read paths consume `EffectiveState`, not raw ledger rows.
 
 Terminology direction: use **record** for domain and profile language, **link** for typed semantic edges, and **entry** for append-only ledger mutations. `link` and `entry` are current storage/API terms. `source`, `claim`, `question`, and `synthesis` remain legacy knowledge row kinds until records replace them. This restores the old `bd-2v6c`/`bd-2v6c.1` decision rather than treating `record` as tentative.
 
 ## Profiles And Instances
 
 - A **profile** is a named vocabulary and rule set layered on top of the general `knb.v1` row model. Profiles define domain record types, required profile fields, link conventions, and agent instructions. Examples: `research.v1`, `trade_map.v1`.
-- An **instance** is one concrete filesystem workspace with hidden config in `.knb/`, canonical storage in `knb/`, and its own ledger, views, indexes, and profile attachments. With no `--root`, the CLI and library use the current working directory as the instance root; they do not search parent directories for `.knb/config.json`. An instance may use one profile or combine multiple profiles when a single ledger needs both vocabularies.
+- An **instance** is one named knowledge base inside a project folder. Each instance has its own ledger, views, indexes, lock, and profile attachments. With no `--root`, the CLI and library use the current working directory as the project root; they do not search parent directories for `.knb/config.json`. Select an instance with `--instance <id>`, `KNB_INSTANCE`, or `config.default_instance`; otherwise `main` is used. One project folder may contain many instances.
 - Rows can declare profile membership through `scope.profiles`, which also supports profile-scoped reads and renders. Profile membership is not a filesystem boundary.
 - Profile-specific record data currently lives in `claim.qualifiers`, the canonical extension slot. Profile docs should name their own fields directly; agents do not need to use "qualifiers" as domain language.
 
@@ -27,6 +27,7 @@ Terminology direction: use **record** for domain and profile language, **link** 
 | `src/core/errors.ts` | Define typed domain errors and map them to CLI exit codes. | `KnbErrorCode`, `knbError`, `fromUnknown`, `exitCodeForError`. |
 | `src/core/knb.ts` | Public library facade that wires workspace, ledger, read snapshots, writes, queries, context, rendering, indexes, and runtime adapters. | `openKnb`, `Knb`, `OpenKnbOptions`, public request/result types. |
 | `src/core/ledger.ts` | Own JSONL loading, parse diagnostics, fingerprints, lock-protected append transactions, and durable flush behavior. | `loadLedger`, `writeLedger`, `LedgerFingerprint`, `LedgerSnapshot`. |
+| `src/core/migrate.ts` | Detect and upgrade old single-instance configs into the current instance registry without rewriting ledgers. | `migrateWorkspace`, `MigrationOptions`, `MigrationResult`. |
 | `src/core/output.ts` | Render CLI success/failure envelopes and human text without changing domain results. | `success`, `failure`, `render`, `CommandResult`. |
 | `src/core/projections.ts` | Render Markdown views, rebuild disposable indexes, write projection metadata, and report freshness. | `ProjectionArtifactStore`, `JsonProjectionArtifactStore`, `renderView`, `rebuildIndexes`, `checkFreshness`. |
 | `src/core/query.ts` | Retrieve active or historical rows from effective state with deterministic filtering and ranking. | `executeQuery`, `executeGet`, `QueryRequest`, `GetRequest`. |
@@ -52,10 +53,10 @@ Rendered Markdown views are structured for skimming: a top table of contents, st
 - Entry: the preferred term for append-only ledger mutations.
 - Legacy knowledge row kinds: current storage still exposes `source`, `claim`, `question`, and `synthesis` until records replace them.
 - Profile: a named vocabulary and rules package applied within an instance.
-- Instance: one filesystem-backed KNB workspace with its own canonical ledger and generated projections.
+- Instance: one named knowledge base inside a project folder, with its own canonical ledger, generated projections, lock, and profile attachments.
 - Entry actions: `retract`, `supersede`, `merge`, `link`, and `patch`; storage persists them under `entry.action`.
 - Identity fields: legacy `claim_key` anchors semantic record identity; `external_refs` links rows to outside systems.
-- Scope fields: `profiles`, `subjects`, and `tags` filter and group rows. `profiles` records profile membership; instances remain filesystem workspaces.
+- Scope fields: `profiles`, `subjects`, and `tags` filter and group rows. `profiles` records profile membership; instances select the ledger and attached profile list.
 - Time precision values: `instant`, `hour`, `day`, `month`, `year`, `range`, and `unknown`.
 - `EffectiveState`: projected active/inactive row state plus lifecycle explanations, link graph, and state warnings.
 - `LedgerFingerprint`: canonical ledger identity computed from path, row count, bytes, last row id, and content hash.

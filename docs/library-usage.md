@@ -8,14 +8,15 @@
 import { openKnb } from "knb";
 
 const knb = await openKnb({
-  root: process.cwd(),     // optional; defaults to cwd
-  actor: "alice@example",  // optional; defaults to git/system/unknown
+  root: process.cwd(),       // optional; defaults to cwd
+  instanceId: "research",    // optional; defaults to config.default_instance, then main
+  actor: "alice@example",    // optional; defaults to git/system/unknown
 });
 ```
 
-`openKnb` resolves the workspace (`.knb/config.json`, `knb/ledger.jsonl`), the acting identity, and runtime adapters. With no `root`, the workspace root is exactly the current working directory; it does not walk upward to find a parent `.knb`. Pass `runtime: { clock, randomIdPart }` to inject deterministic time and IDs for tests.
+`openKnb` resolves the project config (`.knb/config.json`), the selected instance, the instance ledger path, the acting identity, and runtime adapters. With no `root`, the project root is exactly the current working directory; it does not walk upward to find a parent `.knb`. Pass `runtime: { clock, randomIdPart }` to inject deterministic time and IDs for tests.
 
-One workspace is one KNB instance. Rows can belong to one or more profiles through `scope.profiles`, and the facade methods accept `profile` filters for profile-scoped reads and renders.
+One project folder can contain many named KNB instances. The default `main` instance uses `knb/ledger.jsonl`; additional instances use `knb/instances/<id>/ledger.jsonl` unless config overrides paths. Rows can belong to one or more profiles through `scope.profiles`, and facade methods accept `profile` filters for profile-scoped reads and renders.
 
 ## Facade methods
 
@@ -23,15 +24,24 @@ Each method returns a typed domain result exported from the package root, for ex
 
 ### `init(options?)`
 
-Create config, ledger, schema, and projection directories. Idempotent unless `force: true`.
+Create config, ledger, schema, and projection directories for the selected instance. Idempotent unless `force: true`.
 
 ```ts
 await knb.init();
 ```
 
+### `migrate(options?)`
+
+Detect old single-instance workspaces and upgrade their flat config into the current instance registry. `dryRun: true` reports the change without writing `.knb/config.json`. Migration does not move or rewrite ledger history.
+
+```ts
+const migration = await knb.migrate({ dryRun: true });
+if (migration.migration_needed) await knb.migrate();
+```
+
 ### `status()`
 
-Cheap orientation packet: workspace path, ledger path, row counts, parse/validation/state-warning counts, projection freshness.
+Cheap orientation packet: project path, instance id, ledger path, row counts, parse/validation/state-warning counts, projection freshness.
 
 ```ts
 const status = await knb.status();
@@ -110,7 +120,7 @@ Public TypeScript facade request fields are camelCase. CLI flags are kebab-case 
 
 ### `render(request)`
 
-Generate a Markdown view for the instance or one profile, subject, or tag. Writes the view and a sidecar metadata file under `knb/views/`.
+Generate a Markdown view for the selected instance or one profile, subject, or tag. Writes the view and a sidecar metadata file under the selected instance's `views/` directory.
 
 ```ts
 await knb.render({ profile: "x", format: "md" });
@@ -136,4 +146,4 @@ await knb.rebuildIndex();
 
 The CLI is intentionally boring: `parse args -> openKnb -> facade method -> output.render`. Tests should exercise the same seams. If you need behavior that is not on the facade, add it to the facade rather than reaching into `src/core/*`.
 
-See [ARCHITECTURE.md](../ARCHITECTURE.md) for the module map and naming rules, and [docs/design/agent-first-cli.md](design/agent-first-cli.md) for the full command contracts.
+See [ARCHITECTURE.md](../ARCHITECTURE.md) for the module map and naming rules. Run `knb help` for the current command surface.

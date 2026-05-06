@@ -1,17 +1,26 @@
 # V1 Migration and Rollback Notes
 
 ## Current state
-- The repo ledger `knb/ledger.jsonl` is currently empty (V1 launch).
+- The default `main` instance uses `knb/ledger.jsonl`.
+- Additional instances use `knb/instances/<id>/ledger.jsonl` unless config overrides paths.
 - All canonical rows use `schema_version: "knb.v1"`. Obsolete `kb.v1` rows are rejected.
+- Old single-instance configs can be upgraded with `knb migrate`.
+
+## Workspace migration
+- Check first with `knb migrate --dry-run --json`.
+- Apply with `knb migrate --json`.
+- Migration rewrites old flat config fields into `.knb/config.json` under `instances.<id>`.
+- Migration preserves existing ledger paths and does not rewrite ledger history.
+- `knb help` prints a migration notice when the current project still looks like the old layout.
 
 ## Generated artifacts
-- `knb/views/` and `knb/indexes/` are disposable. Delete and rebuild via:
+- Instance `views/` and `indexes/` directories are disposable. Delete and rebuild via:
   - `knb render --profile <name>` for views
   - `knb index --rebuild` for indexes
-- Both are recomputed deterministically from `knb/ledger.jsonl`.
+- Both are recomputed deterministically from the selected instance ledger.
 
 ## Mechanical repair
-- Mechanical in-place repair of `knb/ledger.jsonl` is reserved for:
+- Mechanical in-place repair of an instance ledger is reserved for:
   - broken JSONL that prevents loading
   - invalid IDs that prevent unique-id checks
 - All other "repairs" go through `entry` rows: `retract`, `supersede`, `merge`, `link`, `patch`.
@@ -19,7 +28,7 @@
 
 ## Rollback
 - The ledger is append-only and content-hashed (`LedgerFingerprint.content_hash`).
-- To roll back to a previous ledger state, restore `knb/ledger.jsonl` from version control and rebuild projections via `knb index --rebuild`.
+- To roll back to a previous ledger state, restore the selected instance ledger from version control and rebuild projections via `knb index --rebuild`.
 - There is no in-place delete operation. Removed knowledge is expressed via `entry` rows.
 
 ## Release gates

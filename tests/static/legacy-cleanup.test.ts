@@ -37,9 +37,6 @@ const CURRENT_DOC_FILES = [
   "research.md",
   "docs/library-usage.md",
   "docs/migration-and-rollback.md",
-  "docs/design/agent-first-cli.md",
-  "docs/design/context-scoring-spike.md",
-  "docs/design/pro-refactor.md",
 ];
 
 const LEGACY_DISPATCH_PATTERNS: Array<{ label: string; rx: RegExp }> = [
