@@ -1,24 +1,16 @@
 # knb [knowledge base]
 
-knb lets an agent spin up any number of custom, domain-specific knowledge bases inside a project folder. Each one has the same CLI and library interface, so agents can store facts, sources, questions, updates, and summaries without inventing a file format or editing raw files.
+A flexible interface for project-local knowledge bases, graph workflows, and structured reasoning.
 
-Think of it as scaffolding for agent memory. `knb` keeps the knowledge append-only, tracks when records were created and changed, preserves provenance and uncertainty, and gives agents a safe way to query and rebuild the current view. Profiles make each instance fit its domain, so the same tool can become a research notebook, decision map, dialogue tree, workflow model, game lore database, or another structured memory system.
+`knb` lets you create any number of custom, domain-specific knowledge bases inside one project folder. Use one instance for research, another for decisions, another for workflow state, game lore, incident timelines, or any other structure a profile defines.
 
-## what it gives an agent
+Each instance is an append-only ledger with sources, timestamps, open questions, relationships, and synthesis. The CLI and library give every caller the same write path, so records stay structured instead of becoming loose notes or hand-edited JSON.
 
-`knb` gives agents a few stable parts they can combine instead of starting from blank files:
+Profiles give each knowledge base its domain design: record types, link types, required fields, metadata, and instructions for how to work with the data. That makes `knb` a small temporal scaffold for reasoning: later work can see what was learned, when it changed, what is still uncertain, and how the current view was built.
 
-- Ledgers: one append-only JSONL file per instance. The default `main` instance uses `<project-root>/knb/ledger.jsonl`; additional instances use `<project-root>/knb/instances/<id>/ledger.jsonl`.
-- Records: small sourced units of knowledge, open questions, and synthesis, with changes tracked by append-only entries.
-- Profiles: named vocabularies and rules for a domain, with optional agent instructions.
-- Instances: named knowledge bases inside one project folder, each with its own ledger, profiles, views, and indexes.
-- Views and indexes: disposable projections rebuilt from the ledger.
+## quick start with an AI
 
-The intended workflow: install `knb`, ask an agent to create a custom profile for the job, then let the agent write, check, query, and render structured knowledge through the same interface.
-
-## how to use it with an AI
-
-Install `knb` first:
+Install `knb`:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/ratacat/knb/main/scripts/install.sh | bash
@@ -54,9 +46,17 @@ Do not edit instance ledger files directly.
 
 When you run `knb init` without `--root`, it initializes the current working directory and the selected instance. That creates project config in `<project-root>/.knb/config.json` and canonical knowledge storage for that instance.
 
-Knowledge bases look simple until agents start relying on them. They need provenance, uncertainty, repair paths, multiple views, and domain vocabulary. In the age of AI, those details matter more because the knowledge base is often what lets one agent hand useful structure to the next.
+## what knb provides
 
-In `knb`, a good record is small, sourced, and easy to invalidate later. Agents should store the source, split the records, leave open questions, and write synthesis that a later agent can audit.
+`knb` gives each knowledge base a few stable parts:
+
+- Ledgers: one append-only JSONL file per instance. The default `main` instance uses `<project-root>/knb/ledger.jsonl`; additional instances use `<project-root>/knb/instances/<id>/ledger.jsonl`.
+- Records: small sourced units of knowledge, open questions, and synthesis, with changes tracked by append-only entries.
+- Profiles: named vocabularies and rules for a domain, with optional operating instructions.
+- Instances: named knowledge bases inside one project folder, each with its own ledger, profiles, views, and indexes.
+- Views and indexes: disposable projections rebuilt from the ledger.
+
+The intended workflow: install `knb`, create or select an instance, design a profile for the job, then write, check, query, and render structured knowledge through the same interface.
 
 The loop is usually:
 
@@ -64,12 +64,12 @@ The loop is usually:
 2. Create or attach a profile for the job.
 3. Read orientation with `status` and `context`.
 4. Write one atomic batch with `apply`.
-5. Render views or rebuild indexes when another agent or human needs projected output.
+5. Render views or rebuild indexes when another reader needs projected output.
 6. Run `check`.
 
-The ledger is append-only on purpose. If a record is wrong, an agent writes an `entry` row that retracts or supersedes it. Later agents get the full trail instead of a silently edited note.
+The ledger is append-only on purpose. If a record is wrong, write an `entry` row that retracts or supersedes it. Later readers get the full trail instead of a silently edited note.
 
-Reads come from the effective state, not raw file scans. Queries, `context` output, renders, and profile summaries respect retractions, supersession, merges, and historical `--as-of` cutoffs.
+Reads come from the effective state, not raw file scans. Queries, `context` output, renders, and profile summaries respect retractions, supersession, merges, and historical `--as-of` cutoffs. That history gives later reasoning a timeline: what was known, when it changed, what replaced it, and what remains unresolved.
 
 ## base profile
 
@@ -111,7 +111,7 @@ Profiles make `knb` modular. A profile can define:
 - `record_types` for domain-specific records
 - `link_types` for typed relationships between records
 - `required_fields` for profile-specific validation
-- `agent_instructions` that tell agents how to use the profile
+- `agent_instructions` for profile-specific operating rules
 - `metadata` for local conventions
 
 One project can hold multiple instances. One instance can attach multiple profiles, so each knowledge base can expose the vocabulary it needs without mixing ledgers.
@@ -126,11 +126,11 @@ Some possibilities:
 - `trade_map.v1`: predictions, evidence, conditions, signals, and time-scoped assessments.
 - `incident_review.v1`: timeline events, hypotheses, evidence, mitigations, and follow-up work.
 
-The same primitive can support a knowledge base, a graph, a decision tree, or an agent workflow because the ledger stays general and the profile supplies the domain vocabulary.
+The same primitive can support a knowledge base, a graph, a decision tree, or a workflow model because the ledger stays general and the profile supplies the domain vocabulary.
 
 ## cli example
 
-These are the kinds of commands an agent will run after it designs a profile.
+These commands show the normal lifecycle after a profile exists.
 
 Create the default `main` instance:
 
