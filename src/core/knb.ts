@@ -38,6 +38,7 @@ import {
   type RenderRequest,
   type RenderResult,
 } from "./projections";
+import { migrateWorkspace, type MigrationOptions, type MigrationResult } from "./migrate";
 import {
   executeGet,
   executeQuery,
@@ -161,6 +162,7 @@ export type Knb = {
   workspace: KnbWorkspace;
   runtime: KnbRuntime;
   init(options?: InitOptions): Promise<InitResult>;
+  migrate(options?: MigrationOptions): Promise<MigrationResult>;
   status(): Promise<KnbStatus>;
   schema(): Promise<SchemaResult>;
   apply(request: ApplyRequest): Promise<ApplyResult>;
@@ -226,6 +228,9 @@ function makeKnb(workspace: KnbWorkspace, runtime: KnbRuntime): Knb {
     runtime,
     async init(initOptions: InitOptions = {}): Promise<InitResult> {
       return performInit(workspace, initOptions);
+    },
+    async migrate(migrationOptions: MigrationOptions = {}): Promise<MigrationResult> {
+      return migrateWorkspace(workspace, migrationOptions);
     },
     async status(): Promise<KnbStatus> {
       const snapshot = await readSnapshot({ workspace, freshness: projectionFreshness });

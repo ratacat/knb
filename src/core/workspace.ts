@@ -56,14 +56,15 @@ export type OpenWorkspaceOptions = {
   systemUser?: () => string | undefined;
 };
 
-const DEFAULT_PATHS = {
+export const DEFAULT_INSTANCE_ID = "main";
+
+export const DEFAULT_PATHS = {
   ledger: join("knb", "ledger.jsonl"),
   schema: join("knb", "schema.json"),
   views: join("knb", "views"),
   indexes: join("knb", "indexes"),
   config: join(".knb", "config.json"),
 } as const;
-const DEFAULT_INSTANCE_ID = "main";
 const INSTANCE_ID_PATTERN = /^[a-z][a-z0-9_]*(?:[.-][a-z0-9_]+)*$/;
 
 export async function openWorkspace(options: OpenWorkspaceOptions = {}): Promise<KnbWorkspace> {
@@ -173,7 +174,7 @@ function resolveInstanceId(
   return candidate;
 }
 
-function defaultPathsForInstance(instanceId: string): {
+export function defaultPathsForInstance(instanceId: string): {
   ledger: string;
   schema: string;
   views: string;
@@ -224,7 +225,7 @@ async function runGit(
   }
 }
 
-function normalizeUnderRoot(root: string, value: string): string {
+export function normalizeUnderRoot(root: string, value: string): string {
   if (isAbsolute(value)) return normalize(value);
   return normalize(join(root, value));
 }

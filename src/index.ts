@@ -10,6 +10,7 @@ export type {
   KnbRuntime,
   ApplyRequest,
 } from "./core/knb";
+export type { MigrationOptions, MigrationResult } from "./core/migrate";
 
 export type { KnbWorkspace, KnbConfig, KnbInstanceConfig } from "./core/workspace";
 export type {

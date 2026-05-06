@@ -145,6 +145,15 @@ knb instance create research --profile research.v1 --json
 knb status --instance research --json
 ```
 
+Upgrade an older single-instance workspace:
+
+```bash
+knb migrate --dry-run --json
+knb migrate --json
+```
+
+`knb help` also checks the current folder and prints a migration notice when it detects the old layout.
+
 Create and attach a profile:
 
 ```bash
@@ -211,6 +220,7 @@ knb check --json
 ```bash
 knb <command> [--root <dir>] [--instance <id>] [--config <path>] [--ledger <path>] [--json]
 knb init    [--actor <name>] [--force]
+knb migrate [--dry-run]
 knb status
 knb schema
 knb apply   (--file ops.json | --json '{...}' | --stdin) [--atomic] [--dry-run]

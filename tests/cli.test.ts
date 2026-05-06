@@ -439,6 +439,7 @@ describe("cli help and entrypoint", () => {
     const text = result.stdout;
     for (const cmd of [
       "init",
+      "migrate",
       "status",
       "schema",
       "apply",
@@ -500,9 +501,87 @@ describe("cli help and entrypoint", () => {
     expect(result.stdout).toContain("profile instructions: knb profile show <id> --json");
   });
 
+  test("help text notices when a legacy workspace needs migration", async () => {
+    await mkdir(join(workDir, "knb"), { recursive: true });
+    await writeFile(join(workDir, "knb", "ledger.jsonl"), "", "utf8");
+
+    const result = await runCliBinary(["help"]);
+
+    expect(result.code).toBe(0);
+    expect(result.stdout).toContain("migration: legacy workspace detected; run knb migrate --json");
+    expect(await pathExists(join(workDir, ".knb", "config.json"))).toBe(false);
+  });
+
 });
 
 describe("cli profile and instance commands", () => {
+  test("migrate upgrades flat legacy config and status uses the migrated instance", async () => {
+    await mkdir(join(workDir, ".knb"), { recursive: true });
+    await mkdir(join(workDir, "legacy-data"), { recursive: true });
+    await writeFile(join(workDir, "legacy-data", "ledger.jsonl"), "", "utf8");
+    await writeFile(
+      join(workDir, ".knb", "config.json"),
+      JSON.stringify({
+        instance_id: "legacy-main",
+        ledger: "legacy-data/ledger.jsonl",
+        schema: "legacy-data/schema.json",
+        views: "legacy-data/views",
+        indexes: "legacy-data/indexes",
+        actor: "agent:legacy-cli",
+        profiles: ["research.v1"],
+      }),
+      "utf8",
+    );
+
+    const migrate = await runCliBinary(["migrate", "--json"]);
+    expect(migrate.code).toBe(0);
+    const migrated = JSON.parse(migrate.stdout.trim()) as {
+      command: string;
+      data: { migrated: boolean; target_instance_id: string; changed_paths: string[] };
+    };
+    expect(migrated.command).toBe("migrate");
+    expect(migrated.data.migrated).toBe(true);
+    expect(migrated.data.target_instance_id).toBe("legacy-main");
+    expect(migrated.data.changed_paths).toEqual([join(".knb", "config.json")]);
+
+    const config = JSON.parse(await readFile(join(workDir, ".knb", "config.json"), "utf8")) as {
+      default_instance?: string;
+      instances?: { ["legacy-main"]?: { ledger?: string; actor?: string; profiles?: string[] } };
+      ledger?: string;
+    };
+    expect(config.default_instance).toBe("legacy-main");
+    expect(config.instances?.["legacy-main"]?.ledger).toBe("legacy-data/ledger.jsonl");
+    expect(config.instances?.["legacy-main"]?.actor).toBe("agent:legacy-cli");
+    expect(config.instances?.["legacy-main"]?.profiles).toEqual(["research.v1"]);
+    expect(config.ledger).toBeUndefined();
+
+    const status = await runCliBinary(["status", "--json"]);
+    expect(status.code).toBe(0);
+    const statusEnvelope = JSON.parse(status.stdout.trim()) as {
+      data: { instance_id: string; ledger_path: string; actor: string; row_count: number };
+    };
+    expect(statusEnvelope.data.instance_id).toBe("legacy-main");
+    expect(statusEnvelope.data.ledger_path).toBe(join(workDir, "legacy-data", "ledger.jsonl"));
+    expect(statusEnvelope.data.actor).toBe("agent:legacy-cli");
+    expect(statusEnvelope.data.row_count).toBe(0);
+  });
+
+  test("migrate --dry-run reports old default layout without writing config", async () => {
+    await mkdir(join(workDir, "knb"), { recursive: true });
+    await writeFile(join(workDir, "knb", "ledger.jsonl"), "", "utf8");
+
+    const migrate = await runCliBinary(["migrate", "--dry-run", "--json"]);
+    expect(migrate.code).toBe(0);
+    const envelope = JSON.parse(migrate.stdout.trim()) as {
+      data: { detected_legacy: boolean; migration_needed: boolean; migrated: boolean; dry_run: boolean };
+    };
+    expect(envelope.data.detected_legacy).toBe(true);
+    expect(envelope.data.migration_needed).toBe(true);
+    expect(envelope.data.migrated).toBe(false);
+    expect(envelope.data.dry_run).toBe(true);
+    expect(await pathExists(join(workDir, ".knb", "config.json"))).toBe(false);
+  });
+
   test("profile create --stdin --attach is visible through list and instance show", async () => {
     const initRun = await runCliBinary(["init", "--json"]);
     expect(initRun.code).toBe(0);

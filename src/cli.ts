@@ -37,6 +37,7 @@ const COMMANDS = new Set([
   "render",
   "check",
   "index",
+  "migrate",
   "profile",
   "instance",
 ]);
@@ -57,6 +58,7 @@ const COMMAND_VALUE_FLAGS: Record<string, ReadonlySet<string>> = {
   render: new Set(["profile", "subject", "tag", "out", "as-of", "format"]),
   check: new Set(),
   index: new Set(),
+  migrate: new Set(),
   profile: new Set(["file", "json", "confirm"]),
   instance: new Set(["profile", "ledger", "schema", "views", "indexes", "confirm"]),
 };
@@ -73,6 +75,7 @@ const COMMAND_BOOLEAN_FLAGS: Record<string, ReadonlySet<string>> = {
   render: new Set(),
   check: new Set(),
   index: new Set(["rebuild"]),
+  migrate: new Set(["dry-run"]),
   profile: new Set(["stdin", "full", "attached", "attach"]),
   instance: new Set(["paths"]),
 };
@@ -166,6 +169,12 @@ async function runFacadeCommand(
         }),
         outputOptions,
       );
+    }
+
+    if (command === "migrate") {
+      rejectExtraPositionals("migrate", positionals);
+      const result = await knb.migrate({ dryRun: booleanFlag(flags, "dry-run") });
+      return renderResult(success("migrate", result, baseMeta()), outputOptions);
     }
 
     if (command === "status") {
@@ -781,33 +790,35 @@ async function printHelp(flags: FlagMap): Promise<void> {
 }
 
 async function helpText(flags: FlagMap): Promise<string> {
+  const migrationHelp = await migrationHelpText(flags);
+  const migrationLine = migrationHelp.length > 0 ? `${migrationHelp}\n` : "";
   const profileHelp = await profileHelpText(flags);
   return `knb: append-only knowledge ledger
 Usage: knb <cmd> [--root dir] [--json|--text|--pretty|--ndjson|--quiet]
-cmds: knb init, knb status, knb schema, knb apply, knb add, knb get, knb query, knb context, knb render, knb check, knb index, knb profile, knb instance
+cmds: knb init, knb migrate, knb status, knb schema, knb apply, knb add, knb get, knb query, knb context, knb render, knb check, knb index, knb profile, knb instance
 profile: list|show|create|replace|delete|check
 instance: show|create|list|set|use|attach-profile|detach-profile|delete
 root: defaults to current directory
 instance: defaults to config.default_instance, then main
-${profileHelp}
+${migrationLine}${profileHelp}
 exit: 0 ok; 1 not_found; 2 invalid_arguments; 3 validation_failed; 4 duplicate_blocked; 5 io_failed; 6 lock_busy; 7 broken_reference; 8 external_dependency_failed; 9 unsafe_operation_refused; 10 internal_error
 `;
 }
 
+async function migrationHelpText(flags: FlagMap): Promise<string> {
+  try {
+    const knb = await openKnb(openOptionsFromHelpFlags(flags));
+    const result = await knb.migrate({ dryRun: true });
+    if (!result.migration_needed) return "";
+    return "migration: legacy workspace detected; run knb migrate --json";
+  } catch {
+    return "migration: check unavailable";
+  }
+}
+
 async function profileHelpText(flags: FlagMap): Promise<string> {
   try {
-    const openOptions: OpenKnbOptions = {};
-    const rootFlag = stringFlag(flags, "root");
-    const configFlag = stringFlag(flags, "config");
-    const ledgerFlag = stringFlag(flags, "ledger");
-    const instanceFlag = stringFlag(flags, "instance");
-    const actorFlag = stringFlag(flags, "actor");
-    if (rootFlag !== undefined) openOptions.root = rootFlag;
-    if (configFlag !== undefined) openOptions.configPath = configFlag;
-    if (ledgerFlag !== undefined) openOptions.ledgerPath = ledgerFlag;
-    if (instanceFlag !== undefined) openOptions.instanceId = instanceFlag;
-    if (actorFlag !== undefined) openOptions.actor = actorFlag;
-    const knb = await openKnb(openOptions);
+    const knb = await openKnb(openOptionsFromHelpFlags(flags));
     const listed = await knb.listProfiles({ attachedOnly: true });
     if (listed.profiles.length === 0) return "profiles: none";
 
@@ -824,6 +835,21 @@ async function profileHelpText(flags: FlagMap): Promise<string> {
   } catch {
     return "profiles: unavailable";
   }
+}
+
+function openOptionsFromHelpFlags(flags: FlagMap): OpenKnbOptions {
+  const openOptions: OpenKnbOptions = {};
+  const rootFlag = stringFlag(flags, "root");
+  const configFlag = stringFlag(flags, "config");
+  const ledgerFlag = stringFlag(flags, "ledger");
+  const instanceFlag = stringFlag(flags, "instance");
+  const actorFlag = stringFlag(flags, "actor");
+  if (rootFlag !== undefined) openOptions.root = rootFlag;
+  if (configFlag !== undefined) openOptions.configPath = configFlag;
+  if (ledgerFlag !== undefined) openOptions.ledgerPath = ledgerFlag;
+  if (instanceFlag !== undefined) openOptions.instanceId = instanceFlag;
+  if (actorFlag !== undefined) openOptions.actor = actorFlag;
+  return openOptions;
 }
 
 async function firstProfileInstruction(knb: Knb, profileId: string): Promise<string> {

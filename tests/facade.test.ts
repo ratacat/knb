@@ -122,6 +122,7 @@ describe("openKnb", () => {
     const knb = await openKnb(makeOpenOptions());
     const expected = [
       "init",
+      "migrate",
       "status",
       "schema",
       "apply",
@@ -413,6 +414,99 @@ describe("Knb.init", () => {
 
     const ledgerText = await readFile(join(workDir, "knb", "ledger.jsonl"), "utf8");
     expect(ledgerText).toBe(jsonl([source, claim]));
+  });
+});
+
+describe("Knb.migrate", () => {
+  test("migrates flat legacy config into a named instance registry", async () => {
+    await mkdir(join(workDir, ".knb"), { recursive: true });
+    await mkdir(join(workDir, "legacy-data"), { recursive: true });
+    await writeFile(join(workDir, "legacy-data", "ledger.jsonl"), "", "utf8");
+    await writeFile(
+      join(workDir, ".knb", "config.json"),
+      JSON.stringify({
+        schema_version: "knb.config.v1",
+        instance_id: "research-main",
+        ledger: "legacy-data/ledger.jsonl",
+        schema: "legacy-data/schema.json",
+        views: "legacy-data/views",
+        indexes: "legacy-data/indexes",
+        actor: "agent:legacy",
+        profiles: ["research.v1"],
+      }),
+      "utf8",
+    );
+
+    const knb = await openKnb(makeOpenOptions());
+    const result = await knb.migrate();
+
+    expect(result.detected_legacy).toBe(true);
+    expect(result.migration_needed).toBe(true);
+    expect(result.migrated).toBe(true);
+    expect(result.target_instance_id).toBe("research-main");
+    expect(knb.workspace.instanceId).toBe("research-main");
+    expect(knb.workspace.paths.ledger).toBe(join(workDir, "legacy-data", "ledger.jsonl"));
+
+    const config = JSON.parse(await readFile(join(workDir, ".knb", "config.json"), "utf8")) as {
+      default_instance?: string;
+      instances?: { ["research-main"]?: { ledger?: string; actor?: string; profiles?: string[] } };
+      ledger?: string;
+      profiles?: string[];
+    };
+    expect(config.default_instance).toBe("research-main");
+    expect(config.instances?.["research-main"]?.ledger).toBe("legacy-data/ledger.jsonl");
+    expect(config.instances?.["research-main"]?.actor).toBe("agent:legacy");
+    expect(config.instances?.["research-main"]?.profiles).toEqual(["research.v1"]);
+    expect(config.ledger).toBeUndefined();
+    expect(config.profiles).toBeUndefined();
+  });
+
+  test("dry-run detects old default files without writing config", async () => {
+    await seedLedger("");
+
+    const knb = await openKnb(makeOpenOptions());
+    const result = await knb.migrate({ dryRun: true });
+
+    expect(result.detected_legacy).toBe(true);
+    expect(result.migration_needed).toBe(true);
+    expect(result.migrated).toBe(false);
+    expect(result.dry_run).toBe(true);
+    expect(await pathExists(join(workDir, ".knb", "config.json"))).toBe(false);
+  });
+
+  test("legacy instance_id keeps old default ledger path", async () => {
+    await seedLedger("");
+    await mkdir(join(workDir, ".knb"), { recursive: true });
+    await writeFile(join(workDir, ".knb", "config.json"), JSON.stringify({ instance_id: "research-main" }), "utf8");
+
+    const knb = await openKnb(makeOpenOptions());
+    const result = await knb.migrate();
+
+    expect(result.target_instance_id).toBe("research-main");
+    expect(knb.workspace.paths.ledger).toBe(join(workDir, "knb", "ledger.jsonl"));
+
+    const config = JSON.parse(await readFile(join(workDir, ".knb", "config.json"), "utf8")) as {
+      instances?: { ["research-main"]?: { ledger?: string; schema?: string; views?: string; indexes?: string } };
+    };
+    expect(config.instances?.["research-main"]).toMatchObject({
+      ledger: "knb/ledger.jsonl",
+      schema: "knb/schema.json",
+      views: "knb/views",
+      indexes: "knb/indexes",
+    });
+  });
+
+  test("current registry config is reported as already current", async () => {
+    const knb = await openKnb(makeOpenOptions());
+    await knb.init();
+
+    const result = await knb.migrate();
+
+    expect(result.detected_legacy).toBe(false);
+    expect(result.already_current).toBe(true);
+    expect(result.migration_needed).toBe(false);
+    expect(result.migrated).toBe(false);
+    expect(result.changed_paths).toEqual([]);
   });
 });
 
