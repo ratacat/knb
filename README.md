@@ -1,8 +1,8 @@
 # knb [knowledge base]
 
-knb is an AI native knowledge base primitive: a CLI and library for turning a folder into an append-only, profile-driven knowledge base agents can audit and rebuild.
+knb lets an agent spin up any number of custom, domain-specific knowledge bases inside a project folder. Each one has the same CLI and library interface, so agents can store facts, sources, questions, updates, and summaries without inventing a file format or editing raw files.
 
-Use it when you want an agent to build a purpose-specific knowledge base or knowledge graph without inventing a storage format first. A profile can make `knb` act like a research notebook, a decision map, a dialogue tree, a workflow model, a game lore database, or another structured memory system.
+Think of it as scaffolding for agent memory. `knb` keeps the knowledge append-only, tracks when records were created and changed, preserves provenance and uncertainty, and gives agents a safe way to query and rebuild the current view. Profiles make each instance fit its domain, so the same tool can become a research notebook, decision map, dialogue tree, workflow model, game lore database, or another structured memory system.
 
 ## what it gives an agent
 
