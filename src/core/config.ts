@@ -6,7 +6,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, relative } from "node:path";
 
 import { knbError } from "./errors";
-import type { KnbConfig, KnbWorkspace } from "./workspace";
+import type { KnbConfig, KnbInstanceConfig, KnbWorkspace } from "./workspace";
 
 export const KNB_CONFIG_SCHEMA_VERSION = "knb.config.v1" as const;
 
@@ -48,7 +48,10 @@ export async function writeWorkspaceConfig(
   await mkdir(dirname(workspace.paths.config), { recursive: true });
   await writeFile(workspace.paths.config, `${JSON.stringify(config, null, 2)}\n`, "utf8");
   workspace.config = config;
-  if (typeof config.actor === "string" && config.actor.length > 0) workspace.actor = config.actor;
+  workspace.instanceConfig = currentInstanceConfig(config, workspace.instanceId);
+  if (typeof workspace.instanceConfig.actor === "string" && workspace.instanceConfig.actor.length > 0) {
+    workspace.actor = workspace.instanceConfig.actor;
+  }
   if (workspace.configPath === undefined) workspace.configPath = workspace.paths.config;
   return {
     config_path: workspace.paths.config,
@@ -69,10 +72,28 @@ export function sortedUnique(values: readonly string[]): string[] {
   return [...new Set(values)].sort((a, b) => a.localeCompare(b));
 }
 
-export function configProfiles(config: KnbConfig): string[] {
+export function currentInstanceConfig(config: KnbConfig, instanceId: string): KnbInstanceConfig {
+  return config.instances?.[instanceId] ?? {};
+}
+
+export function configProfiles(config: KnbInstanceConfig): string[] {
   return Array.isArray(config.profiles)
     ? sortedUnique(config.profiles.filter((value): value is string => typeof value === "string" && value.length > 0))
     : [];
+}
+
+export function configProfilesForInstance(config: KnbConfig, instanceId: string): string[] {
+  return configProfiles(currentInstanceConfig(config, instanceId));
+}
+
+export function updateConfigInstance(
+  config: KnbConfig,
+  instanceId: string,
+  update: (instance: KnbInstanceConfig) => KnbInstanceConfig,
+): KnbConfig {
+  const instances = { ...(config.instances ?? {}) };
+  instances[instanceId] = update({ ...(instances[instanceId] ?? {}) });
+  return { ...config, instances };
 }
 
 function relativeToRoot(workspace: KnbWorkspace, path: string): string {

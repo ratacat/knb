@@ -266,7 +266,7 @@ describe("openKnb", () => {
     const customConfigDir = join(workDir, "alt");
     await mkdir(customConfigDir, { recursive: true });
     const customConfigPath = join(customConfigDir, "knb-config.json");
-    await writeFile(customConfigPath, JSON.stringify({ actor: "agent:from-cfg" }), "utf8");
+    await writeFile(customConfigPath, JSON.stringify({ default_instance: "main", instances: { main: { actor: "agent:from-cfg" } } }), "utf8");
     const knb = await openKnb({
       root: workDir,
       env: {},
@@ -302,8 +302,20 @@ describe("Knb.init", () => {
     const schemaText = await readFile(join(workDir, "knb", "schema.json"), "utf8");
     expect(schemaText).toBe(`${JSON.stringify(jsonSchema(), null, 2)}\n`);
 
-    const configText = await readFile(join(workDir, ".knb", "config.json"), "utf8");
-    expect(configText).toBe("{}\n");
+    const config = JSON.parse(await readFile(join(workDir, ".knb", "config.json"), "utf8")) as {
+      schema_version?: string;
+      default_instance?: string;
+      instances?: { main?: { ledger?: string; schema?: string; views?: string; indexes?: string; profiles?: string[] } };
+    };
+    expect(config.schema_version).toBe("knb.config.v1");
+    expect(config.default_instance).toBe("main");
+    expect(config.instances?.main).toEqual({
+      ledger: "knb/ledger.jsonl",
+      schema: "knb/schema.json",
+      views: "knb/views",
+      indexes: "knb/indexes",
+      profiles: [],
+    });
 
     expect(result.created_paths).toContain(join(".knb", "config.json"));
     expect(result.created_paths).toContain(join("knb", "ledger.jsonl"));
@@ -316,8 +328,8 @@ describe("Knb.init", () => {
     const knb = await openKnb({ ...makeOpenOptions(), actor: "agent:claude-research" });
     await knb.init({ actor: "agent:claude-research" });
     const configText = await readFile(join(workDir, ".knb", "config.json"), "utf8");
-    const parsed = JSON.parse(configText) as { actor?: string };
-    expect(parsed.actor).toBe("agent:claude-research");
+    const parsed = JSON.parse(configText) as { instances?: { main?: { actor?: string } } };
+    expect(parsed.instances?.main?.actor).toBe("agent:claude-research");
 
     const reopened = await openKnb({ root: workDir, env: {}, cwd: () => workDir });
     expect(reopened.workspace.actor).toBe("agent:claude-research");
@@ -343,13 +355,16 @@ describe("Knb.init", () => {
     expect(schemaResult.json_schema).toEqual(parsed);
   });
 
-  test("init without force leaves existing config untouched", async () => {
+  test("init without force preserves existing instance config fields", async () => {
     await mkdir(join(workDir, ".knb"), { recursive: true });
-    await writeFile(join(workDir, ".knb", "config.json"), JSON.stringify({ actor: "agent:preset" }), "utf8");
+    await writeFile(join(workDir, ".knb", "config.json"), JSON.stringify({ default_instance: "main", instances: { main: { actor: "agent:preset" } } }), "utf8");
     const knb = await openKnb(makeOpenOptions());
     const result = await knb.init();
-    const configText = await readFile(join(workDir, ".knb", "config.json"), "utf8");
-    expect(configText).toBe(JSON.stringify({ actor: "agent:preset" }));
+    const config = JSON.parse(await readFile(join(workDir, ".knb", "config.json"), "utf8")) as {
+      instances?: { main?: { actor?: string; ledger?: string } };
+    };
+    expect(config.instances?.main?.actor).toBe("agent:preset");
+    expect(config.instances?.main?.ledger).toBe("knb/ledger.jsonl");
     expect(result.created_paths).not.toContain(join(".knb", "config.json"));
   });
 
@@ -381,7 +396,7 @@ describe("Knb.init", () => {
     await mkdir(join(workDir, "knb"), { recursive: true });
     await writeFile(join(workDir, "knb", "schema.json"), "STALE", "utf8");
     await mkdir(join(workDir, ".knb"), { recursive: true });
-    await writeFile(join(workDir, ".knb", "config.json"), JSON.stringify({ actor: "old" }), "utf8");
+    await writeFile(join(workDir, ".knb", "config.json"), JSON.stringify({ default_instance: "main", instances: { main: { actor: "old" } } }), "utf8");
 
     const knb = await openKnb(makeOpenOptions());
     await knb.init({ force: true });
@@ -389,8 +404,12 @@ describe("Knb.init", () => {
     const schemaText = await readFile(join(workDir, "knb", "schema.json"), "utf8");
     expect(schemaText).toBe(`${JSON.stringify(jsonSchema(), null, 2)}\n`);
 
-    const configText = await readFile(join(workDir, ".knb", "config.json"), "utf8");
-    expect(configText).toBe("{}\n");
+    const config = JSON.parse(await readFile(join(workDir, ".knb", "config.json"), "utf8")) as {
+      default_instance?: string;
+      instances?: { main?: { actor?: string } };
+    };
+    expect(config.default_instance).toBe("main");
+    expect(config.instances?.main?.actor).toBeUndefined();
 
     const ledgerText = await readFile(join(workDir, "knb", "ledger.jsonl"), "utf8");
     expect(ledgerText).toBe(jsonl([source, claim]));
@@ -428,8 +447,8 @@ describe("Knb profile and instance management", () => {
     expect(listed.profiles[0]?.defined).toBe(true);
     expect(listed.profiles[0]?.attached).toBe(true);
 
-    const config = JSON.parse(await readFile(join(workDir, ".knb", "config.json"), "utf8")) as { profiles?: string[] };
-    expect(config.profiles).toEqual(["trade_map.v1"]);
+    const config = JSON.parse(await readFile(join(workDir, ".knb", "config.json"), "utf8")) as { instances?: { main?: { profiles?: string[] } } };
+    expect(config.instances?.main?.profiles).toEqual(["trade_map.v1"]);
   });
 
   test("profile delete refuses definitions referenced by ledger rows", async () => {
@@ -469,17 +488,49 @@ describe("Knb profile and instance management", () => {
     expect(created.actor).toBe("agent:instance-test");
     expect(await pathExists(join(workDir, ".knb", "config.json"))).toBe(true);
 
-    const attached = await knb.attachInstanceProfile("trade_map.v1");
+    const research = await openKnb({ ...makeOpenOptions(), instanceId: "research-main" });
+    const attached = await research.attachInstanceProfile("trade_map.v1");
     expect(attached.attached_profiles).toEqual(["research.v1", "trade_map.v1"]);
     expect(attached.changed).toBe(true);
 
-    const detached = await knb.detachInstanceProfile("research.v1");
+    const detached = await research.detachInstanceProfile("research.v1");
     expect(detached.attached_profiles).toEqual(["trade_map.v1"]);
     expect(detached.changed).toBe(true);
 
-    const shown = await knb.showInstance();
+    const shown = await research.showInstance();
     expect(shown.instance_id).toBe("research-main");
     expect(shown.profiles).toEqual(["trade_map.v1"]);
+  });
+
+  test("multiple instances in one root have separate ledgers and profile attachments", async () => {
+    const main = await openKnb(makeOpenOptions());
+    await main.init();
+    await main.attachInstanceProfile("main.v1");
+    await main.add({
+      kind: "source",
+      scope: { profiles: ["main.v1"] },
+      source: { type: "web_page", title: "Main source", uri: "https://example.com/main-source" },
+      provenance: { acquisition: { method: "manual" } },
+    });
+
+    await main.createInstance({ instanceId: "research", profiles: ["research.v1"] });
+    const research = await openKnb({ ...makeOpenOptions(), instanceId: "research" });
+    await research.add({
+      kind: "source",
+      scope: { profiles: ["research.v1"] },
+      source: { type: "web_page", title: "Research source", uri: "https://example.com/research-source" },
+      provenance: { acquisition: { method: "manual" } },
+    });
+
+    expect(main.workspace.paths.ledger).toBe(join(workDir, "knb", "ledger.jsonl"));
+    expect(research.workspace.paths.ledger).toBe(join(workDir, "knb", "instances", "research", "ledger.jsonl"));
+    expect((await main.status()).row_count).toBe(1);
+    expect((await research.status()).row_count).toBe(1);
+    expect((await main.showInstance()).profiles).toEqual(["main.v1"]);
+    expect((await research.showInstance()).profiles).toEqual(["research.v1"]);
+
+    const listed = await main.listInstances({});
+    expect(listed.instances.map((instance) => instance.instance_id)).toEqual(["main", "research"]);
   });
 });
 

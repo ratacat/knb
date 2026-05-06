@@ -319,7 +319,8 @@ describe("e2e: failure envelopes", () => {
     const init = await runKnb(["init", "--json"]);
     expect(init.code).toBe(0);
 
-    await writeFile(join(workDir, ".knb", "ledger.lock"), "", "utf8");
+    await mkdir(join(workDir, ".knb", "locks"), { recursive: true });
+    await writeFile(join(workDir, ".knb", "locks", "main.lock"), "", "utf8");
 
     const payload = {
       operations: [

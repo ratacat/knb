@@ -1,19 +1,21 @@
 // Instance module - lifecycle operations for filesystem-backed KNB workspaces.
 
-import { readdir, readFile, rm, rmdir, stat } from "node:fs/promises";
-import { basename, join, relative, resolve } from "node:path";
+import { rm, rmdir, stat } from "node:fs/promises";
+import { join, relative } from "node:path";
 
 import {
   configProfiles,
+  currentInstanceConfig,
   KNB_CONFIG_SCHEMA_VERSION,
   readWorkspaceConfig,
   sortedUnique,
+  updateConfigInstance,
   updateWorkspaceConfig,
 } from "./config";
 import { knbError, type KnbErrorCode } from "./errors";
 import type { InitResult } from "./knb";
 import { attachProfile, detachProfile, validateProfileId } from "./profiles";
-import type { KnbConfig, KnbWorkspace } from "./workspace";
+import type { KnbConfig, KnbInstanceConfig, KnbWorkspace } from "./workspace";
 
 export type InstanceShowResult = {
   schema_version?: "knb.config.v1";
@@ -61,6 +63,12 @@ export type InstanceProfileResult = {
   config_path: string;
 };
 
+export type InstanceDefaultResult = {
+  default_instance: string;
+  changed: boolean;
+  config_path: string;
+};
+
 export type InstanceDeleteResult = {
   instance_id: string;
   workspace_root: string;
@@ -68,28 +76,33 @@ export type InstanceDeleteResult = {
 };
 
 export type InstanceListOptions = {
-  under: string;
-  maxDepth?: number;
+  includePaths?: boolean;
 };
 
 export type InstanceSummary = {
   workspace_root: string;
   config_path: string;
-  instance_id?: string;
+  instance_id: string;
   actor?: string;
   profiles: string[];
+  default: boolean;
   ok: boolean;
   error?: string;
+  paths?: {
+    ledger: string;
+    schema: string;
+    views: string;
+    indexes: string;
+  };
 };
 
 export type InstanceListResult = {
-  under: string;
   instances: InstanceSummary[];
   total: number;
+  default_instance?: string;
 };
 
 const INSTANCE_ID_PATTERN = /^[a-z][a-z0-9_]*(?:[.-][a-z0-9_]+)*$/;
-const DEFAULT_MAX_DEPTH = 4;
 
 export function validateInstanceId(instanceId: string): string {
   if (!INSTANCE_ID_PATTERN.test(instanceId) || instanceId.length > 96) {
@@ -105,21 +118,22 @@ export function validateInstanceId(instanceId: string): string {
 
 export async function showInstance(workspace: KnbWorkspace): Promise<InstanceShowResult> {
   const config = await readWorkspaceConfig(workspace);
+  const instanceConfig = currentInstanceConfig(config, workspace.instanceId);
   const result: InstanceShowResult = {
-    initialized: await pathExists(workspace.paths.config),
+    initialized: Boolean(config.instances?.[workspace.instanceId]),
     workspace_root: workspace.root,
     config_path: workspace.paths.config,
-    actor: typeof config.actor === "string" && config.actor.length > 0 ? config.actor : workspace.actor,
+    actor: typeof instanceConfig.actor === "string" && instanceConfig.actor.length > 0 ? instanceConfig.actor : workspace.actor,
     paths: {
       ledger: workspace.paths.ledger,
       schema: workspace.paths.schema,
       views: workspace.paths.views,
       indexes: workspace.paths.indexes,
     },
-    profiles: configProfiles(config),
+    profiles: configProfiles(instanceConfig),
   };
   if (config.schema_version === KNB_CONFIG_SCHEMA_VERSION) result.schema_version = config.schema_version;
-  if (typeof config.instance_id === "string") result.instance_id = config.instance_id;
+  result.instance_id = workspace.instanceId;
   return result;
 }
 
@@ -128,17 +142,21 @@ export async function finalizeInstanceCreate(
   initResult: InitResult,
   options: InstanceCreateOptions = {},
 ): Promise<InstanceCreateResult> {
-  const instanceId = validateInstanceId(options.instanceId ?? defaultInstanceId(workspace));
   const profiles = sortedUnique((options.profiles ?? []).map(validateProfileId));
   await updateWorkspaceConfig(workspace, (current) => {
-    const next: KnbConfig = {
-      ...current,
-      schema_version: KNB_CONFIG_SCHEMA_VERSION,
-      instance_id: instanceId,
-      profiles,
-    };
-    if (options.actor !== undefined) next.actor = options.actor;
-    return next;
+    const next = updateConfigInstance(current, workspace.instanceId, (instance) => {
+      const updated: KnbInstanceConfig = {
+        ...instance,
+        ledger: relativeToRoot(workspace, workspace.paths.ledger),
+        schema: relativeToRoot(workspace, workspace.paths.schema),
+        views: relativeToRoot(workspace, workspace.paths.views),
+        indexes: relativeToRoot(workspace, workspace.paths.indexes),
+        profiles,
+      };
+      if (options.actor !== undefined) updated.actor = options.actor;
+      return updated;
+    });
+    return withConfigHeader(next, current.default_instance ?? workspace.instanceId);
   });
   const shown = await showInstance(workspace);
   return { ...shown, created_paths: initResult.created_paths };
@@ -149,14 +167,16 @@ export async function updateInstance(
   options: InstanceUpdateOptions,
 ): Promise<InstanceUpdateResult> {
   const result = await updateWorkspaceConfig(workspace, (current) => {
-    const next: KnbConfig = { ...current };
-    if (next.schema_version === undefined) next.schema_version = KNB_CONFIG_SCHEMA_VERSION;
-    if (options.actor !== undefined) next.actor = options.actor;
-    if (options.ledger !== undefined) next.ledger = options.ledger;
-    if (options.schema !== undefined) next.schema = options.schema;
-    if (options.views !== undefined) next.views = options.views;
-    if (options.indexes !== undefined) next.indexes = options.indexes;
-    return next;
+    const next = updateConfigInstance(current, workspace.instanceId, (instance) => {
+      const updated: KnbInstanceConfig = { ...instance };
+      if (options.actor !== undefined) updated.actor = options.actor;
+      if (options.ledger !== undefined) updated.ledger = options.ledger;
+      if (options.schema !== undefined) updated.schema = options.schema;
+      if (options.views !== undefined) updated.views = options.views;
+      if (options.indexes !== undefined) updated.indexes = options.indexes;
+      return updated;
+    });
+    return withConfigHeader(next, current.default_instance ?? workspace.instanceId);
   });
   return { config_path: result.relative_path, config: result.config };
 }
@@ -187,25 +207,54 @@ export async function detachInstanceProfile(
   };
 }
 
+export async function setDefaultInstance(
+  workspace: KnbWorkspace,
+  instanceId: string,
+): Promise<InstanceDefaultResult> {
+  const normalizedId = validateInstanceId(instanceId);
+  let changed = false;
+  const result = await updateWorkspaceConfig(workspace, (current) => {
+    if (!current.instances?.[normalizedId]) {
+      throw withSuggestions(
+        "not_found",
+        `Instance not found: ${normalizedId}`,
+        { instance_id: normalizedId },
+        [`knb instance create ${normalizedId} --json`, "knb instance list --json"],
+      );
+    }
+    changed = current.default_instance !== normalizedId;
+    return {
+      ...current,
+      schema_version: KNB_CONFIG_SCHEMA_VERSION,
+      default_instance: normalizedId,
+    };
+  });
+  return {
+    default_instance: normalizedId,
+    changed,
+    config_path: result.relative_path,
+  };
+}
+
 export async function deleteInstance(
   workspace: KnbWorkspace,
   options: { confirm?: string },
 ): Promise<InstanceDeleteResult> {
   const config = await readWorkspaceConfig(workspace);
-  if (typeof config.instance_id !== "string" || config.instance_id.length === 0) {
+  if (!config.instances?.[workspace.instanceId]) {
     throw withSuggestions(
       "unsafe_operation_refused",
-      "instance delete requires a configured instance_id",
-      { config_path: workspace.paths.config },
-      ["knb instance show --json", "knb instance set --json"],
+      "instance delete requires a configured instance",
+      { config_path: workspace.paths.config, instance_id: workspace.instanceId },
+      ["knb instance show --json", "knb instance list --json"],
     );
   }
-  if (options.confirm !== config.instance_id) {
+  if (options.confirm !== workspace.instanceId) {
     throw withSuggestions(
       "unsafe_operation_refused",
-      `instance delete requires --confirm ${config.instance_id}`,
-      { instance_id: config.instance_id, confirm: options.confirm },
-      [`knb instance delete --root ${workspace.root} --confirm ${config.instance_id} --json`],
+      `instance delete requires --confirm ${workspace.instanceId}`,
+      { instance_id: workspace.instanceId, confirm: options.confirm },
+      [`knb instance delete --instance ${workspace.instanceId} --confirm ${workspace.instanceId} --json`],
     );
   }
   const ledgerSize = await fileSize(workspace.paths.ledger);
@@ -219,8 +268,6 @@ export async function deleteInstance(
   }
 
   const targets = [
-    join(workspace.root, ".knb", "profiles"),
-    workspace.paths.config,
     workspace.paths.lock,
     workspace.paths.ledger,
     workspace.paths.schema,
@@ -239,97 +286,59 @@ export async function deleteInstance(
   await rmdir(join(workspace.root, "knb")).catch((error) => {
     if (!isDirectoryNotEmpty(error) && !isMissing(error)) throw error;
   });
+  await updateWorkspaceConfig(workspace, (current) => {
+    const instances = { ...(current.instances ?? {}) };
+    delete instances[workspace.instanceId];
+    const remainingIds = Object.keys(instances).sort((a, b) => a.localeCompare(b));
+    const next: KnbConfig = {
+      ...current,
+      schema_version: KNB_CONFIG_SCHEMA_VERSION,
+      instances,
+    };
+    if (current.default_instance === workspace.instanceId) {
+      if (remainingIds[0] !== undefined) next.default_instance = remainingIds[0];
+      else delete next.default_instance;
+    }
+    return next;
+  });
 
   return {
-    instance_id: config.instance_id,
+    instance_id: workspace.instanceId,
     workspace_root: workspace.root,
     deleted_paths: deleted,
   };
 }
 
-export async function listInstances(options: InstanceListOptions): Promise<InstanceListResult> {
-  const under = resolve(options.under);
-  const maxDepth = options.maxDepth ?? DEFAULT_MAX_DEPTH;
-  if (!Number.isInteger(maxDepth) || maxDepth < 0) {
-    throw knbError("invalid_arguments", "instance list --max-depth must be a non-negative integer", {
-      max_depth: maxDepth,
-    });
-  }
-  const instances: InstanceSummary[] = [];
-  await scanForInstances(under, under, maxDepth, instances);
-  instances.sort((a, b) => a.workspace_root.localeCompare(b.workspace_root));
-  return { under, instances, total: instances.length };
-}
-
-function defaultInstanceId(workspace: KnbWorkspace): string {
-  const base = basename(workspace.root)
-    .toLowerCase()
-    .replace(/[^a-z0-9_.-]+/g, "-")
-    .replace(/^[^a-z]+/, "")
-    .replace(/[^a-z0-9]+$/g, "");
-  return base.length > 0 && INSTANCE_ID_PATTERN.test(base) ? base : "knb-instance";
-}
-
-async function scanForInstances(
-  root: string,
-  current: string,
-  remainingDepth: number,
-  instances: InstanceSummary[],
-): Promise<void> {
-  const configPath = join(current, ".knb", "config.json");
-  if (await pathExists(configPath)) {
-    instances.push(await readInstanceSummary(current, configPath));
-  }
-  if (remainingDepth <= 0) return;
-
-  let entries;
-  try {
-    entries = await readdir(current, { withFileTypes: true });
-  } catch (error) {
-    if (current === root) {
-      throw knbError("io_failed", `Failed to read directory: ${current}`, { path: current }, error);
-    }
-    return;
-  }
-  for (const entry of entries) {
-    if (!entry.isDirectory()) continue;
-    if (entry.name === ".git" || entry.name === "node_modules" || entry.name === ".knb" || entry.name === "knb") continue;
-    await scanForInstances(root, join(current, entry.name), remainingDepth - 1, instances);
-  }
-}
-
-async function readInstanceSummary(workspaceRoot: string, configPath: string): Promise<InstanceSummary> {
-  try {
-    const raw = await readFile(configPath, "utf8");
-    const parsed = raw.trim().length === 0 ? {} : JSON.parse(raw);
-    if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
-      return {
-        workspace_root: workspaceRoot,
-        config_path: configPath,
-        profiles: [],
-        ok: false,
-        error: "config must be a JSON object",
-      };
-    }
-    const config = parsed as KnbConfig;
+export async function listInstances(
+  workspace: KnbWorkspace,
+  options: InstanceListOptions = {},
+): Promise<InstanceListResult> {
+  const config = await readWorkspaceConfig(workspace);
+  const ids = Object.keys(config.instances ?? {}).sort((a, b) => a.localeCompare(b));
+  const instances = ids.map((instanceId): InstanceSummary => {
+    const instance = config.instances?.[instanceId] ?? {};
     const summary: InstanceSummary = {
-      workspace_root: workspaceRoot,
-      config_path: configPath,
-      profiles: configProfiles(config),
+      workspace_root: workspace.root,
+      config_path: workspace.paths.config,
+      instance_id: instanceId,
+      profiles: configProfiles(instance),
+      default: config.default_instance === instanceId,
       ok: true,
     };
-    if (typeof config.actor === "string") summary.actor = config.actor;
-    if (typeof config.instance_id === "string") summary.instance_id = config.instance_id;
+    if (instance.actor !== undefined) summary.actor = instance.actor;
+    if (options.includePaths === true) {
+      summary.paths = {
+        ledger: instance.ledger ?? "",
+        schema: instance.schema ?? "",
+        views: instance.views ?? "",
+        indexes: instance.indexes ?? "",
+      };
+    }
     return summary;
-  } catch (error) {
-    return {
-      workspace_root: workspaceRoot,
-      config_path: configPath,
-      profiles: [],
-      ok: false,
-      error: error instanceof Error ? error.message : String(error),
-    };
-  }
+  });
+  const result: InstanceListResult = { instances, total: instances.length };
+  if (config.default_instance !== undefined) result.default_instance = config.default_instance;
+  return result;
 }
 
 async function fileSize(path: string): Promise<number> {
@@ -354,6 +363,14 @@ async function pathExists(path: string): Promise<boolean> {
 function relativeToRoot(workspace: KnbWorkspace, path: string): string {
   const rel = relative(workspace.root, path);
   return rel.length > 0 ? rel : ".";
+}
+
+function withConfigHeader(config: KnbConfig, defaultInstance: string): KnbConfig {
+  return {
+    ...config,
+    schema_version: KNB_CONFIG_SCHEMA_VERSION,
+    default_instance: defaultInstance,
+  };
 }
 
 function withSuggestions(

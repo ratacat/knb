@@ -6,9 +6,11 @@ import { dirname, join, relative } from "node:path";
 
 import {
   configProfiles,
+  configProfilesForInstance,
   KNB_CONFIG_SCHEMA_VERSION,
   readWorkspaceConfig,
   sortedUnique,
+  updateConfigInstance,
   updateWorkspaceConfig,
 } from "./config";
 import { ROW_KINDS } from "./contract";
@@ -138,7 +140,7 @@ export async function listProfiles(
   workspace: KnbWorkspace,
   options: ProfileListOptions = {},
 ): Promise<ProfileListResult> {
-  const attached = new Set(configProfiles(await readWorkspaceConfig(workspace)));
+  const attached = new Set(configProfilesForInstance(await readWorkspaceConfig(workspace), workspace.instanceId));
   const definitions = await readProfileDefinitions(workspace);
   const byId = new Map<string, ProfileSummary>();
 
@@ -187,7 +189,7 @@ export async function showProfile(workspace: KnbWorkspace, profileId: string): P
       ["knb profile list --json", `knb profile create ${normalizedId} --stdin --json`],
     );
   }
-  const attached = configProfiles(await readWorkspaceConfig(workspace)).includes(normalizedId);
+  const attached = configProfilesForInstance(await readWorkspaceConfig(workspace), workspace.instanceId).includes(normalizedId);
   return { profile: read.profile, attached, path: read.path };
 }
 
@@ -246,7 +248,7 @@ export async function replaceProfile(
   }
   const profile = normalizeProfileDefinition(normalizedId, input);
   await writeProfileDefinition(workspace, profile);
-  const attached = configProfiles(await readWorkspaceConfig(workspace)).includes(normalizedId);
+  const attached = configProfilesForInstance(await readWorkspaceConfig(workspace), workspace.instanceId).includes(normalizedId);
   return {
     profile,
     attached,
@@ -285,16 +287,17 @@ export async function deleteProfile(
 
   await rm(profilePath(workspace, normalizedId), { force: true });
   const config = await updateWorkspaceConfig(workspace, (current) => {
-    const profiles = configProfiles(current).filter((value) => value !== normalizedId);
-    const next = { ...current, profiles };
-    if (next.schema_version === undefined) next.schema_version = KNB_CONFIG_SCHEMA_VERSION;
-    return next;
+    const next = updateConfigInstance(current, workspace.instanceId, (instance) => ({
+      ...instance,
+      profiles: configProfiles(instance).filter((value) => value !== normalizedId),
+    }));
+    return withConfigHeader(next, workspace.instanceId);
   });
   return {
     profile_id: normalizedId,
     deleted_path: read.path,
     detached: true,
-    remaining_attached_profiles: configProfiles(config.config),
+    remaining_attached_profiles: configProfilesForInstance(config.config, workspace.instanceId),
   };
 }
 
@@ -303,7 +306,7 @@ export async function checkProfiles(
   profileId?: string,
 ): Promise<ProfileCheckResult> {
   const issues: ProfileIssue[] = [];
-  const attached = configProfiles(await readWorkspaceConfig(workspace));
+  const attached = configProfilesForInstance(await readWorkspaceConfig(workspace), workspace.instanceId);
   for (const attachedId of attached) {
     if (!PROFILE_ID_PATTERN.test(attachedId)) {
       issues.push({
@@ -364,18 +367,21 @@ export async function attachProfile(
   const normalizedId = validateProfileId(profileId);
   let changed = false;
   const result = await updateWorkspaceConfig(workspace, (current) => {
-    const profiles = configProfiles(current);
+    const currentInstance = current.instances?.[workspace.instanceId] ?? {};
+    const profiles = configProfiles(currentInstance);
     if (!profiles.includes(normalizedId)) {
       profiles.push(normalizedId);
       changed = true;
     }
-    const next = { ...current, profiles: sortedUnique(profiles) };
-    if (next.schema_version === undefined) next.schema_version = KNB_CONFIG_SCHEMA_VERSION;
-    return next;
+    const next = updateConfigInstance(current, workspace.instanceId, (instance) => ({
+      ...instance,
+      profiles: sortedUnique(profiles),
+    }));
+    return withConfigHeader(next, workspace.instanceId);
   });
   return {
     profile_id: normalizedId,
-    attached_profiles: configProfiles(result.config),
+    attached_profiles: configProfilesForInstance(result.config, workspace.instanceId),
     attached_changed: changed,
     config_path: result.relative_path,
   };
@@ -388,18 +394,28 @@ export async function detachProfile(
   const normalizedId = validateProfileId(profileId);
   let detached = false;
   const result = await updateWorkspaceConfig(workspace, (current) => {
-    const before = configProfiles(current);
+    const before = configProfilesForInstance(current, workspace.instanceId);
     const profiles = before.filter((value) => value !== normalizedId);
     detached = profiles.length !== before.length;
-    const next = { ...current, profiles };
-    if (next.schema_version === undefined) next.schema_version = KNB_CONFIG_SCHEMA_VERSION;
-    return next;
+    const next = updateConfigInstance(current, workspace.instanceId, (instance) => ({
+      ...instance,
+      profiles,
+    }));
+    return withConfigHeader(next, workspace.instanceId);
   });
   return {
     profile_id: normalizedId,
-    attached_profiles: configProfiles(result.config),
+    attached_profiles: configProfilesForInstance(result.config, workspace.instanceId),
     detached,
     config_path: result.relative_path,
+  };
+}
+
+function withConfigHeader(config: ReturnType<typeof updateConfigInstance>, instanceId: string): ReturnType<typeof updateConfigInstance> {
+  return {
+    ...config,
+    schema_version: KNB_CONFIG_SCHEMA_VERSION,
+    default_instance: config.default_instance ?? instanceId,
   };
 }
 

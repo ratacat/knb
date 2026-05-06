@@ -1,12 +1,24 @@
-# knb
+# knb [knowledge base]
 
 knb is an AI native knowledge base primitive: a CLI and library for turning a folder into an append-only, profile-driven knowledge base agents can audit and rebuild.
 
 Use it when you want an agent to build a purpose-specific knowledge base or knowledge graph without inventing a storage format first. A profile can make `knb` act like a research notebook, a decision map, a dialogue tree, a workflow model, a game lore database, or another structured memory system.
 
-Repository: https://github.com/ratacat/knb
+## what it gives an agent
 
-## install
+`knb` gives agents a few stable parts they can combine instead of starting from blank files:
+
+- Ledgers: one append-only JSONL file per instance. The default `main` instance uses `<project-root>/knb/ledger.jsonl`; additional instances use `<project-root>/knb/instances/<id>/ledger.jsonl`.
+- Records: small sourced units of knowledge, open questions, and synthesis, with changes tracked by append-only entries.
+- Profiles: named vocabularies and rules for a domain, with optional agent instructions.
+- Instances: named knowledge bases inside one project folder, each with its own ledger, profiles, views, and indexes.
+- Views and indexes: disposable projections rebuilt from the ledger.
+
+The intended workflow: install `knb`, ask an agent to create a custom profile for the job, then let the agent write, check, query, and render structured knowledge through the same interface.
+
+## how to use it with an AI
+
+Install `knb` first:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/ratacat/knb/main/scripts/install.sh | bash
@@ -20,30 +32,14 @@ Check the install:
 knb help
 ```
 
-When you run `knb init` without `--root`, it initializes the current working directory. That creates hidden project config in `<project-root>/.knb/config.json` and canonical knowledge storage in `<project-root>/knb/ledger.jsonl`.
-
-## what it gives an agent
-
-`knb` gives agents a few stable parts they can combine instead of starting from blank files:
-
-- Ledger: one append-only JSONL file at `<project-root>/knb/ledger.jsonl`, as the canonical store.
-- Records: small sourced units of knowledge, open questions, and synthesis, with changes tracked by append-only entries.
-- Profiles: named vocabularies and rules for a domain, with optional agent instructions.
-- Instances: filesystem-backed workspaces that load one or more profiles.
-- Views and indexes: disposable projections rebuilt from the ledger.
-
-The intended workflow: install `knb`, ask an agent to create a custom profile for the job, then let the agent write, check, query, and render structured knowledge through the same interface.
-
-## how to use it with an AI
-
-After installing `knb`, open your project folder with an AI coding agent and give it a prompt like this:
+Then open your project folder with an AI coding agent and give it a prompt like this:
 
 ```text
 Use knb in this project as the knowledge system for <purpose>.
 
 First inspect `knb help`, then initialize the workspace if needed.
-Run commands from the project directory you want to use as the workspace,
-or pass `--root <dir>` explicitly.
+Run commands from the project directory you want to use as the workspace.
+Use `--instance <id>` when the project has more than one knowledge base.
 Design a custom profile for this purpose, including record types, link types,
 required fields, and agent_instructions.
 
@@ -53,8 +49,10 @@ After I answer, create and attach the profile, then use `knb status`,
 and `knb check` to keep the knowledge base structured and auditable.
 
 Prefer small sourced records, explicit open questions, and short synthesis.
-Do not edit `<project-root>/knb/ledger.jsonl` directly.
+Do not edit instance ledger files directly.
 ```
+
+When you run `knb init` without `--root`, it initializes the current working directory and the selected instance. That creates project config in `<project-root>/.knb/config.json` and canonical knowledge storage for that instance.
 
 Knowledge bases look simple until agents start relying on them. They need provenance, uncertainty, repair paths, multiple views, and domain vocabulary. In the age of AI, those details matter more because the knowledge base is often what lets one agent hand useful structure to the next.
 
@@ -85,7 +83,7 @@ Reads come from the effective state, not raw file scans. Queries, `context` outp
 
 `record` is the preferred domain term for a knowledge card. Current storage still exposes the legacy row kinds above.
 
-Only `<project-root>/knb/ledger.jsonl` is canonical. `knb/views/` and `knb/indexes/` are generated projections. Delete and rebuild them when they get stale.
+Only instance ledger files are canonical. `views/` and `indexes/` directories are generated projections. Delete and rebuild them when they get stale.
 
 ```text
 <project-root>/
@@ -97,6 +95,12 @@ Only `<project-root>/knb/ledger.jsonl` is canonical. `knb/views/` and `knb/index
     schema.json
     views/
     indexes/
+    instances/
+      research/
+        ledger.jsonl
+        schema.json
+        views/
+        indexes/
 ```
 
 ## profiles and extensibility
@@ -110,7 +114,7 @@ Profiles make `knb` modular. A profile can define:
 - `agent_instructions` that tell agents how to use the profile
 - `metadata` for local conventions
 
-One instance can attach multiple profiles, so the same workspace can hold shared sources while exposing different views for research, planning, operations, or narrative structure.
+One project can hold multiple instances. One instance can attach multiple profiles, so each knowledge base can expose the vocabulary it needs without mixing ledgers.
 
 Some possibilities:
 
@@ -128,10 +132,17 @@ The same primitive can support a knowledge base, a graph, a decision tree, or an
 
 These are the kinds of commands an agent will run after it designs a profile.
 
-Create a workspace:
+Create the default `main` instance:
 
 ```bash
 knb init --json
+```
+
+Create another instance in the same project:
+
+```bash
+knb instance create research --profile research.v1 --json
+knb status --instance research --json
 ```
 
 Create and attach a profile:
@@ -198,7 +209,7 @@ knb check --json
 ## command surface
 
 ```bash
-knb <command> [--root <dir>] [--config <path>] [--ledger <path>] [--json]
+knb <command> [--root <dir>] [--instance <id>] [--config <path>] [--ledger <path>] [--json]
 knb init    [--actor <name>] [--force]
 knb status
 knb schema
@@ -211,7 +222,7 @@ knb render  [--profile topic] [--out topic.md] [--as-of <iso>] [--format md] [--
 knb check
 knb index   [--rebuild]
 knb profile list|show|create|replace|delete|check
-knb instance show|create|list|set|attach-profile|detach-profile|delete
+knb instance show|create <id>|list|set|use <id>|attach-profile|detach-profile|delete
 ```
 
 Workspace flags are global and accepted by every command. Unknown flags fail with `invalid_arguments`.

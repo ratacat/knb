@@ -11,7 +11,7 @@ export type {
   ApplyRequest,
 } from "./core/knb";
 
-export type { KnbWorkspace, KnbConfig } from "./core/workspace";
+export type { KnbWorkspace, KnbConfig, KnbInstanceConfig } from "./core/workspace";
 export type {
   KnbRow,
   KnbRowKind,
@@ -61,6 +61,7 @@ export type {
   InstanceUpdateOptions,
   InstanceUpdateResult,
   InstanceProfileResult,
+  InstanceDefaultResult,
   InstanceDeleteResult,
   InstanceListOptions,
   InstanceListResult,

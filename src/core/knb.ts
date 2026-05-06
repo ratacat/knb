@@ -8,6 +8,13 @@ import { dirname, relative } from "node:path";
 
 import { applyOperations, previewApplyOperations, type ApplyResult } from "./apply";
 import {
+  KNB_CONFIG_SCHEMA_VERSION,
+  configProfiles,
+  readWorkspaceConfig,
+  updateConfigInstance,
+  writeWorkspaceConfig,
+} from "./config";
+import {
   buildContext,
   type ContextRequest,
   type ContextResult,
@@ -51,10 +58,12 @@ import {
   detachInstanceProfile,
   finalizeInstanceCreate,
   listInstances,
+  setDefaultInstance,
   showInstance,
   updateInstance,
   type InstanceCreateOptions,
   type InstanceCreateResult,
+  type InstanceDefaultResult,
   type InstanceDeleteResult,
   type InstanceListOptions,
   type InstanceListResult,
@@ -91,6 +100,7 @@ export type OpenKnbOptions = {
   root?: string;
   configPath?: string;
   ledgerPath?: string;
+  instanceId?: string;
   actor?: string;
   runtime?: Partial<KnbRuntime>;
   env?: NodeJS.ProcessEnv;
@@ -99,6 +109,7 @@ export type OpenKnbOptions = {
 
 export type KnbStatus = {
   workspace_root: string;
+  instance_id: string;
   ledger_path: string;
   schema_version: "knb.v1";
   actor: string;
@@ -126,6 +137,7 @@ export type InitOptions = {
 
 export type InitResult = {
   workspace_root: string;
+  instance_id: string;
   created_paths: string[];
   ledger_path: string;
   config_path: string;
@@ -171,6 +183,7 @@ export type Knb = {
   updateInstance(options: InstanceUpdateOptions): Promise<InstanceUpdateResult>;
   attachInstanceProfile(profileId: string): Promise<InstanceProfileResult>;
   detachInstanceProfile(profileId: string): Promise<InstanceProfileResult>;
+  setDefaultInstance(instanceId: string): Promise<InstanceDefaultResult>;
   deleteInstance(options: { confirm?: string }): Promise<InstanceDeleteResult>;
   listInstances(options: InstanceListOptions): Promise<InstanceListResult>;
 };
@@ -187,6 +200,7 @@ export async function openKnb(options: OpenKnbOptions = {}): Promise<Knb> {
   if (options.root !== undefined) wsOptions.root = options.root;
   if (options.configPath !== undefined) wsOptions.configPath = options.configPath;
   if (options.ledgerPath !== undefined) wsOptions.ledgerPath = options.ledgerPath;
+  if (options.instanceId !== undefined) wsOptions.instanceId = options.instanceId;
   if (options.actor !== undefined) wsOptions.actor = options.actor;
   if (options.env !== undefined) wsOptions.env = options.env;
   if (options.cwd !== undefined) wsOptions.cwd = options.cwd;
@@ -296,8 +310,26 @@ function makeKnb(workspace: KnbWorkspace, runtime: KnbRuntime): Knb {
       return showInstance(workspace);
     },
     async createInstance(options: InstanceCreateOptions = {}): Promise<InstanceCreateResult> {
-      const initResult = await performInit(workspace, options.actor !== undefined ? { actor: options.actor } : {});
-      return finalizeInstanceCreate(workspace, initResult, options);
+      const instanceId = options.instanceId ?? workspace.instanceId;
+      const targetWorkspace =
+        instanceId === workspace.instanceId
+          ? workspace
+          : await openWorkspace(
+              options.actor !== undefined
+                ? {
+                    root: workspace.root,
+                    configPath: workspace.paths.config,
+                    instanceId,
+                    actor: options.actor,
+                  }
+                : {
+                    root: workspace.root,
+                    configPath: workspace.paths.config,
+                    instanceId,
+                  },
+            );
+      const initResult = await performInit(targetWorkspace, options.actor !== undefined ? { actor: options.actor } : {});
+      return finalizeInstanceCreate(targetWorkspace, initResult, options);
     },
     async updateInstance(options: InstanceUpdateOptions): Promise<InstanceUpdateResult> {
       return updateInstance(workspace, options);
@@ -308,11 +340,14 @@ function makeKnb(workspace: KnbWorkspace, runtime: KnbRuntime): Knb {
     async detachInstanceProfile(profileId: string): Promise<InstanceProfileResult> {
       return detachInstanceProfile(workspace, profileId);
     },
+    async setDefaultInstance(instanceId: string): Promise<InstanceDefaultResult> {
+      return setDefaultInstance(workspace, instanceId);
+    },
     async deleteInstance(options: { confirm?: string }): Promise<InstanceDeleteResult> {
       return deleteInstance(workspace, options);
     },
     async listInstances(options: InstanceListOptions): Promise<InstanceListResult> {
-      return listInstances(options);
+      return listInstances(workspace, options);
     },
   };
   return facade;
@@ -363,10 +398,26 @@ async function performInit(workspace: KnbWorkspace, options: InitOptions): Promi
 
   const configPath = workspace.paths.config;
   const configExists = await pathExists(configPath);
+  const currentConfig = !configExists || force ? {} : await readWorkspaceConfig(workspace);
+  const nextConfig = updateConfigInstance(currentConfig, workspace.instanceId, (instance) => {
+    const updated = {
+      ...instance,
+      ledger: relativeToRoot(workspace.root, workspace.paths.ledger),
+      schema: relativeToRoot(workspace.root, workspace.paths.schema),
+      views: relativeToRoot(workspace.root, workspace.paths.views),
+      indexes: relativeToRoot(workspace.root, workspace.paths.indexes),
+      profiles: configProfiles(instance),
+    };
+    if (options.actor && options.actor.length > 0) updated.actor = options.actor;
+    return updated;
+  });
+  await ensureDir(dirname(configPath));
+  await writeWorkspaceConfig(workspace, {
+    ...nextConfig,
+    schema_version: KNB_CONFIG_SCHEMA_VERSION,
+    default_instance: currentConfig.default_instance ?? workspace.instanceId,
+  });
   if (!configExists || force) {
-    await ensureDir(dirname(configPath));
-    const seedConfig = options.actor && options.actor.length > 0 ? { actor: options.actor } : {};
-    await writeFile(configPath, `${JSON.stringify(seedConfig, null, 2)}\n`, "utf8");
     created.push(relativeToRoot(workspace.root, configPath));
   }
 
@@ -395,6 +446,7 @@ async function performInit(workspace: KnbWorkspace, options: InitOptions): Promi
 
   return {
     workspace_root: workspace.root,
+    instance_id: workspace.instanceId,
     created_paths: created,
     ledger_path: ledgerPath,
     config_path: configPath,
@@ -437,6 +489,7 @@ function statusFromSnapshot(
 
   const result: KnbStatus = {
     workspace_root: workspace.root,
+    instance_id: workspace.instanceId,
     ledger_path: workspace.paths.ledger,
     schema_version: "knb.v1",
     actor: workspace.actor,

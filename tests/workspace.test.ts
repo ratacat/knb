@@ -8,6 +8,10 @@ type FileMap = Record<string, string>;
 
 const ROOT = `${sep}repo`;
 
+function projectConfig(instance: Record<string, unknown>, instanceId = "main"): string {
+  return JSON.stringify({ default_instance: instanceId, instances: { [instanceId]: instance } });
+}
+
 function fileSystem(initial: FileMap): {
   files: FileMap;
   readFile: (path: string) => Promise<string>;
@@ -45,9 +49,9 @@ function makeOptions(overrides: Partial<OpenWorkspaceOptions>): OpenWorkspaceOpt
 describe("openWorkspace.config precedence", () => {
   test("explicit configPath wins over KNB_CONFIG and .knb/config.json", async () => {
     const { readFile } = fileSystem({
-      [`${sep}explicit.json`]: JSON.stringify({ ledger: "explicit/ledger.jsonl" }),
-      [`${sep}env.json`]: JSON.stringify({ ledger: "env/ledger.jsonl" }),
-      [join(ROOT, ".knb", "config.json")]: JSON.stringify({ ledger: "fs/ledger.jsonl" }),
+      [`${sep}explicit.json`]: JSON.stringify({ default_instance: "main", instances: { main: { ledger: "explicit/ledger.jsonl" } } }),
+      [`${sep}env.json`]: JSON.stringify({ default_instance: "main", instances: { main: { ledger: "env/ledger.jsonl" } } }),
+      [join(ROOT, ".knb", "config.json")]: JSON.stringify({ default_instance: "main", instances: { main: { ledger: "fs/ledger.jsonl" } } }),
     });
     const ws = await openWorkspace(
       makeOptions({
@@ -58,14 +62,14 @@ describe("openWorkspace.config precedence", () => {
       }),
     );
     expect(ws.configPath).toBe(`${sep}explicit.json`);
-    expect(ws.config.ledger).toBe("explicit/ledger.jsonl");
+    expect(ws.instanceConfig.ledger).toBe("explicit/ledger.jsonl");
     expect(ws.paths.ledger).toBe(join(ROOT, "explicit", "ledger.jsonl"));
   });
 
   test("KNB_CONFIG wins over .knb/config.json", async () => {
     const { readFile } = fileSystem({
-      [`${sep}env.json`]: JSON.stringify({ ledger: "env/ledger.jsonl" }),
-      [join(ROOT, ".knb", "config.json")]: JSON.stringify({ ledger: "fs/ledger.jsonl" }),
+      [`${sep}env.json`]: JSON.stringify({ default_instance: "main", instances: { main: { ledger: "env/ledger.jsonl" } } }),
+      [join(ROOT, ".knb", "config.json")]: JSON.stringify({ default_instance: "main", instances: { main: { ledger: "fs/ledger.jsonl" } } }),
     });
     const ws = await openWorkspace(
       makeOptions({
@@ -75,26 +79,26 @@ describe("openWorkspace.config precedence", () => {
       }),
     );
     expect(ws.configPath).toBe(`${sep}env.json`);
-    expect(ws.config.ledger).toBe("env/ledger.jsonl");
+    expect(ws.instanceConfig.ledger).toBe("env/ledger.jsonl");
   });
 
   test("empty KNB_CONFIG is treated as unset", async () => {
-    const fsConfig = JSON.stringify({ ledger: "fs/ledger.jsonl" });
+    const fsConfig = JSON.stringify({ default_instance: "main", instances: { main: { ledger: "fs/ledger.jsonl" } } });
     const { readFile } = fileSystem({ [join(ROOT, ".knb", "config.json")]: fsConfig });
     const ws = await openWorkspace(
       makeOptions({ root: ROOT, env: { KNB_CONFIG: "" }, readFile }),
     );
     expect(ws.configPath).toBe(join(ROOT, ".knb", "config.json"));
-    expect(ws.config.ledger).toBe("fs/ledger.jsonl");
+    expect(ws.instanceConfig.ledger).toBe("fs/ledger.jsonl");
   });
 
   test(".knb/config.json wins when no explicit or env config is set", async () => {
     const { readFile } = fileSystem({
-      [join(ROOT, ".knb", "config.json")]: JSON.stringify({ ledger: "fs/ledger.jsonl" }),
+      [join(ROOT, ".knb", "config.json")]: JSON.stringify({ default_instance: "main", instances: { main: { ledger: "fs/ledger.jsonl" } } }),
     });
     const ws = await openWorkspace(makeOptions({ root: ROOT, readFile }));
     expect(ws.configPath).toBe(join(ROOT, ".knb", "config.json"));
-    expect(ws.config.ledger).toBe("fs/ledger.jsonl");
+    expect(ws.instanceConfig.ledger).toBe("fs/ledger.jsonl");
   });
 
   test("no config file yields empty config and no configPath", async () => {
@@ -118,7 +122,7 @@ describe("openWorkspace.config precedence", () => {
 
   test("config with extra unknown fields is silently retained without affecting paths", async () => {
     const { readFile } = fileSystem({
-      [join(ROOT, ".knb", "config.json")]: JSON.stringify({
+      [join(ROOT, ".knb", "config.json")]: projectConfig({
         ledger: "data/ledger.jsonl",
         someUnknown: 42,
         anotherWeirdField: { nested: true },
@@ -126,7 +130,7 @@ describe("openWorkspace.config precedence", () => {
     });
     const ws = await openWorkspace(makeOptions({ root: ROOT, readFile }));
     expect(ws.paths.ledger).toBe(join(ROOT, "data", "ledger.jsonl"));
-    expect((ws.config as Record<string, unknown>).someUnknown).toBe(42);
+    expect((ws.instanceConfig as Record<string, unknown>).someUnknown).toBe(42);
   });
 });
 
@@ -147,7 +151,7 @@ describe("openWorkspace.root resolution", () => {
   test("implicit root is exactly cwd and does not walk up to parent .knb/config.json", async () => {
     const nested = join(ROOT, "a", "b", "c");
     const { readFile } = fileSystem({
-      [join(ROOT, ".knb", "config.json")]: JSON.stringify({ ledger: "data/ledger.jsonl" }),
+      [join(ROOT, ".knb", "config.json")]: projectConfig({ ledger: "data/ledger.jsonl" }),
     });
     const ws = await openWorkspace(makeOptions({ cwd: () => nested, readFile }));
     expect(ws.root).toBe(nested);
@@ -158,7 +162,7 @@ describe("openWorkspace.root resolution", () => {
   test("implicit root uses cwd .knb/config.json when present", async () => {
     const nested = join(ROOT, "a", "b", "c");
     const { readFile } = fileSystem({
-      [join(nested, ".knb", "config.json")]: JSON.stringify({ ledger: "data/ledger.jsonl" }),
+      [join(nested, ".knb", "config.json")]: projectConfig({ ledger: "data/ledger.jsonl" }),
     });
     const ws = await openWorkspace(makeOptions({ cwd: () => nested, readFile }));
     expect(ws.root).toBe(nested);
@@ -170,7 +174,7 @@ describe("openWorkspace.root resolution", () => {
     const nested = join(ROOT, "a", "b");
     const otherRoot = `${sep}elsewhere`;
     const { readFile } = fileSystem({
-      [join(ROOT, ".knb", "config.json")]: JSON.stringify({ ledger: "data/ledger.jsonl" }),
+      [join(ROOT, ".knb", "config.json")]: projectConfig({ ledger: "data/ledger.jsonl" }),
     });
     const ws = await openWorkspace(makeOptions({ root: otherRoot, cwd: () => nested, readFile }));
     expect(ws.root).toBe(otherRoot);
@@ -184,14 +188,14 @@ describe("openWorkspace.root resolution", () => {
     const ws = await openWorkspace(makeOptions({ root: absoluteRoot, cwd: () => ROOT, readFile }));
     expect(ws.root).toBe(absoluteRoot);
     expect(ws.paths.ledger).toBe(join(absoluteRoot, "knb", "ledger.jsonl"));
-    expect(ws.paths.lock).toBe(join(absoluteRoot, ".knb", "ledger.lock"));
+    expect(ws.paths.lock).toBe(join(absoluteRoot, ".knb", "locks", "main.lock"));
   });
 });
 
 describe("openWorkspace.path normalization", () => {
   test("explicit --ledger wins over config ledger", async () => {
     const { readFile } = fileSystem({
-      [join(ROOT, ".knb", "config.json")]: JSON.stringify({ ledger: "config/ledger.jsonl" }),
+      [join(ROOT, ".knb", "config.json")]: projectConfig({ ledger: "config/ledger.jsonl" }),
     });
     const ws = await openWorkspace(
       makeOptions({ root: ROOT, ledgerPath: "cli/ledger.jsonl", readFile }),
@@ -203,7 +207,7 @@ describe("openWorkspace.path normalization", () => {
     const cliAbs = `${sep}cli${sep}ledger.jsonl`;
     const cfgAbs = `${sep}cfg${sep}ledger.jsonl`;
     const { readFile } = fileSystem({
-      [join(ROOT, ".knb", "config.json")]: JSON.stringify({ ledger: cfgAbs }),
+      [join(ROOT, ".knb", "config.json")]: projectConfig({ ledger: cfgAbs }),
     });
     const ws = await openWorkspace(
       makeOptions({ root: ROOT, ledgerPath: cliAbs, readFile }),
@@ -218,13 +222,13 @@ describe("openWorkspace.path normalization", () => {
     expect(ws.paths.schema).toBe(join(ROOT, "knb", "schema.json"));
     expect(ws.paths.views).toBe(join(ROOT, "knb", "views"));
     expect(ws.paths.indexes).toBe(join(ROOT, "knb", "indexes"));
-    expect(ws.paths.lock).toBe(join(ROOT, ".knb", "ledger.lock"));
+    expect(ws.paths.lock).toBe(join(ROOT, ".knb", "locks", "main.lock"));
     expect(ws.paths.config).toBe(join(ROOT, ".knb", "config.json"));
   });
 
   test("config-supplied relative paths are normalized under root", async () => {
     const { readFile } = fileSystem({
-      [join(ROOT, ".knb", "config.json")]: JSON.stringify({
+      [join(ROOT, ".knb", "config.json")]: projectConfig({
         ledger: "data/ledger.jsonl",
         schema: "data/schema.json",
         views: "data/views",
@@ -244,7 +248,7 @@ describe("openWorkspace.path normalization", () => {
     const absViews = `${sep}var${sep}lib${sep}knb${sep}views`;
     const absIndexes = `${sep}var${sep}lib${sep}knb${sep}indexes`;
     const { readFile } = fileSystem({
-      [join(ROOT, ".knb", "config.json")]: JSON.stringify({
+      [join(ROOT, ".knb", "config.json")]: projectConfig({
         ledger: absLedger,
         schema: absSchema,
         views: absViews,
@@ -269,18 +273,18 @@ describe("openWorkspace.path normalization", () => {
     expect(ws.paths.ledger).toBe(absolute);
   });
 
-  test("lock path always lives at <root>/.knb/ledger.lock regardless of config.ledger", async () => {
+  test("lock path is instance-specific regardless of configured ledger", async () => {
     const { readFile } = fileSystem({
-      [join(ROOT, ".knb", "config.json")]: JSON.stringify({ ledger: "elsewhere/ledger.jsonl" }),
+      [join(ROOT, ".knb", "config.json")]: projectConfig({ ledger: "elsewhere/ledger.jsonl" }),
     });
     const ws = await openWorkspace(makeOptions({ root: ROOT, readFile }));
-    expect(ws.paths.lock).toBe(join(ROOT, ".knb", "ledger.lock"));
+    expect(ws.paths.lock).toBe(join(ROOT, ".knb", "locks", "main.lock"));
   });
 
   test("paths.config matches resolved configPath when one exists", async () => {
     const cfgPath = `${sep}env.json`;
     const { readFile } = fileSystem({
-      [cfgPath]: JSON.stringify({ ledger: "x/ledger.jsonl" }),
+      [cfgPath]: projectConfig({ ledger: "x/ledger.jsonl" }),
     });
     const ws = await openWorkspace(
       makeOptions({ root: ROOT, env: { KNB_CONFIG: cfgPath }, readFile }),
@@ -363,7 +367,7 @@ describe("openWorkspace.actor precedence", () => {
 
   test("config.actor is used when no explicit/env override", async () => {
     const { readFile } = fileSystem({
-      [join(ROOT, ".knb", "config.json")]: JSON.stringify({ actor: "config-actor" }),
+      [join(ROOT, ".knb", "config.json")]: projectConfig({ actor: "config-actor" }),
     });
     const ws = await openWorkspace(
       makeOptions({

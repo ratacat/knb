@@ -11,7 +11,11 @@ import { knbError } from "./errors";
 
 export type KnbConfig = {
   schema_version?: "knb.config.v1";
-  instance_id?: string;
+  default_instance?: string;
+  instances?: Record<string, KnbInstanceConfig>;
+};
+
+export type KnbInstanceConfig = {
   ledger?: string;
   schema?: string;
   views?: string;
@@ -24,6 +28,8 @@ export type KnbWorkspace = {
   root: string;
   configPath?: string;
   config: KnbConfig;
+  instanceId: string;
+  instanceConfig: KnbInstanceConfig;
   paths: {
     ledger: string;
     schema: string;
@@ -41,6 +47,7 @@ export type OpenWorkspaceOptions = {
   root?: string;
   configPath?: string;
   ledgerPath?: string;
+  instanceId?: string;
   actor?: string;
   env?: NodeJS.ProcessEnv;
   cwd?: () => string;
@@ -54,9 +61,10 @@ const DEFAULT_PATHS = {
   schema: join("knb", "schema.json"),
   views: join("knb", "views"),
   indexes: join("knb", "indexes"),
-  lock: join(".knb", "ledger.lock"),
   config: join(".knb", "config.json"),
 } as const;
+const DEFAULT_INSTANCE_ID = "main";
+const INSTANCE_ID_PATTERN = /^[a-z][a-z0-9_]*(?:[.-][a-z0-9_]+)*$/;
 
 export async function openWorkspace(options: OpenWorkspaceOptions = {}): Promise<KnbWorkspace> {
   const env = options.env ?? process.env;
@@ -68,24 +76,27 @@ export async function openWorkspace(options: OpenWorkspaceOptions = {}): Promise
   const root = resolveRoot(options.root, cwd);
   const configPath = await resolveConfigPath(root, options.configPath, env, readFile);
   const config = await loadConfig(configPath, readFile);
+  const instanceId = resolveInstanceId(options.instanceId, env, config);
+  const instanceConfig = config.instances?.[instanceId] ?? {};
+  const defaultPaths = defaultPathsForInstance(instanceId);
 
-  const ledgerSource = options.ledgerPath ?? config.ledger ?? DEFAULT_PATHS.ledger;
-  const schemaSource = config.schema ?? DEFAULT_PATHS.schema;
-  const viewsSource = config.views ?? DEFAULT_PATHS.views;
-  const indexesSource = config.indexes ?? DEFAULT_PATHS.indexes;
+  const ledgerSource = options.ledgerPath ?? instanceConfig.ledger ?? defaultPaths.ledger;
+  const schemaSource = instanceConfig.schema ?? defaultPaths.schema;
+  const viewsSource = instanceConfig.views ?? defaultPaths.views;
+  const indexesSource = instanceConfig.indexes ?? defaultPaths.indexes;
 
   const paths = {
     ledger: normalizeUnderRoot(root, ledgerSource),
     schema: normalizeUnderRoot(root, schemaSource),
     views: normalizeUnderRoot(root, viewsSource),
     indexes: normalizeUnderRoot(root, indexesSource),
-    lock: join(root, DEFAULT_PATHS.lock),
+    lock: join(root, ".knb", "locks", `${instanceId}.lock`),
     config: configPath ?? join(root, DEFAULT_PATHS.config),
   };
 
-  const actor = await resolveActor(options.actor, env, exec, systemUser, config);
+  const actor = await resolveActor(options.actor, env, exec, systemUser, instanceConfig);
 
-  const workspace: KnbWorkspace = { root, config, paths, actor };
+  const workspace: KnbWorkspace = { root, config, instanceId, instanceConfig, paths, actor };
   if (configPath !== undefined) workspace.configPath = configPath;
   return workspace;
 }
@@ -143,17 +154,52 @@ async function loadConfig(
   }
 }
 
+function resolveInstanceId(
+  explicit: string | undefined,
+  env: NodeJS.ProcessEnv,
+  config: KnbConfig,
+): string {
+  const candidate =
+    nonEmpty(explicit) ??
+    nonEmpty(env.KNB_INSTANCE) ??
+    nonEmpty(config.default_instance) ??
+    DEFAULT_INSTANCE_ID;
+  if (!INSTANCE_ID_PATTERN.test(candidate) || candidate.length > 96) {
+    throw knbError("invalid_arguments", `Invalid instance id: ${candidate}`, {
+      instance_id: candidate,
+      rule: "Use lowercase ids like main, research, or trade_map.v1.",
+    });
+  }
+  return candidate;
+}
+
+function defaultPathsForInstance(instanceId: string): {
+  ledger: string;
+  schema: string;
+  views: string;
+  indexes: string;
+} {
+  if (instanceId === DEFAULT_INSTANCE_ID) return DEFAULT_PATHS;
+  const base = join("knb", "instances", instanceId);
+  return {
+    ledger: join(base, "ledger.jsonl"),
+    schema: join(base, "schema.json"),
+    views: join(base, "views"),
+    indexes: join(base, "indexes"),
+  };
+}
+
 async function resolveActor(
   explicit: string | undefined,
   env: NodeJS.ProcessEnv,
   exec: (cmd: string, args: string[]) => Promise<ExecResult | undefined>,
   systemUser: () => string | undefined,
-  config: KnbConfig,
+  instanceConfig: KnbInstanceConfig,
 ): Promise<string> {
   if (explicit && explicit.length > 0) return explicit;
   const fromEnv = env.KNB_ACTOR;
   if (fromEnv && fromEnv.length > 0) return fromEnv;
-  const fromConfig = config.actor;
+  const fromConfig = instanceConfig.actor;
   if (fromConfig && fromConfig.length > 0) return fromConfig;
   const email = await runGit(exec, ["config", "user.email"]);
   if (email) return email;
@@ -181,6 +227,10 @@ async function runGit(
 function normalizeUnderRoot(root: string, value: string): string {
   if (isAbsolute(value)) return normalize(value);
   return normalize(join(root, value));
+}
+
+function nonEmpty(value: string | undefined): string | undefined {
+  return value && value.length > 0 ? value : undefined;
 }
 
 async function exists(path: string, readFile: (path: string) => Promise<string>): Promise<boolean> {

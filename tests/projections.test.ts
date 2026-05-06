@@ -282,12 +282,14 @@ async function makeWorkspace(): Promise<KnbWorkspace> {
   return {
     root,
     config: {},
+    instanceId: "main",
+    instanceConfig: {},
     paths: {
       ledger,
       schema: join(root, "knb", "schema.json"),
       views,
       indexes,
-      lock: join(root, ".knb", "ledger.lock"),
+      lock: join(root, ".knb", "locks", "main.lock"),
       config: join(root, ".knb", "config.json"),
     },
     actor: "agent:test",

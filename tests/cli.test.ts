@@ -562,14 +562,10 @@ describe("cli profile and instance commands", () => {
     expect(env.error.suggestions).toContain("knb profile list --json");
   });
 
-  test("instance create targets the positional root and instance list finds it", async () => {
-    const targetRoot = join(workDir, "nested", "research");
-
+  test("instance create targets the positional instance id and instance list finds it", async () => {
     const create = await runCliBinary([
       "instance",
       "create",
-      targetRoot,
-      "--instance-id",
       "research-main",
       "--profile",
       "research.v1",
@@ -583,25 +579,63 @@ describe("cli profile and instance commands", () => {
       data: { workspace_root: string; instance_id: string; profiles: string[]; actor: string };
     };
     expect(createEnv.command).toBe("instance create");
-    expect(createEnv.data.workspace_root).toBe(targetRoot);
+    expect(createEnv.data.workspace_root).toBe(workDir);
     expect(createEnv.data.instance_id).toBe("research-main");
     expect(createEnv.data.profiles).toEqual(["research.v1"]);
     expect(createEnv.data.actor).toBe("agent:cli-instance");
-    expect(await pathExists(join(targetRoot, ".knb", "config.json"))).toBe(true);
+    expect(await pathExists(join(workDir, ".knb", "config.json"))).toBe(true);
+    expect(await pathExists(join(workDir, "knb", "instances", "research-main", "ledger.jsonl"))).toBe(true);
 
-    const list = await runCliBinary(["instance", "list", "--under", workDir, "--json"]);
+    const list = await runCliBinary(["instance", "list", "--json"]);
     expect(list.code).toBe(0);
     const listEnv = JSON.parse(list.stdout.trim()) as {
-      data: { instances: Array<{ workspace_root: string; config_path: string; instance_id?: string; actor?: string; profiles: string[]; ok: boolean }> };
+      data: { instances: Array<{ workspace_root: string; config_path: string; instance_id?: string; actor?: string; profiles: string[]; default: boolean; ok: boolean }> };
     };
     expect(listEnv.data.instances).toContainEqual({
-      workspace_root: targetRoot,
-      config_path: join(targetRoot, ".knb", "config.json"),
+      workspace_root: workDir,
+      config_path: join(workDir, ".knb", "config.json"),
       instance_id: "research-main",
       actor: "agent:cli-instance",
       profiles: ["research.v1"],
+      default: true,
       ok: true,
     });
+  });
+
+  test("--instance selects an isolated ledger in the same project root", async () => {
+    const init = await runCliBinary(["init", "--json"]);
+    expect(init.code).toBe(0);
+    const create = await runCliBinary(["instance", "create", "research", "--profile", "research.v1", "--json"]);
+    expect(create.code).toBe(0);
+
+    const payload = JSON.stringify({
+      operations: [
+        {
+          op: "add",
+          row: {
+            kind: "source",
+            scope: { profiles: ["research.v1"] },
+            source: { type: "web_page", title: "Research only", uri: "https://example.com/research-only" },
+            provenance: { acquisition: { method: "manual" } },
+          },
+        },
+      ],
+    });
+    const apply = await runCliBinary(["apply", "--instance", "research", "--json", payload]);
+    expect(apply.code).toBe(0);
+
+    const mainStatus = await runCliBinary(["status", "--json"]);
+    expect(mainStatus.code).toBe(0);
+    const mainEnv = JSON.parse(mainStatus.stdout.trim()) as { data: { instance_id: string; row_count: number } };
+    expect(mainEnv.data.instance_id).toBe("main");
+    expect(mainEnv.data.row_count).toBe(0);
+
+    const researchStatus = await runCliBinary(["status", "--instance", "research", "--json"]);
+    expect(researchStatus.code).toBe(0);
+    const researchEnv = JSON.parse(researchStatus.stdout.trim()) as { data: { instance_id: string; row_count: number; ledger_path: string } };
+    expect(researchEnv.data.instance_id).toBe("research");
+    expect(researchEnv.data.row_count).toBe(1);
+    expect(researchEnv.data.ledger_path).toBe(join(workDir, "knb", "instances", "research", "ledger.jsonl"));
   });
 });
 
@@ -649,7 +683,7 @@ describe("cli flag parsing", () => {
     await mkdir(altConfigDir, { recursive: true });
     const altConfig = join(altConfigDir, "knb.json");
     const altLedger = join(altConfigDir, "alt-ledger.jsonl");
-    await writeFile(altConfig, JSON.stringify({ ledger: altLedger }), "utf8");
+    await writeFile(altConfig, JSON.stringify({ default_instance: "main", instances: { main: { ledger: altLedger } } }), "utf8");
 
     const result = await runCliInProcess(["status", "--config", altConfig]);
     expect(result.code).toBe(0);

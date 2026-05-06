@@ -41,7 +41,7 @@ const COMMANDS = new Set([
   "instance",
 ]);
 
-const GLOBAL_VALUE_FLAGS = new Set(["root", "config", "ledger", "actor"]);
+const GLOBAL_VALUE_FLAGS = new Set(["root", "config", "ledger", "instance", "actor"]);
 const GLOBAL_BOOLEAN_FLAGS = new Set(["json", "pretty", "ndjson", "text", "quiet"]);
 const GLOBAL_FLAGS = new Set([...GLOBAL_VALUE_FLAGS, ...GLOBAL_BOOLEAN_FLAGS]);
 
@@ -58,7 +58,7 @@ const COMMAND_VALUE_FLAGS: Record<string, ReadonlySet<string>> = {
   check: new Set(),
   index: new Set(),
   profile: new Set(["file", "json", "confirm"]),
-  instance: new Set(["under", "max-depth", "instance-id", "profile", "ledger", "schema", "views", "indexes", "confirm"]),
+  instance: new Set(["profile", "ledger", "schema", "views", "indexes", "confirm"]),
 };
 
 const COMMAND_BOOLEAN_FLAGS: Record<string, ReadonlySet<string>> = {
@@ -74,7 +74,7 @@ const COMMAND_BOOLEAN_FLAGS: Record<string, ReadonlySet<string>> = {
   check: new Set(),
   index: new Set(["rebuild"]),
   profile: new Set(["stdin", "full", "attached", "attach"]),
-  instance: new Set(),
+  instance: new Set(["paths"]),
 };
 
 export async function runCli(args: string[], options: OutputOptions = {}): Promise<number> {
@@ -122,26 +122,12 @@ async function runFacadeCommand(
     const rootFlag = stringFlag(flags, "root");
     const configFlag = stringFlag(flags, "config");
     const ledgerFlag = stringFlag(flags, "ledger");
+    const instanceFlag = stringFlag(flags, "instance");
     const actorFlag = stringFlag(flags, "actor");
-    const instanceCreateRoot = command === "instance" && positionals[0] === "create" ? positionals[1] : undefined;
-    if (instanceCreateRoot && rootFlag) {
-      return renderResult(
-        failure(
-          "instance create",
-          knbError("invalid_arguments", "Use either knb instance create <root> or global --root, not both", {
-            root: rootFlag,
-            target_root: instanceCreateRoot,
-            suggestions: ["knb instance create ./research --instance-id research-main --json"],
-          }),
-          { elapsed_ms: Date.now() - start },
-        ),
-        outputOptions,
-      );
-    }
-    if (instanceCreateRoot) openOptions.root = instanceCreateRoot;
-    else if (rootFlag) openOptions.root = rootFlag;
+    if (rootFlag) openOptions.root = rootFlag;
     if (configFlag) openOptions.configPath = configFlag;
     if (ledgerFlag) openOptions.ledgerPath = ledgerFlag;
+    if (instanceFlag) openOptions.instanceId = instanceFlag;
     if (actorFlag) openOptions.actor = actorFlag;
     knb = await openKnb(openOptions);
   } catch (error) {
@@ -426,13 +412,12 @@ async function runInstanceCommand(
   }
 
   if (subcommand === "create") {
-    requireOnePositional("instance create", first, "root");
+    requireOnePositional("instance create", first, "instance id");
     rejectExtraPositionals("instance create", extra);
     const request: NonNullable<Parameters<Knb["createInstance"]>[0]> = {};
-    const instanceId = stringFlag(flags, "instance-id");
     const profiles = stringFlags(flags, "profile");
     const actor = stringFlag(flags, "actor");
-    if (instanceId !== undefined) request.instanceId = instanceId;
+    request.instanceId = first;
     if (profiles.length > 0) request.profiles = profiles;
     if (actor !== undefined) request.actor = actor;
     const result = await knb.createInstance(request);
@@ -441,15 +426,8 @@ async function runInstanceCommand(
 
   if (subcommand === "list") {
     rejectExtraPositionals("instance list", [first, ...extra]);
-    const under = stringFlag(flags, "under");
-    if (!under) {
-      throw knbError("invalid_arguments", "knb instance list requires --under <dir>", {
-        suggestions: ["knb instance list --under . --json"],
-      });
-    }
-    const request: Parameters<Knb["listInstances"]>[0] = { under };
-    const maxDepth = numberFlag(flags, "max-depth");
-    if (maxDepth !== undefined) request.maxDepth = maxDepth;
+    const request: Parameters<Knb["listInstances"]>[0] = {};
+    if (booleanFlag(flags, "paths")) request.includePaths = true;
     const result = await knb.listInstances(request);
     return renderResult(success("instance list", result, baseMeta()), outputOptions);
   }
@@ -490,6 +468,13 @@ async function runInstanceCommand(
     return renderResult(success("instance detach-profile", result, baseMeta()), outputOptions);
   }
 
+  if (subcommand === "use") {
+    requireOnePositional("instance use", first, "instance id");
+    rejectExtraPositionals("instance use", extra);
+    const result = await knb.setDefaultInstance(first);
+    return renderResult(success("instance use", result, baseMeta()), outputOptions);
+  }
+
   if (subcommand === "delete") {
     rejectExtraPositionals("instance delete", [first, ...extra]);
     const request: { confirm?: string } = {};
@@ -504,7 +489,7 @@ async function runInstanceCommand(
       `instance ${subcommand}`,
       knbError("invalid_arguments", `Unknown instance subcommand: ${subcommand}`, {
         subcommand,
-        suggestions: ["knb instance show --json", "knb instance list --under . --json"],
+        suggestions: ["knb instance show --json", "knb instance list --json"],
       }),
       baseMeta(),
     ),
@@ -801,8 +786,9 @@ async function helpText(flags: FlagMap): Promise<string> {
 Usage: knb <cmd> [--root dir] [--json|--text|--pretty|--ndjson|--quiet]
 cmds: knb init, knb status, knb schema, knb apply, knb add, knb get, knb query, knb context, knb render, knb check, knb index, knb profile, knb instance
 profile: list|show|create|replace|delete|check
-instance: show|create|list|set|attach-profile|detach-profile|delete
+instance: show|create|list|set|use|attach-profile|detach-profile|delete
 root: defaults to current directory
+instance: defaults to config.default_instance, then main
 ${profileHelp}
 exit: 0 ok; 1 not_found; 2 invalid_arguments; 3 validation_failed; 4 duplicate_blocked; 5 io_failed; 6 lock_busy; 7 broken_reference; 8 external_dependency_failed; 9 unsafe_operation_refused; 10 internal_error
 `;
@@ -814,10 +800,12 @@ async function profileHelpText(flags: FlagMap): Promise<string> {
     const rootFlag = stringFlag(flags, "root");
     const configFlag = stringFlag(flags, "config");
     const ledgerFlag = stringFlag(flags, "ledger");
+    const instanceFlag = stringFlag(flags, "instance");
     const actorFlag = stringFlag(flags, "actor");
     if (rootFlag !== undefined) openOptions.root = rootFlag;
     if (configFlag !== undefined) openOptions.configPath = configFlag;
     if (ledgerFlag !== undefined) openOptions.ledgerPath = ledgerFlag;
+    if (instanceFlag !== undefined) openOptions.instanceId = instanceFlag;
     if (actorFlag !== undefined) openOptions.actor = actorFlag;
     const knb = await openKnb(openOptions);
     const listed = await knb.listProfiles({ attachedOnly: true });
