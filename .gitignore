@@ -5,6 +5,10 @@ dist/
 coverage/
 knb/views/*.tmp
 knb/indexes/*.tmp
+knb/views/*.md
+knb/views/*.md.meta.json
+knb/indexes/*.json
+knb/indexes/*.json.meta.json
 
 # Local/generated KNB research workspaces
 xnb/

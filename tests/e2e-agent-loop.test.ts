@@ -66,7 +66,7 @@ function parseFailure(text: string): { ok: false; command?: string; error: { cod
 }
 
 describe("e2e: full agent loop", () => {
-  test("init -> status -> schema -> apply 3-op -> check -> context -> render -> index --rebuild -> check -> status", async () => {
+  test("init -> status -> schema -> apply 3-op -> check -> context -> render -> index -> check -> status", async () => {
     // 1. init
     const initRun = await runKnb(["init", "--json"]);
     expect(initRun.code).toBe(0);
@@ -159,15 +159,21 @@ describe("e2e: full agent loop", () => {
     expect(createdClaim?.kind).toBe("claim");
     expect(createdSynthesis?.kind).toBe("synthesis");
 
-    // 5. check (indexes still missing because we haven't rebuilt yet)
+    // 5. check fails while indexes are still missing.
     const checkRunBefore = await runKnb(["check", "--json"]);
-    expect(checkRunBefore.code).toBe(0);
-    const checkEnvBefore = parseSuccess<{ ok: boolean; projection_freshness: { entries: Array<{ kind: string; state: string }> } }>(checkRunBefore.stdout);
-    expect(checkEnvBefore.data.ok).toBe(false);
-    const missingIndexes = checkEnvBefore.data.projection_freshness.entries.filter(
+    expect(checkRunBefore.code).toBe(3);
+    expect(checkRunBefore.stdout).toBe("");
+    const checkEnvBefore = parseFailure(checkRunBefore.stderr);
+    expect(checkEnvBefore.error.code).toBe("validation_failed");
+    const checkDetails = checkEnvBefore.error.details as {
+      ok?: boolean;
+      projection_freshness?: { entries: Array<{ kind: string; state: string }> };
+    };
+    expect(checkDetails.ok).toBe(false);
+    const missingIndexes = checkDetails.projection_freshness?.entries.filter(
       (entry) => entry.kind === "index" && entry.state === "missing",
     );
-    expect(missingIndexes.length).toBe(V1_INDEX_NAMES.length);
+    expect(missingIndexes?.length).toBe(V1_INDEX_NAMES.length);
 
     // 6. context for the example profile
     const contextRun = await runKnb(["context", "--profile", "example", "--json"]);
@@ -188,8 +194,8 @@ describe("e2e: full agent loop", () => {
     expect(renderEnv.data.bytes_written).toBeGreaterThan(0);
     expect(await pathExists(renderEnv.data.path)).toBe(true);
 
-    // 8. index --rebuild
-    const indexRun = await runKnb(["index", "--rebuild", "--json"]);
+    // 8. index
+    const indexRun = await runKnb(["index", "--json"]);
     expect(indexRun.code).toBe(0);
     const indexEnv = parseSuccess<{ indexes: Array<{ name: string; bytes_written: number }> }>(indexRun.stdout);
     expect(indexEnv.data.indexes.length).toBe(V1_INDEX_NAMES.length);
@@ -227,7 +233,7 @@ describe("e2e: full agent loop", () => {
     const final2Env = parseSuccess<{ row_count: number }>(finalStatus2.stdout);
     expect(final2Env.data.row_count).toBe(3);
 
-    const indexRebuild2 = await runKnb(["index", "--rebuild", "--json"]);
+    const indexRebuild2 = await runKnb(["index", "--json"]);
     expect(indexRebuild2.code).toBe(0);
     const rebuild2Env = parseSuccess<{ indexes: Array<{ name: string }> }>(indexRebuild2.stdout);
     expect(rebuild2Env.data.indexes.length).toBe(V1_INDEX_NAMES.length);

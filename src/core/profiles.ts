@@ -15,7 +15,7 @@ import {
 } from "./config";
 import { ROW_KINDS } from "./contract";
 import { knbError, type KnbErrorCode } from "./errors";
-import { readSnapshot } from "./read-snapshot";
+import { loadLedger } from "./ledger";
 import type { KnbWorkspace } from "./workspace";
 
 export const KNB_PROFILE_SCHEMA_VERSION = "knb.profile.v1" as const;
@@ -102,6 +102,8 @@ export type ProfileCheckResult = {
   profiles_checked: number;
   attached_missing: string[];
 };
+
+export type ProfileLinkRelMap = Record<string, string[]>;
 
 const PROFILE_DIR = join(".knb", "profiles");
 const PROFILE_ID_PATTERN = /^[a-z][a-z0-9_]*(?:[.-][a-z0-9_]+)*$/;
@@ -360,6 +362,51 @@ export async function checkProfiles(
   };
 }
 
+export async function profileLinkRelsForWorkspace(workspace: KnbWorkspace): Promise<ProfileLinkRelMap> {
+  const attached = configProfilesForInstance(await readWorkspaceConfig(workspace), workspace.instanceId);
+  if (attached.length === 0) return {};
+
+  const definitions = await readProfileDefinitions(workspace);
+  const byId = new Map<string, ProfileDefinition>();
+  for (const item of definitions) {
+    if (item.issue) continue;
+    byId.set(item.profile.profile_id, item.profile);
+  }
+
+  const resolved = new Map<string, string[]>();
+  const resolve = (profileId: string, seen: Set<string>): string[] => {
+    const existing = resolved.get(profileId);
+    if (existing) return existing;
+    if (seen.has(profileId)) return [];
+    const nextSeen = new Set(seen);
+    nextSeen.add(profileId);
+
+    const profile = byId.get(profileId);
+    if (!profile) {
+      resolved.set(profileId, []);
+      return [];
+    }
+
+    const rels = new Set<string>();
+    for (const parentId of profile.extends ?? []) {
+      for (const rel of resolve(parentId, nextSeen)) rels.add(rel);
+    }
+    for (const item of profile.link_types ?? []) {
+      if (typeof item.rel === "string" && item.rel.length > 0) rels.add(item.rel);
+    }
+
+    const out = [...rels].sort((a, b) => a.localeCompare(b));
+    resolved.set(profileId, out);
+    return out;
+  };
+
+  const result: ProfileLinkRelMap = {};
+  for (const profileId of attached) {
+    result[profileId] = resolve(profileId, new Set());
+  }
+  return result;
+}
+
 export async function attachProfile(
   workspace: KnbWorkspace,
   profileId: string,
@@ -517,39 +564,48 @@ function validateProfileInput(profileId: string, input: unknown): ProfileIssue[]
 async function readProfileDefinitions(
   workspace: KnbWorkspace,
 ): Promise<Array<{ profileId: string; path: string; profile: ProfileDefinition; issue?: undefined } | { profileId: string; path: string; issue: ProfileIssue }>> {
-  let entries: string[];
-  try {
-    entries = await readdir(profilesDir(workspace));
-  } catch (error) {
-    if (isMissing(error)) return [];
-    throw knbError("io_failed", `Failed to read profiles directory: ${profilesDir(workspace)}`, {
-      path: profilesDir(workspace),
-    }, error);
-  }
   const results: Array<{ profileId: string; path: string; profile: ProfileDefinition; issue?: undefined } | { profileId: string; path: string; issue: ProfileIssue }> = [];
-  for (const entry of entries.filter((name) => name.endsWith(".json")).sort()) {
-    const profileId = entry.slice(0, -5);
-    const path = join(profilesDir(workspace), entry);
+  const seen = new Set<string>();
+  for (const dir of profileDefinitionDirs(workspace)) {
+    let entries: string[];
     try {
-      const raw = await readFile(path, "utf8");
-      const parsed = JSON.parse(raw);
-      const profile = normalizeProfileDefinition(profileId, parsed);
-      results.push({ profileId, path: relativeToRoot(workspace, path), profile });
+      entries = await readdir(dir);
     } catch (error) {
-      results.push({
-        profileId,
-        path: relativeToRoot(workspace, path),
-        issue: {
-          level: "error",
-          code: "profile_file_invalid",
-          message: error instanceof Error ? error.message : String(error),
-          profile_id: profileId,
+      if (isMissing(error)) continue;
+      throw knbError("io_failed", `Failed to read profiles directory: ${dir}`, { path: dir }, error);
+    }
+    for (const entry of entries.filter((name) => name.endsWith(".json")).sort()) {
+      const profileId = entry.slice(0, -5);
+      if (seen.has(profileId)) continue;
+      seen.add(profileId);
+      const path = join(dir, entry);
+      try {
+        const raw = await readFile(path, "utf8");
+        const parsed = JSON.parse(raw);
+        const profile = normalizeProfileDefinition(profileId, parsed);
+        results.push({ profileId, path: relativeToRoot(workspace, path), profile });
+      } catch (error) {
+        results.push({
+          profileId,
           path: relativeToRoot(workspace, path),
-        },
-      });
+          issue: {
+            level: "error",
+            code: "profile_file_invalid",
+            message: error instanceof Error ? error.message : String(error),
+            profile_id: profileId,
+            path: relativeToRoot(workspace, path),
+          },
+        });
+      }
     }
   }
   return results;
+}
+
+function profileDefinitionDirs(workspace: KnbWorkspace): string[] {
+  const local = profilesDir(workspace);
+  const parent = join(dirname(workspace.root), PROFILE_DIR);
+  return parent === local ? [local] : [local, parent];
 }
 
 async function readProfileDefinition(
@@ -585,15 +641,15 @@ async function writeProfileDefinition(workspace: KnbWorkspace, profile: ProfileD
 }
 
 async function countLedgerProfileReferences(workspace: KnbWorkspace, profileId: string): Promise<number> {
-  const snapshot = await readSnapshot({ workspace, freshness: false });
-  if (snapshot.ledger.parseIssues.length > 0) {
+  const snapshot = await loadLedger({ path: workspace.paths.ledger });
+  if (snapshot.parseIssues.length > 0) {
     throw knbError("io_failed", "profile delete requires a parseable ledger", {
       path: workspace.paths.ledger,
-      parse_issues: snapshot.ledger.parseIssues,
+      parse_issues: snapshot.parseIssues,
     });
   }
   let count = 0;
-  for (const loaded of snapshot.ledger.rows) {
+  for (const loaded of snapshot.rows) {
     const profiles = (loaded.row as { scope?: { profiles?: unknown } }).scope?.profiles;
     if (Array.isArray(profiles) && profiles.includes(profileId)) count += 1;
   }

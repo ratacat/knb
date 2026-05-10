@@ -7,6 +7,7 @@ import {
   ROW_KINDS,
   openKnb,
   type ApplyRequest,
+  type CheckResult,
   type Knb,
   type OpenKnbOptions,
 } from "./core/knb";
@@ -280,19 +281,29 @@ async function runFacadeCommand(
 
     if (command === "check") {
       const result = await knb.check();
+      if (!result.ok) {
+        return renderResult(
+          failure(
+            "check",
+            knbError("validation_failed", "KNB check failed", {
+              ...checkFailureDetails(result),
+              suggestions: ["knb index --json", "fix ledger validation issues and rerun knb check --json"],
+            }),
+            baseMeta(),
+          ),
+          outputOptions,
+        );
+      }
       return renderResult(success("check", result, baseMeta()), outputOptions);
     }
 
     if (command === "index") {
-      if (booleanFlag(flags, "rebuild")) {
-        const result = await knb.rebuildIndex();
-        return renderResult(success("index", result, baseMeta()), outputOptions);
+      const positionalRebuild = positionals.length === 1 && positionals[0] === "rebuild";
+      if (positionals.length > 0 && !positionalRebuild) {
+        rejectExtraPositionals("index", positionals);
       }
-      const result = await knb.check();
-      return renderResult(
-        success("index", { projection_freshness: result.projection_freshness }, baseMeta()),
-        outputOptions,
-      );
+      const result = await knb.rebuildIndex();
+      return renderResult(success("index", result, baseMeta()), outputOptions);
     }
 
     return renderResult(
@@ -306,6 +317,17 @@ async function runFacadeCommand(
 
 function renderResult(result: CommandResult, options: OutputOptions): number {
   return render(result, options).exitCode;
+}
+
+function checkFailureDetails(result: CheckResult): Record<string, unknown> {
+  return {
+    ok: result.ok,
+    parse_issues: result.parse_issues,
+    validation_issues: result.validation_issues,
+    state_warnings: result.state_warnings,
+    projection_freshness: result.projection_freshness,
+    fingerprint: result.fingerprint,
+  };
 }
 
 async function runProfileCommand(

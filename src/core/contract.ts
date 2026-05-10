@@ -44,7 +44,7 @@ export const KIND_PREFIXES = {
 } as const;
 
 export type KnbRowKind = (typeof ROW_KINDS)[number];
-export type LinkType = (typeof LINK_TYPES)[number];
+export type LinkType = (typeof LINK_TYPES)[number] | (string & {});
 export type EntryAction = (typeof ENTRY_ACTIONS)[number];
 export type AssessmentLevel = (typeof ASSESSMENT_LEVELS)[number];
 export type ApplyOperationKind = (typeof APPLY_OPERATION_KINDS)[number];
@@ -412,6 +412,10 @@ export type ValidationResult = {
   issues: ValidationIssue[];
 };
 
+export type LedgerValidationOptions = {
+  profileLinkRels?: Record<string, readonly string[]>;
+};
+
 export type LoadedRow = {
   row: KnbRow;
   line: number;
@@ -429,7 +433,11 @@ export type DraftCompletionResult =
 
 type RowMap = Map<string, KnbRow>;
 
-export function validateLedger(rows: LoadedRow[], parseIssues: ValidationIssue[] = []): ValidationResult {
+export function validateLedger(
+  rows: LoadedRow[],
+  parseIssues: ValidationIssue[] = [],
+  options: LedgerValidationOptions = {},
+): ValidationResult {
   const issues: ValidationIssue[] = [...parseIssues];
   const byId: RowMap = new Map();
   const sourceIds = new Set<string>();
@@ -475,10 +483,10 @@ export function validateLedger(rows: LoadedRow[], parseIssues: ValidationIssue[]
     if (kind === "claim") validateClaim(loaded as LoadedRow & { row: ClaimRow }, issues);
     if (kind === "question") validateQuestion(loaded, issues);
     if (kind === "synthesis") validateSynthesis(loaded as LoadedRow & { row: SynthesisRow }, issues);
-    if (kind === "entry") validateEntry(loaded as LoadedRow & { row: EntryRow }, byId, issues);
+    if (kind === "entry") validateEntry(loaded as LoadedRow & { row: EntryRow }, byId, issues, options);
 
     validateSourceRefs(loaded, sourceIds, issues);
-    validateLinks(loaded, byId, issues);
+    validateLinks(loaded, byId, issues, options);
   }
 
   validateSynthesisBasis(rows, byId, issues);
@@ -506,8 +514,8 @@ function collectInactiveSourceIds(rows: LoadedRow[], byId: RowMap): Set<string> 
   return inactive;
 }
 
-export function validateRows(rows: KnbRow[]): ValidationResult {
-  return validateLedger(rows.map((row, index) => ({ row, line: index + 1 })));
+export function validateRows(rows: KnbRow[], options: LedgerValidationOptions = {}): ValidationResult {
+  return validateLedger(rows.map((row, index) => ({ row, line: index + 1 })), [], options);
 }
 
 export function validateApplyRequest(request: unknown): ValidationResult {
@@ -1341,7 +1349,12 @@ function validateSynthesis(loaded: LoadedRow & { row: SynthesisRow }, issues: Va
   validateAssessment(row.assessment, loaded, issues, { requireConfidence: false });
 }
 
-function validateEntry(loaded: LoadedRow & { row: EntryRow }, byId: RowMap, issues: ValidationIssue[]): void {
+function validateEntry(
+  loaded: LoadedRow & { row: EntryRow },
+  byId: RowMap,
+  issues: ValidationIssue[],
+  options: LedgerValidationOptions,
+): void {
   const entry = (loaded.row as { entry?: unknown }).entry;
   if (!isRecord(entry)) {
     issues.push({
@@ -1424,7 +1437,7 @@ function validateEntry(loaded: LoadedRow & { row: EntryRow }, byId: RowMap, issu
       "entry_link_endpoint_required",
       "entry_link_endpoint_unresolved",
     );
-    requireEnum(link.rel, LINK_TYPES, "entry.link.rel", "link_kind_invalid", loaded, issues);
+    requireLinkRel(link.rel, "entry.link.rel", loaded, issues, options);
     return;
   }
 
@@ -1589,7 +1602,12 @@ function validateSourceRefs(loaded: LoadedRow, sourceIds: Set<string>, issues: V
   }
 }
 
-function validateLinks(loaded: LoadedRow, byId: RowMap, issues: ValidationIssue[]): void {
+function validateLinks(
+  loaded: LoadedRow,
+  byId: RowMap,
+  issues: ValidationIssue[],
+  options: LedgerValidationOptions,
+): void {
   const links = (loaded.row as { links?: unknown }).links;
   if (links === undefined) return;
   if (!Array.isArray(links)) {
@@ -1635,7 +1653,7 @@ function validateLinks(loaded: LoadedRow, byId: RowMap, issues: ValidationIssue[
         path: "links.target_id",
       });
     }
-    requireEnum(link.rel, LINK_TYPES, "link.rel", "link_kind_invalid", loaded, issues);
+    requireLinkRel(link.rel, "link.rel", loaded, issues, options);
   }
 }
 
@@ -1848,11 +1866,11 @@ function validateOperation(operation: unknown, basePath: string, issues: Validat
       });
     }
     const rel = (operation as { rel?: unknown }).rel;
-    if (typeof rel !== "string" || !LINK_TYPES.includes(rel as LinkType)) {
+    if (typeof rel !== "string" || rel.length === 0) {
       issues.push({
         level: "error",
         code: "link_kind_invalid",
-        message: `rel must be one of: ${LINK_TYPES.join(", ")}`,
+        message: "rel must be a non-empty string",
         path: `${basePath}.rel`,
       });
     }
@@ -1915,6 +1933,40 @@ function requireEnum<T extends readonly string[]>(
       path: field,
     });
   }
+}
+
+function requireLinkRel(
+  value: unknown,
+  field: string,
+  loaded: LoadedRow,
+  issues: ValidationIssue[],
+  options: LedgerValidationOptions,
+): void {
+  const allowed = allowedLinkRelsForRow(loaded.row, options);
+  if (typeof value !== "string" || !allowed.includes(value)) {
+    issues.push({
+      level: "error",
+      code: "link_kind_invalid",
+      line: loaded.line,
+      id: stringValue((loaded.row as { id?: unknown }).id),
+      message: `${field} must be one of: ${allowed.join(", ")}`,
+      path: field,
+    });
+  }
+}
+
+function allowedLinkRelsForRow(row: KnbRow, options: LedgerValidationOptions): string[] {
+  const allowed: string[] = [...LINK_TYPES];
+  const seen = new Set<string>(allowed);
+  const profiles = stringArray((row as { scope?: { profiles?: unknown } }).scope?.profiles);
+  for (const profileId of profiles) {
+    for (const rel of options.profileLinkRels?.[profileId] ?? []) {
+      if (seen.has(rel)) continue;
+      allowed.push(rel);
+      seen.add(rel);
+    }
+  }
+  return allowed;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

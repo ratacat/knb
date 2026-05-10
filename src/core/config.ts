@@ -83,7 +83,8 @@ export function configProfiles(config: KnbInstanceConfig): string[] {
 }
 
 export function configProfilesForInstance(config: KnbConfig, instanceId: string): string[] {
-  return configProfiles(currentInstanceConfig(config, instanceId));
+  const instanceProfiles = configProfiles(currentInstanceConfig(config, instanceId));
+  return instanceProfiles.length > 0 ? instanceProfiles : configProfiles(config);
 }
 
 export function updateConfigInstance(

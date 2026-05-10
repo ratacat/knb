@@ -13,6 +13,7 @@ export type KnbConfig = {
   schema_version?: "knb.config.v1";
   default_instance?: string;
   instances?: Record<string, KnbInstanceConfig>;
+  profiles?: string[];
 };
 
 export type KnbInstanceConfig = {

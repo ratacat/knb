@@ -16,6 +16,7 @@ import {
   type DraftRow,
   type KnbRow,
   type KnbRowKind,
+  type LedgerValidationOptions,
   type LoadedRow,
   type Provenance,
   type Scope,
@@ -28,6 +29,8 @@ import {
   type LedgerFingerprint,
   type LedgerWriteResult,
 } from "./ledger";
+import { profileLinkRelsForWorkspace } from "./profiles";
+import type { KnbWorkspace } from "./workspace";
 
 const ID_COLLISION_RETRY_LIMIT = 8;
 
@@ -41,7 +44,7 @@ export function generateRunId(
 }
 
 export type ApplyDeps = {
-  workspace: { paths: { ledger: string; lock: string } };
+  workspace: { paths: { ledger: string; lock: string } } | KnbWorkspace;
   runtime: { clock: () => Date; randomIdPart: (bytes: number) => string };
   actor: string;
   writeLedger?: typeof defaultWriteLedger;
@@ -136,10 +139,11 @@ export async function applyOperations(
   }
 
   const writeLedger = deps.writeLedger ?? defaultWriteLedger;
+  const validationOptions = await validationOptionsForWorkspace(deps.workspace);
   const writeResult: LedgerWriteResult<ApplyResult> = await writeLedger(
     { path: ledgerPath, lockPath: deps.workspace.paths.lock },
     async (snapshot) => {
-      const validation = validateLedger(snapshot.rows, snapshot.parseIssues);
+      const validation = validateLedger(snapshot.rows, snapshot.parseIssues, validationOptions);
       if (!validation.ok) {
         throw knbError(
           "validation_failed",
@@ -275,7 +279,7 @@ export async function applyOperations(
           line,
         });
       }
-      const finalValidation = validateLedger(candidate, snapshot.parseIssues);
+      const finalValidation = validateLedger(candidate, snapshot.parseIssues, validationOptions);
       const finalIssues = annotateApplyValidationIssues(finalValidation.issues, appendedLineToPlan);
       if (planningIssues.length > 0 || !finalValidation.ok) {
         const allIssues = [
@@ -306,6 +310,11 @@ export async function applyOperations(
   };
 
   return finalResult;
+}
+
+async function validationOptionsForWorkspace(workspace: ApplyDeps["workspace"]): Promise<LedgerValidationOptions> {
+  if (!("root" in workspace) || !("instanceId" in workspace) || !("config" in workspace)) return {};
+  return { profileLinkRels: await profileLinkRelsForWorkspace(workspace) };
 }
 
 export async function previewApplyOperations(

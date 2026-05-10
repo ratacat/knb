@@ -3,9 +3,15 @@
 // status, check, get, query, context, render, and index do not reassemble the
 // rules independently.
 
-import type { LoadedRow as ContractLoadedRow, ValidationIssue, ValidationResult } from "./contract";
+import type {
+  LedgerValidationOptions,
+  LoadedRow as ContractLoadedRow,
+  ValidationIssue,
+  ValidationResult,
+} from "./contract";
 import { validateLedger } from "./contract";
 import { loadLedger as defaultLoadLedger, type LedgerFingerprint, type LedgerSnapshot } from "./ledger";
+import { profileLinkRelsForWorkspace } from "./profiles";
 import {
   checkFreshness as defaultCheckFreshness,
   type FreshnessReport,
@@ -34,6 +40,7 @@ export type ReadSnapshotLedgerLoader = (options: { path: string }) => Promise<Le
 export type ReadSnapshotValidator = (
   rows: ContractLoadedRow[],
   parseIssues: ValidationIssue[],
+  options?: LedgerValidationOptions,
 ) => ValidationResult;
 
 export type ReadSnapshotProjector = (rows: ContractLoadedRow[], options: StateOptions) => EffectiveState;
@@ -73,7 +80,10 @@ export async function readSnapshot(options: ReadSnapshotOptions): Promise<KnbRea
     line: issue.line,
   }));
 
-  const validation = validator(contractRows, parseIssues);
+  const validationOptions: LedgerValidationOptions = {
+    profileLinkRels: await profileLinkRelsForWorkspace(options.workspace),
+  };
+  const validation = validator(contractRows, parseIssues, validationOptions);
 
   const hasParseError = ledger.parseIssues.length > 0;
   const hasValidationError = validation.issues.some((issue) => issue.level === "error");

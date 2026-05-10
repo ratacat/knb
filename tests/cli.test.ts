@@ -1135,6 +1135,68 @@ describe("cli apply / add / add payload sources", () => {
     expect(statusEnv.data.row_count).toBe(2);
   });
 
+  test("apply accepts link rels defined by an attached profile", async () => {
+    await initWorkspace();
+    const profilePayload = JSON.stringify({
+      display_name: "PM Situation",
+      link_types: [{ rel: "tracks" }],
+    });
+    const profile = await runCliBinary(
+      ["profile", "create", "pm.situation.v1", "--stdin", "--attach", "--json"],
+      { stdin: profilePayload },
+    );
+    expect(profile.code).toBe(0);
+
+    const payload = JSON.stringify({
+      operations: [
+        {
+          op: "add",
+          as: "situation",
+          row: {
+            kind: "source",
+            scope: { profiles: ["pm.situation.v1"] },
+            source: { type: "raw_note", title: "Situation", content_hash: "sha256:situation" },
+            provenance: { acquisition: { method: "manual" } },
+          },
+        },
+        {
+          op: "add",
+          as: "instrument",
+          row: {
+            kind: "source",
+            scope: { profiles: ["pm.situation.v1"] },
+            source: { type: "raw_note", title: "Instrument", content_hash: "sha256:instrument" },
+            provenance: { acquisition: { method: "manual" } },
+          },
+        },
+        {
+          op: "link",
+          from_id: "$situation",
+          to_id: "$instrument",
+          rel: "tracks",
+          scope: { profiles: ["pm.situation.v1"] },
+        },
+      ],
+    });
+
+    const result = await runCliBinary(["apply", "--json", payload, "--pretty"]);
+    expect(result.code).toBe(0);
+    const env = JSON.parse(result.stdout.trim()) as {
+      ok: boolean;
+      data: { created: Array<{ kind: string }> };
+    };
+    expect(env.ok).toBe(true);
+    expect(env.data.created.map((entry) => entry.kind)).toEqual(["source", "source", "entry"]);
+
+    const status = await runCliBinary(["status", "--json"]);
+    expect(status.code).toBe(0);
+    const statusEnv = JSON.parse(status.stdout.trim()) as {
+      data: { validation_error_count: number; row_count: number };
+    };
+    expect(statusEnv.data.validation_error_count).toBe(0);
+    expect(statusEnv.data.row_count).toBe(3);
+  });
+
   test("apply rejects invalid operation shapes with operation-index diagnostics", async () => {
     await initWorkspace();
     const payload = JSON.stringify({ operations: [{ op: "delete" }] });
@@ -1731,7 +1793,7 @@ describe("cli render / check / index", () => {
     expect(await pathExists(env.data.path)).toBe(true);
   });
 
-  test("check before any render reports ok=false but exits 0", async () => {
+  test("check before indexing exits nonzero with health details", async () => {
     await initWorkspace();
     await runCliBinary([
       "add",
@@ -1744,27 +1806,48 @@ describe("cli render / check / index", () => {
       }),
     ]);
     const result = await runCliBinary(["check", "--json"]);
-    expect(result.code).toBe(0);
-    const env = JSON.parse(result.stdout.trim()) as {
+    expect(result.code).toBe(3);
+    expect(result.stdout).toBe("");
+    const env = JSON.parse(result.stderr.trim()) as {
       ok: boolean;
-      data: { ok: boolean };
+      error: {
+        code: string;
+        details?: {
+          ok?: boolean;
+          projection_freshness?: { entries: Array<{ kind: string; state: string }> };
+        };
+      };
     };
-    expect(env.ok).toBe(true);
-    expect(env.data.ok).toBe(false);
+    expect(env.ok).toBe(false);
+    expect(env.error.code).toBe("validation_failed");
+    expect(env.error.details?.ok).toBe(false);
+    const missingIndexes = env.error.details?.projection_freshness?.entries.filter(
+      (entry) => entry.kind === "index" && entry.state === "missing",
+    );
+    expect(missingIndexes?.length).toBe(6);
   });
 
-  test("index without --rebuild returns projection_freshness only", async () => {
+  test("index without --rebuild produces V1 sidecars in the indexes directory", async () => {
     await initWorkspace();
     const result = await runCliBinary(["index", "--json"]);
     expect(result.code).toBe(0);
     const env = JSON.parse(result.stdout.trim()) as {
       ok: boolean;
       command: string;
-      data: { projection_freshness: { entries: unknown[] } };
+      data: { indexes: Array<{ name: string; path: string; bytes_written: number }> };
     };
     expect(env.ok).toBe(true);
     expect(env.command).toBe("index");
-    expect(Array.isArray(env.data.projection_freshness.entries)).toBe(true);
+    expect(env.data.indexes.length).toBe(6);
+    for (const entry of env.data.indexes) {
+      expect(entry.bytes_written).toBeGreaterThan(0);
+      expect(await pathExists(entry.path)).toBe(true);
+    }
+
+    const check = await runCliBinary(["check", "--json"]);
+    expect(check.code).toBe(0);
+    const checkEnv = JSON.parse(check.stdout.trim()) as { data: { ok: boolean } };
+    expect(checkEnv.data.ok).toBe(true);
   });
 
   test("index --rebuild produces V1 sidecars in the indexes directory", async () => {
@@ -1790,11 +1873,38 @@ describe("cli render / check / index", () => {
       expect(await pathExists(entry.path)).toBe(true);
     }
   });
+
+  test("index rebuild positional form also rebuilds indexes", async () => {
+    await initWorkspace();
+    const result = await runCliBinary(["index", "rebuild", "--json"]);
+    expect(result.code).toBe(0);
+    const env = JSON.parse(result.stdout.trim()) as {
+      ok: boolean;
+      data: { indexes: Array<{ name: string; path: string; bytes_written: number }> };
+    };
+    expect(env.ok).toBe(true);
+    expect(env.data.indexes.length).toBe(6);
+    for (const entry of env.data.indexes) {
+      expect(entry.bytes_written).toBeGreaterThan(0);
+      expect(await pathExists(entry.path)).toBe(true);
+    }
+  });
+
+  test("index rejects unknown positional arguments", async () => {
+    await initWorkspace();
+    const result = await runCliBinary(["index", "refresh", "--json"]);
+    expect(result.code).toBe(2);
+    const env = JSON.parse(result.stderr.trim()) as { ok: boolean; error: { code: string } };
+    expect(env.ok).toBe(false);
+    expect(env.error.code).toBe("invalid_arguments");
+  });
 });
 
 describe("cli envelope structure invariants", () => {
   test("every success envelope has ok/command/data/meta and no error key", async () => {
     await initWorkspace();
+    const index = await runCliBinary(["index", "--json"]);
+    expect(index.code).toBe(0);
     const commands = [
       ["status"],
       ["schema"],
